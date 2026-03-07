@@ -1,12 +1,14 @@
-const DB_KEY = 'GF_MODERN_STRICT';
+const DB_KEY = 'GF_DASH_FOCUS_V1';
 let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 let active = null;
 
 function save() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
 
-function getStatus(avg, target) {
+// DASHBOARD LOGIK: Ignoriert "Meine Ziele" für die Farbe
+function getDashStatus(avg) {
     if (avg === null) return { g: 'var(--grad-none)', t: 'KEINE DATEN' };
-    return avg >= (target || 15) 
+    // Festgelegt: Ab 10 Punkten ist es "GUT" (Blau), darunter "SCHLECHT" (Rot)
+    return avg >= 10 
         ? { g: 'var(--grad-good)', t: 'GUT' } 
         : { g: 'var(--grad-bad)', t: 'SCHLECHT' };
 }
@@ -27,14 +29,14 @@ function renderDash() {
 
     data.forEach(f => {
         const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
-        const s = getStatus(avg, f.target);
+        const s = getDashStatus(avg);
         if(avg !== null) { sum += avg; count++; }
 
         grid.innerHTML += `
             <div class="card" style="background: ${s.g}" onclick="openDet(${f.id})">
-                <span style="font-weight:900; opacity:0.7; text-transform:uppercase; font-size:12px;">${f.name}</span>
+                <span style="font-weight:900; opacity:0.8; text-transform:uppercase; font-size:12px;">${f.name}</span>
                 <h1>${avg !== null ? avg.toFixed(1) : '-'}</h1>
-                <span style="font-weight:900; font-size:10px;">ZIEL: ${f.target || 15}</span>
+                <span style="font-weight:900; font-size:10px; opacity:0.6">STATUS: ${s.t}</span>
             </div>`;
     });
     document.getElementById('main-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '-';
@@ -48,7 +50,7 @@ function renderGoals() {
             <div class="goal-edit-card">
                 <span style="font-weight:900; font-size:18px;">${f.name}</span>
                 <div>
-                    <span style="font-size:12px; opacity:0.6; margin-right:10px;">Ziel-Punkte:</span>
+                    <span style="font-size:12px; opacity:0.6; margin-right:10px;">Dein Wunsch-Ziel:</span>
                     <input type="number" value="${f.target || 15}" onchange="updateTarget(${f.id}, this.value)">
                 </div>
             </div>`;
@@ -65,7 +67,7 @@ function openDet(id) {
     active = data.find(x => x.id === id);
     showPage('detail');
     const avg = active.notes.length ? active.notes.reduce((a,b)=>a+b,0)/active.notes.length : null;
-    const s = getStatus(avg, active.target);
+    const s = getDashStatus(avg);
 
     document.getElementById('det-hero').style.background = s.g;
     document.getElementById('det-title').innerText = active.name;
@@ -75,7 +77,7 @@ function openDet(id) {
     const hist = document.getElementById('note-history');
     hist.innerHTML = active.notes.map((n, i) => `
         <div class="glass" style="display:flex; justify-content:space-between; margin-bottom:8px; padding:12px">
-            <b>Note: ${n}</b>
+            <b>Punkte: ${n}</b>
             <button onclick="delNote(${i})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold">X</button>
         </div>`).reverse().join('');
 }
