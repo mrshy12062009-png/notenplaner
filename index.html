@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Pro v21</title>
+    <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,34 +18,40 @@
         <section id="page-list" class="page active">
             <div class="header-area">
                 <h1>Dashboard</h1>
-                <div class="total-badge">Schnitt: <span id="dash-total">-</span></div>
+                <div class="total-status-card" id="global-analysis-dash">
+                    Schnitt: <span id="dash-total">-</span>
+                </div>
             </div>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach...">
+                <input type="text" id="f-name" placeholder="Neues Fach hinzufügen...">
                 <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Meine Ziele</h1>
+            <h1>🎯 Deine Ziele</h1>
             <div class="input-card">
-                <label>Globales Ziel (Standard)</label>
+                <label>Globales Gesamtziel</label>
                 <input type="number" id="goal-input" step="0.1" oninput="updateGlobalGoal(this.value)">
+                <p id="total-goal-feedback" style="margin-top:10px; font-weight:bold;"></p>
             </div>
-            <h3>Fächer-Analyse <small>(Klicken für Fach-Ziel)</small></h3>
+            <h3>Fächer-Analyse</h3>
             <div id="goals-list" class="goals-list"></div>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← Zurück</button>
-            <div class="detail-header" id="det-header">
-                <div>
-                    <h1 id="det-title" style="margin:0">Fach</h1>
-                    <span id="det-status-label" class="badge-white">Status</span>
+            <button onclick="showPage('list')" class="btn-back">← Zurück zum Dashboard</button>
+            <div class="detail-hero" id="det-header">
+                <div class="hero-content">
+                    <h1 id="det-title">Fachname</h1>
+                    <div id="det-status-badge" class="status-pill">Status</div>
                 </div>
-                <div class="big-avg" id="det-avg">-</div>
+                <div class="hero-avg">
+                    <span id="det-avg">-</span>
+                </div>
             </div>
+
             <div class="detail-grid">
                 <div class="input-card">
                     <h3>Note eintragen</h3>
@@ -54,11 +60,13 @@
                 </div>
                 <div class="input-card">
                     <h3>Analyse</h3>
-                    <div id="det-analysis-text">Warte auf Daten...</div>
+                    <div id="det-analysis-text">Keine Daten verfügbar.</div>
                 </div>
             </div>
-            <div id="notes-list"></div>
-            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
+            
+            <h3>Notenverlauf</h3>
+            <div id="notes-list" class="notes-history"></div>
+            <button onclick="deleteFach()" class="btn-link-danger">🗑️ Fach löschen</button>
         </section>
     </main>
 
@@ -66,9 +74,9 @@
         <div class="modal-content">
             <h3 id="modal-title">Ziel setzen</h3>
             <input type="number" id="modal-goal-input" placeholder="Eigenes Ziel...">
-            <div style="display:flex; gap:10px; margin-top:10px;">
+            <div style="display:flex; gap:10px;">
                 <button class="btn-accent" onclick="saveSubjectGoal()">Speichern</button>
-                <button class="btn-danger" onclick="closeModal()">Abbruch</button>
+                <button class="btn-danger" onclick="closeModal()">Abbrechen</button>
             </div>
         </div>
     </div>
