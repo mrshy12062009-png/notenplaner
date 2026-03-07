@@ -1,129 +1,122 @@
-let subjects = JSON.parse(localStorage.getItem('GF_WEB_ONLY_V5')) || [];
-let activeId = null;
-let currentModalAction = null;
+let appData = JSON.parse(localStorage.getItem('GF_PRO_STABLE_V6')) || [];
+let currentSubjectId = null;
+let modalCallback = null;
 
-const save = () => localStorage.setItem('GF_WEB_ONLY_V5', JSON.stringify(subjects));
+const save = () => localStorage.setItem('GF_PRO_STABLE_V6', JSON.stringify(appData));
 
-// MODAL FUNKTIONEN (Website-Ersatz für Chrome-Popup)
-function openModal(text, confirmAction) {
-    document.getElementById('modal-text').innerText = text;
-    document.getElementById('custom-modal').style.display = 'flex';
-    currentModalAction = confirmAction;
+// WEBSITE POPUP LOGIK (Kein Chrome mehr)
+function openM(msg, callback) {
+    document.getElementById('modal-msg').innerText = msg;
+    document.getElementById('modal-overlay').classList.remove('modal-hide');
+    modalCallback = callback;
 }
+function closeM() { document.getElementById('modal-overlay').classList.add('modal-hide'); }
+document.getElementById('m-confirm').onclick = () => { if(modalCallback) modalCallback(); closeM(); };
 
-function closeModal() {
-    document.getElementById('custom-modal').style.display = 'none';
-}
-
-document.getElementById('modal-confirm').onclick = () => {
-    if(currentModalAction) currentModalAction();
-    closeModal();
-};
-
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
-    if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add('active');
+function tab(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    if(document.getElementById('tab-' + id)) document.getElementById('tab-' + id).classList.add('active');
     if(id === 'list') renderDash();
     if(id === 'goals') renderGoals();
 }
 
-function getStatus(avg, target) {
-    if (avg === null) return { g: 'var(--card)', t: 'Warte auf Noten' };
-    return avg >= (target || 10) ? { g: 'var(--g-blue)', t: 'STARK' } : { g: 'var(--g-red)', t: 'REVIDIEREN' };
+function getStat(avg, target) {
+    if (avg === null) return { g: 'var(--card)', t: 'KEINE DATEN' };
+    return avg >= (target || 10) ? { g: 'var(--blue)', t: 'IM ZIEL' } : { g: 'var(--red)', t: 'DRUNTER' };
 }
 
 function renderDash() {
-    const grid = document.getElementById('dash-grid');
+    const grid = document.getElementById('grid');
     grid.innerHTML = '';
-    let total = 0, count = 0;
+    let totalAvg = 0, count = 0;
 
-    subjects.forEach(s => {
+    appData.forEach(s => {
         const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-        const status = getStatus(avg, s.target);
-        if(avg !== null) { total += avg; count++; }
-        const percent = avg !== null ? Math.min((avg / 15) * 100, 100) : 0;
+        const stat = getStat(avg, s.target);
+        if(avg !== null) { totalAvg += avg; count++; }
+        const fill = avg !== null ? Math.min((avg / 15) * 100, 100) : 0;
 
         grid.innerHTML += `
-            <div class="card" onclick="openDetail(${s.id})">
-                <span class="title">${s.name}</span>
+            <div class="subject-card" onclick="openDet(${s.id})">
+                <span class="name-label">${s.name}</span>
                 <h2 style="color: ${avg !== null ? '#fff' : '#222'}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <div class="progress-container">
-                    <div class="progress-fill" style="width: ${percent}%; background: ${status.g}"></div>
+                <div class="prog-bar">
+                    <div class="prog-fill" style="width: ${fill}%; background: ${stat.g}"></div>
                 </div>
             </div>`;
     });
-    document.getElementById('main-avg').innerText = count > 0 ? (total/count).toFixed(2) : '0.0';
+    document.getElementById('total-avg').innerText = count > 0 ? (totalAvg/count).toFixed(2) : '0.0';
 }
 
-function addFach() {
-    const el = document.getElementById('name-in');
-    if(!el.value.trim()) return;
-    subjects.push({ id: Date.now(), name: el.value, notes: [], target: 10 });
-    el.value = ''; save(); renderDash();
+function addSubject() {
+    const input = document.getElementById('add-name');
+    if(!input.value.trim()) return;
+    appData.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
+    input.value = ''; save(); renderDash();
 }
 
-function openDetail(id) {
-    activeId = id;
-    const s = subjects.find(x => x.id === id);
-    showPage('detail');
+function openDet(id) {
+    currentSubjectId = id;
+    const s = appData.find(x => x.id === id);
+    tab('det');
     const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-    const status = getStatus(avg, s.target);
+    const stat = getStat(avg, s.target);
 
-    document.getElementById('det-hero').style.background = status.g;
-    document.getElementById('det-title').innerText = s.name;
-    document.getElementById('det-score').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-status').innerText = status.t;
+    document.getElementById('det-bg').style.background = stat.g;
+    document.getElementById('det-name').innerText = s.name;
+    document.getElementById('det-num').innerText = avg !== null ? avg.toFixed(1) : '0.0';
+    document.getElementById('det-txt').innerText = stat.t;
 
-    const hist = document.getElementById('note-history');
+    const hist = document.getElementById('history');
     hist.innerHTML = s.notes.map((n, i) => `
-        <div class="glass" style="display:flex; justify-content:space-between; align-items:center; padding:20px; margin-bottom:12px; border-radius:20px">
-            <b style="font-size:18px">Punkte: ${n}</b>
-            <button onclick="delNote(${i})" style="color:#f43f5e; background:none; border:none; cursor:pointer; font-weight:900">LÖSCHEN</button>
+        <div class="card-input" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:15px">
+            <b>${n} Punkte</b>
+            <button onclick="delGrade(${i})" style="color:#f43f5e; background:none; border:none; cursor:pointer; font-weight:bold">Löschen</button>
         </div>`).reverse().join('');
 }
 
-function addNote() {
-    const el = document.getElementById('note-in');
-    const val = Math.min(Math.max(parseFloat(el.value), 0), 15);
+function addGrade() {
+    const input = document.getElementById('add-note');
+    const val = Math.min(Math.max(parseFloat(input.value), 0), 15);
     if(isNaN(val)) return;
-    subjects.find(x => x.id === activeId).notes.push(val);
-    el.value = ''; save(); openDetail(activeId);
+    appData.find(x => x.id === currentSubjectId).notes.push(val);
+    input.value = ''; save(); openDet(currentSubjectId);
 }
 
-function delNote(i) {
-    const s = subjects.find(x => x.id === activeId);
+function delGrade(i) {
+    const s = appData.find(x => x.id === currentSubjectId);
     s.notes.splice(s.notes.length - 1 - i, 1);
-    save(); openDetail(activeId);
+    save(); openDet(currentSubjectId);
 }
 
-function askDeleteFach() {
-    openModal("Fach wirklich löschen?", () => {
-        subjects = subjects.filter(x => x.id !== activeId);
-        save(); showPage('list');
+function askDelSubject() {
+    openM("Dieses Fach wirklich löschen?", () => {
+        appData = appData.filter(x => x.id !== currentSubjectId);
+        save(); tab('list');
     });
 }
 
 function renderGoals() {
-    const list = document.getElementById('goals-list');
-    list.innerHTML = '';
-    subjects.forEach(s => {
-        list.innerHTML += `
-            <div class="goal-card">
-                <span style="font-weight:900; font-size:20px">${s.name}</span>
+    const area = document.getElementById('goals-area');
+    area.innerHTML = '';
+    appData.forEach(s => {
+        area.innerHTML += `
+            <div class="goal-item">
+                <span style="font-weight:900; font-size:18px">${s.name}</span>
                 <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
             </div>`;
     });
 }
 
 function updateGoal(id, val) {
-    subjects.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
+    appData.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
     save();
 }
 
 function askReset() {
-    openModal("Alle Daten löschen?", () => {
+    openM("Wirklich alle Daten löschen?", () => {
         localStorage.clear();
         location.reload();
     });

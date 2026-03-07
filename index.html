@@ -2,63 +2,63 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Pro Elite</title>
+    <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="custom-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h2 id="modal-text">Bist du sicher?</h2>
-            <div class="modal-btns">
-                <button class="btn-confirm" id="modal-confirm">Ja</button>
-                <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+    <div id="modal-overlay" class="modal-hide">
+        <div class="modal-box">
+            <h2 id="modal-msg">Bist du sicher?</h2>
+            <div class="modal-choices">
+                <button class="m-btn confirm" id="m-confirm">Ja, löschen</button>
+                <button class="m-btn cancel" onclick="closeM()">Abbrechen</button>
             </div>
         </div>
     </div>
 
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
-        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Meine Ziele</button>
+        <button class="nav-item active" id="tab-list" onclick="tab('list')">🏠 Dashboard</button>
+        <button class="nav-item" id="tab-goals" onclick="tab('goals')">🎯 Meine Ziele</button>
         <div class="spacer"></div>
-        <button class="nav-btn-reset" onclick="askReset()">Daten löschen</button>
+        <button class="reset-link" onclick="askReset()">Daten zurücksetzen</button>
     </nav>
 
-    <main class="content">
-        <section id="page-list" class="page active">
-            <div class="header">
+    <main class="main-view">
+        <section id="view-list" class="view active">
+            <div class="top-row">
                 <h1>Dashboard</h1>
-                <div class="main-avg" id="main-avg">0.0</div>
+                <div class="total-badge" id="total-avg">0.0</div>
             </div>
-            <div class="add-bar">
-                <input type="text" id="name-in" placeholder="Fach hinzufügen... (Enter)" onkeydown="if(event.key==='Enter') addFach()">
-                <button onclick="addFach()">+</button>
+            <div class="input-row">
+                <input type="text" id="add-name" placeholder="Neues Fach... (Enter)" onkeydown="if(event.key==='Enter') addSubject()">
+                <button class="add-btn" onclick="addSubject()">+</button>
             </div>
-            <div id="dash-grid" class="modern-grid"></div>
+            <div id="grid" class="dash-grid"></div>
         </section>
 
-        <section id="page-goals" class="page">
-            <h1>🎯 Deine Wunsch-Ziele</h1>
-            <div id="goals-list" class="goals-container"></div>
+        <section id="view-goals" class="view">
+            <h1>🎯 Meine Ziele</h1>
+            <div id="goals-area" class="goals-list"></div>
         </section>
 
-        <section id="page-detail" class="page">
-            <button class="back-link" onclick="showPage('list')">← Zurück</button>
-            <div class="hero-card" id="det-hero">
-                <h1 id="det-title">-</h1>
-                <div class="hero-score" id="det-score">0.0</div>
-                <div id="det-status" class="status-pill">-</div>
+        <section id="view-det" class="view">
+            <button class="back-btn" onclick="tab('list')">← Dashboard</button>
+            <div class="header-card" id="det-bg">
+                <h1 id="det-name">-</h1>
+                <div class="big-num" id="det-num">0.0</div>
+                <div class="status-tag" id="det-txt">-</div>
             </div>
-            <div class="glass">
-                <h3>Note eintragen</h3>
-                <div class="flex-input">
-                    <input type="number" id="note-in" min="0" max="15" placeholder="Punkte..." onkeydown="if(event.key==='Enter') addNote()">
-                    <button class="btn-primary" onclick="addNote()">OK</button>
+            <div class="card-input">
+                <h3>Note eintragen (0-15)</h3>
+                <div class="input-group">
+                    <input type="number" id="add-note" placeholder="Punkte..." onkeydown="if(event.key==='Enter') addGrade()">
+                    <button class="save-btn" onclick="addGrade()">Hinzufügen</button>
                 </div>
             </div>
-            <div id="note-history"></div>
-            <button class="btn-danger" onclick="askDeleteFach()">Fach löschen</button>
+            <div id="history"></div>
+            <button class="del-subject-btn" onclick="askDelSubject()">Fach komplett entfernen</button>
         </section>
     </main>
     <script src="script.js"></script>
