@@ -14,13 +14,7 @@ const STORAGE_KEYS = {
 
 const SCHEMA_VERSION = 2;
 
-const DEFAULT_EVENTS_SEED = {
-    "2026-01-12": [{ id: "seed-1", text: "Präsentationsprüfung", priority: "high", seed: true }],
-    "2026-03-09": [{ id: "seed-2", text: "Englisch Mündlich", priority: "medium", seed: true }],
-    "2026-04-21": [{ id: "seed-3", text: "MSA Deutsch", priority: "high", seed: true }],
-    "2026-04-29": [{ id: "seed-4", text: "MSA Mathe", priority: "high", seed: true }],
-    "2026-05-05": [{ id: "seed-5", text: "MSA Englisch", priority: "high", seed: true }]
-};
+const DEFAULT_EVENTS_SEED = {};
 
 export function loadSubjectsStore() {
     const fallback = { version: SCHEMA_VERSION, subjects: [] };

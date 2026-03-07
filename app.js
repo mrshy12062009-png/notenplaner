@@ -239,11 +239,27 @@ export function initApp() {
 
         for (let day = 1; day <= daysInMonth; day += 1) {
             const dateStr = toIsoDate(year, month + 1, day);
+            const meta = getDayMeta(dateStr);
             const events = getEventsForDate(dateStr);
             const dominantPriority = events.length ? events[0].priority : null;
+
+            const dayClasses = ["day"];
+            if (meta.isWeekend) dayClasses.push("is-weekend");
+            if (meta.isPast) dayClasses.push("is-past");
+            if (meta.isToday) dayClasses.push("is-today");
+            if (meta.holidayName) dayClasses.push("is-holiday");
+            if (meta.vacationName) dayClasses.push("is-vacation");
+
             html += `
-                <article class="day">
-                    <span class="day-number">${day}</span>
+                <article class="${dayClasses.join(" ")}" title="${escapeHtml(meta.title)}">
+                    <div class="day-header">
+                        <span class="day-number">${day}</span>
+                        ${meta.isToday ? '<span class="today-badge">Heute</span>' : ""}
+                    </div>
+                    <div class="day-meta">
+                        ${meta.holidayName ? `<span class="day-pill day-pill-holiday">${escapeHtml(meta.holidayName)}</span>` : ""}
+                        ${meta.vacationName ? `<span class="day-pill day-pill-vacation">${escapeHtml(meta.vacationName)}</span>` : ""}
+                    </div>
                     ${events.length ? `<span class="event-dot priority-${dominantPriority}" title="${events.length} Termin(e)"></span>` : ""}
                 </article>
             `;
@@ -264,13 +280,29 @@ export function initApp() {
 
             const dayEvents = getEventsForDate(date);
             dayEvents.forEach((item) => {
-                entries.push({ date, ...item });
+                entries.push({
+                    date,
+                    ...item,
+                    kind: "user"
+                });
             });
         });
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day += 1) {
+            const dateStr = toIsoDate(year, month + 1, day);
+            const specialEntries = getSpecialEntriesForDate(dateStr);
+            specialEntries.forEach((entry) => {
+                entries.push(entry);
+            });
+        }
 
         entries.sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);
             if (dateCompare !== 0) return dateCompare;
+            if (a.kind !== b.kind) {
+                return a.kind === "special" ? -1 : 1;
+            }
             return priorityRank(a.priority) - priorityRank(b.priority);
         });
 
@@ -281,6 +313,15 @@ export function initApp() {
 
         els.eventList.innerHTML = entries
             .map((entry) => {
+                if (entry.kind === "special") {
+                    return `
+                        <article class="list-item list-item-special">
+                            <strong>${escapeHtml(entry.text)}</strong>
+                            <p class="list-meta">${formatDate(entry.date)} · ${entry.typeLabel}</p>
+                        </article>
+                    `;
+                }
+
                 return `
                     <article class="list-item">
                         <strong>${escapeHtml(entry.text)}</strong>
@@ -557,6 +598,168 @@ export function initApp() {
     function getEventsForDate(date) {
         const events = state.eventsStore.events[date] || [];
         return [...events].sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+    }
+
+    function getSpecialEntriesForDate(dateStr) {
+        const meta = getDayMeta(dateStr);
+        const special = [];
+
+        if (meta.holidayName) {
+            special.push({
+                kind: "special",
+                date: dateStr,
+                text: meta.holidayName,
+                typeLabel: "Feiertag",
+                priority: "high"
+            });
+        }
+
+        if (meta.vacationName) {
+            special.push({
+                kind: "special",
+                date: dateStr,
+                text: meta.vacationName,
+                typeLabel: "Ferien",
+                priority: "medium"
+            });
+        }
+
+        return special;
+    }
+
+    function getDayMeta(dateStr) {
+        const date = new Date(`${dateStr}T00:00:00`);
+        const today = startOfDay(new Date());
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        const isToday = toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate()) === dateStr;
+        const isPast = date < today;
+        const holidayName = getHolidayName(date);
+        const vacationName = getVacationName(date);
+
+        const titleParts = [];
+        if (holidayName) titleParts.push(`Feiertag: ${holidayName}`);
+        if (vacationName) titleParts.push(`Ferien: ${vacationName}`);
+        if (isWeekend) titleParts.push("Wochenende");
+        if (isToday) titleParts.push("Heute");
+        if (isPast) titleParts.push("Vergangener Tag");
+
+        return {
+            isWeekend,
+            isToday,
+            isPast,
+            holidayName,
+            vacationName,
+            title: titleParts.join(" | ") || "Kalendertag"
+        };
+    }
+
+    function getHolidayName(date) {
+        const holidays = getGermanHolidayMap(date.getFullYear());
+        const key = toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+        return holidays[key] || "";
+    }
+
+    function getVacationName(date) {
+        const iso = toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+        const ranges = [...buildVacationRanges(date.getFullYear() - 1), ...buildVacationRanges(date.getFullYear())];
+        const range = ranges.find((entry) => iso >= entry.start && iso <= entry.end);
+        return range ? range.name : "";
+    }
+
+    function buildVacationRanges(year) {
+        const easter = calculateEasterSunday(year);
+        const winterStart = firstMondayOfMonth(year, 1);
+        const springStart = addDays(easter, -9);
+        const springEnd = addDays(easter, 1);
+        const autumnStart = firstMondayOfMonth(year, 9);
+
+        return [
+            {
+                name: "Winterferien",
+                start: dateToIso(winterStart),
+                end: dateToIso(addDays(winterStart, 6))
+            },
+            {
+                name: "Osterferien",
+                start: dateToIso(springStart),
+                end: dateToIso(springEnd)
+            },
+            {
+                name: "Sommerferien",
+                start: toIsoDate(year, 7, 15),
+                end: toIsoDate(year, 8, 26)
+            },
+            {
+                name: "Herbstferien",
+                start: dateToIso(autumnStart),
+                end: dateToIso(addDays(autumnStart, 13))
+            },
+            {
+                name: "Weihnachtsferien",
+                start: toIsoDate(year, 12, 23),
+                end: toIsoDate(year + 1, 1, 6)
+            }
+        ];
+    }
+
+    function getGermanHolidayMap(year) {
+        const easter = calculateEasterSunday(year);
+        const map = {
+            [toIsoDate(year, 1, 1)]: "Neujahr",
+            [toIsoDate(year, 3, 8)]: "Internationaler Frauentag",
+            [toIsoDate(year, 5, 1)]: "Tag der Arbeit",
+            [toIsoDate(year, 10, 3)]: "Tag der Deutschen Einheit",
+            [toIsoDate(year, 10, 31)]: "Reformationstag",
+            [toIsoDate(year, 12, 25)]: "1. Weihnachtstag",
+            [toIsoDate(year, 12, 26)]: "2. Weihnachtstag"
+        };
+
+        map[dateToIso(addDays(easter, -2))] = "Karfreitag";
+        map[dateToIso(addDays(easter, 1))] = "Ostermontag";
+        map[dateToIso(addDays(easter, 39))] = "Christi Himmelfahrt";
+        map[dateToIso(addDays(easter, 50))] = "Pfingstmontag";
+
+        return map;
+    }
+
+    function calculateEasterSunday(year) {
+        const a = year % 19;
+        const b = Math.floor(year / 100);
+        const c = year % 100;
+        const d = Math.floor(b / 4);
+        const e = b % 4;
+        const f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3);
+        const h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4);
+        const k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const month = Math.floor((h + l - 7 * m + 114) / 31);
+        const day = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(year, month - 1, day);
+    }
+
+    function addDays(date, offset) {
+        const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        copy.setDate(copy.getDate() + offset);
+        return copy;
+    }
+
+    function firstMondayOfMonth(year, monthIndex) {
+        const date = new Date(year, monthIndex, 1);
+        const day = date.getDay();
+        const offset = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+        date.setDate(date.getDate() + offset);
+        return date;
+    }
+
+    function startOfDay(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function dateToIso(date) {
+        return toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
     }
 
     function setFeedback(target, message, isError = false) {

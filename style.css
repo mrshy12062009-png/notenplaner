@@ -293,9 +293,65 @@ button:focus-visible {
     border-color: transparent;
 }
 
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.3rem;
+}
+
 .day-number {
     font-size: 0.9rem;
     font-weight: 700;
+}
+
+.today-badge {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: var(--primary-strong);
+    border-radius: 999px;
+    padding: 0.16rem 0.42rem;
+}
+
+.day-meta {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.day-pill {
+    display: inline-block;
+    width: fit-content;
+    font-size: 0.62rem;
+    border-radius: 999px;
+    padding: 0.14rem 0.42rem;
+}
+
+.day-pill-holiday {
+    color: #5b0e07;
+    background: #ffd8d4;
+}
+
+.day-pill-vacation {
+    color: #17465b;
+    background: #d7f1ff;
+}
+
+.day.is-weekend,
+.day.is-past {
+    background: #eef2f5;
+    border-color: #d9e0e6;
+}
+
+.day.is-past .day-number {
+    color: #8ea0ad;
+}
+
+.day.is-today {
+    border: 2px solid var(--primary);
+    background: #e7f7fa;
+    box-shadow: 0 0 0 2px rgba(18, 127, 143, 0.15);
 }
 
 .event-dot {
@@ -329,6 +385,11 @@ button:focus-visible {
     box-shadow: var(--shadow);
     display: grid;
     gap: var(--space-1);
+}
+
+.list-item-special {
+    border-left: 4px solid var(--warning);
+    background: #fffdf8;
 }
 
 .list-meta {
