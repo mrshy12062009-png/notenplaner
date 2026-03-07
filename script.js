@@ -1,6 +1,7 @@
-let appData = JSON.parse(localStorage.getItem('gf_v9')) || [];
-let userName = localStorage.getItem('gf_user') || 'Schüler';
+let appData = JSON.parse(localStorage.getItem('gf_v10')) || [];
+let userName = localStorage.getItem('gf_user_v10') || 'Schüler';
 let activeFachId = null;
+let myChart = null; // Für das Diagramm
 
 function getStatusColor(p) {
     if (p >= 11) return '#22c55e';
@@ -10,11 +11,9 @@ function getStatusColor(p) {
 }
 
 function showPage(id) {
-    // Seiten umschalten
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
 
-    // Sidebar-Buttons umschalten (Der Fix!)
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     const btn = document.getElementById('nav-' + id);
     if(btn) btn.classList.add('active');
@@ -26,6 +25,8 @@ function showPage(id) {
 
 function renderStats() {
     let totalPoints = 0, subCount = 0, noteCount = 0;
+    let labels = [], dataPoints = [], colors = [];
+
     const container = document.getElementById('stats-details');
     container.innerHTML = '';
 
@@ -33,6 +34,11 @@ function renderStats() {
         if(f.notes.length > 0) {
             const avg = f.notes.reduce((a,b)=>a+b,0)/f.notes.length;
             totalPoints += avg; subCount++; noteCount += f.notes.length;
+            
+            labels.push(f.name);
+            dataPoints.push(avg.toFixed(1));
+            colors.push(getStatusColor(avg));
+
             container.innerHTML += `<div class="subject-card" style="border-left-color:${getStatusColor(avg)}"><h3>${f.name}</h3><p>Schnitt: ${avg.toFixed(2)}</p></div>`;
         }
     });
@@ -41,19 +47,38 @@ function renderStats() {
     document.getElementById('total-avg').innerText = subCount > 0 ? final.toFixed(1) : '-';
     document.getElementById('total-count').innerText = noteCount;
     document.getElementById('stats-banner').style.background = getStatusColor(final);
+
+    // DIAGRAMM ZEICHNEN
+    const ctx = document.getElementById('myChart').getContext('2d');
+    if(myChart) myChart.destroy(); // Altes Diagramm löschen
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Schnitt pro Fach',
+                data: dataPoints,
+                backgroundColor: colors,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 15, grid: { color: '#2d344d' } } },
+            plugins: { legend: { display: false } }
+        }
+    });
 }
 
 function saveSettings() {
     const n = document.getElementById('set-name').value;
-    if(n) { userName = n; localStorage.setItem('gf_user', n); showPage('list'); }
+    if(n) { userName = n; localStorage.setItem('gf_user_v10', n); alert("Name gespeichert!"); showPage('list'); }
 }
 
 function exportData() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "noten_backup.json");
-    downloadAnchorNode.click();
+    const dl = document.createElement('a');
+    dl.setAttribute("href", dataStr); dl.setAttribute("download", "noten_backup.json");
+    dl.click();
 }
 
 function addFach() {
@@ -64,7 +89,7 @@ function addFach() {
 }
 
 function deleteFach() {
-    if(confirm('Fach löschen?')) { appData = appData.filter(x => x.id !== activeFachId); save(); showPage('list'); }
+    if(confirm('Dieses Fach wirklich löschen?')) { appData = appData.filter(x => x.id !== activeFachId); save(); showPage('list'); }
 }
 
 function renderGrid() {
@@ -99,7 +124,7 @@ function renderDetail() {
     f.notes.slice().reverse().forEach(n => h.innerHTML += `<div class="subject-card" style="margin-bottom:10px; border-left-color:${getStatusColor(n)}">${n} Punkte</div>`);
 }
 
-function resetAll() { if(confirm('Alles löschen?')) { localStorage.clear(); location.reload(); } }
-function save() { localStorage.setItem('gf_v9', JSON.stringify(appData)); }
+function resetAll() { if(confirm('ALLES löschen?')) { localStorage.clear(); location.reload(); } }
+function save() { localStorage.setItem('gf_v10', JSON.stringify(appData)); }
 
 showPage('list');
