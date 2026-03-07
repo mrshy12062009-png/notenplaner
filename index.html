@@ -14,13 +14,11 @@
         
         <div class="settings">
             <label>Bundesland:</label>
-            <select id="bundesland" onchange="saveBundesland()">
+            <select id="bundesland" onchange="changeBundesland()">
                 <option value="BE">Berlin</option>
                 <option value="BY">Bayern</option>
-                <option value="BW">Baden-Württemberg</option>
-                <option value="HE">Hessen</option>
                 <option value="NW">NRW</option>
-                <option value="SN">Sachsen</option>
+                <option value="HE">Hessen</option>
             </select>
         </div>
     </nav>
@@ -30,7 +28,7 @@
             <h1>MEINE FÄCHER</h1>
             <div class="input-group">
                 <input type="text" id="f-in" placeholder="Neues Fach...">
-                <button class="add-btn" onclick="addFach()">OK</button>
+                <button class="add-btn" onclick="addFach()">HINZUFÜGEN</button>
             </div>
             <div id="grid" class="grid"></div>
         </section>
@@ -43,14 +41,16 @@
             </div>
             <div class="input-group">
                 <input type="number" id="n-in" placeholder="Punkte (0-15)">
-                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
+                <button class="add-btn" onclick="addNote()">OK</button>
             </div>
             <div id="n-list"></div>
         </section>
 
         <section id="page-calendar" class="page">
-            <div class="cal-header">
-                <h1 id="month-name">Monat Jahr</h1>
+            <div class="cal-nav">
+                <button class="add-btn" onclick="changeMonth(-1)"> Zurück </button>
+                <h2 id="month-name">Monat Jahr</h2>
+                <button class="add-btn" onclick="changeMonth(1)"> Vor </button>
             </div>
             <div class="calendar-wrapper">
                 <div class="weekdays">
@@ -60,7 +60,6 @@
             </div>
         </section>
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>
