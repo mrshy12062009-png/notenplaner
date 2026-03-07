@@ -9,14 +9,14 @@
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn active" onclick="showPage('list')">Dashboard</button>
-        <button class="nav-btn" onclick="showPage('stats')">Statistiken</button>
+        <button class="nav-btn active" id="link-list" onclick="showPage('list')">Dashboard</button>
+        <button class="nav-btn" id="link-settings" onclick="showPage('settings')">Einstellungen</button>
     </nav>
 
     <main class="main-content">
         <section id="page-list" class="page active">
             <div class="page-header">
-                <h1>Meine Fächer</h1>
+                <h1>Hallo, <span id="user-name-display">Schüler</span>!</h1>
                 <div class="input-bar">
                     <input type="text" id="f-name" placeholder="Neues Fach...">
                     <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
@@ -30,7 +30,7 @@
             <div id="hero-banner" class="subject-hero">
                 <div class="hero-info">
                     <h2 id="det-title">Fachname</h2>
-                    <p>Punkteschnitt</p>
+                    <p>Aktueller Schnitt</p>
                 </div>
                 <div id="det-avg" class="hero-grade">-</div>
             </div>
@@ -40,8 +40,26 @@
                     <div class="input-card">
                         <h3>Note eintragen</h3>
                         <input type="number" id="n-val" placeholder="0-15 Punkte" min="0" max="15">
-                        <button class="btn-accent full-width" onclick="addNote()">Speichern</button>
+                        <button class="btn-accent" onclick="addNote()">Speichern</button>
                     </div>
+                    <button class="btn-danger full-width" style="margin-top:20px" onclick="deleteFach()">Fach löschen</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-settings" class="page">
+            <h1>Einstellungen</h1>
+            <div class="settings-grid">
+                <div class="input-card">
+                    <h3>Profil</h3>
+                    <label>Dein Name</label>
+                    <input type="text" id="set-name" placeholder="Dein Name...">
+                    <button class="btn-accent" onclick="saveSettings()">Namen speichern</button>
+                </div>
+                <div class="input-card">
+                    <h3>Daten verwalten</h3>
+                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px;">Achtung: Das Löschen kann nicht rückgängig gemacht werden.</p>
+                    <button class="btn-danger" onclick="resetAll()">Alle Daten löschen</button>
                 </div>
             </div>
         </section>

@@ -4,6 +4,7 @@
     --card: #1a1f30;
     --accent: #5865f2;
     --text: #ffffff;
+    --danger: #ef4444;
 }
 
 body {
@@ -32,14 +33,13 @@ body {
 .subject-card {
     background: var(--card); padding: 30px; border-radius: 20px;
     cursor: pointer; border-left: 6px solid var(--accent);
-    transition: 0.3s transform;
+    transition: 0.3s;
 }
-.subject-card:hover { transform: translateY(-5px); }
+.subject-card:hover { transform: scale(1.02); background: #232a42; }
 
 .subject-hero {
     padding: 50px; border-radius: 30px; display: flex;
     justify-content: space-between; align-items: center; margin-bottom: 40px;
-    transition: background 0.5s ease;
 }
 .hero-grade { font-size: 100px; font-weight: 900; }
 
@@ -47,7 +47,12 @@ body {
 .history-column { flex: 2; }
 .input-column { flex: 1; }
 
-.input-card { background: var(--card); padding: 25px; border-radius: 20px; }
-input { background: #0c0f1a; border: 1px solid #2d344d; color: white; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
-.btn-accent { background: var(--accent); color: white; border: none; padding: 15px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-.btn-link { background: none; border: none; color: var(--accent); cursor: pointer; margin-bottom: 20px; font-weight: bold; font-size: 16px; }
+.input-card { background: var(--card); padding: 25px; border-radius: 20px; margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; }
+input { background: #0c0f1a; border: 1px solid #2d344d; color: white; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 15px; }
+
+.btn-accent { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+.btn-danger { background: var(--danger); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+.btn-link { background: none; border: none; color: var(--accent); cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
