@@ -2,17 +2,27 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Ultimate</title>
+    <title>GradeFlow Pro Elite</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 id="modal-text">Bist du sicher?</h2>
+            <div class="modal-btns">
+                <button class="btn-confirm" id="modal-confirm">Ja</button>
+                <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
         <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Meine Ziele</button>
         <div class="spacer"></div>
-        <button class="nav-btn-reset" onclick="factoryReset()">Daten löschen</button>
+        <button class="nav-btn-reset" onclick="askReset()">Daten löschen</button>
     </nav>
 
     <main class="content">
@@ -22,7 +32,7 @@
                 <div class="main-avg" id="main-avg">0.0</div>
             </div>
             <div class="add-bar">
-                <input type="text" id="name-in" placeholder="Fach Name... (Enter)" onkeydown="if(event.key==='Enter') addFach()">
+                <input type="text" id="name-in" placeholder="Fach hinzufügen... (Enter)" onkeydown="if(event.key==='Enter') addFach()">
                 <button onclick="addFach()">+</button>
             </div>
             <div id="dash-grid" class="modern-grid"></div>
@@ -30,7 +40,6 @@
 
         <section id="page-goals" class="page">
             <h1>🎯 Deine Wunsch-Ziele</h1>
-            <p style="opacity: 0.5; margin-bottom: 20px;">Stelle hier ein, wie viele Punkte du erreichen willst (max. 15).</p>
             <div id="goals-list" class="goals-container"></div>
         </section>
 
@@ -49,7 +58,7 @@
                 </div>
             </div>
             <div id="note-history"></div>
-            <button class="btn-danger" onclick="delFach()">Dieses Fach löschen</button>
+            <button class="btn-danger" onclick="askDeleteFach()">Fach löschen</button>
         </section>
     </main>
     <script src="script.js"></script>
