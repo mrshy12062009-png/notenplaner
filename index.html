@@ -16,6 +16,7 @@
             <nav class="nav">
                 <button id="btn-list" class="nav-btn is-active" data-page="list" type="button">Dashboard</button>
                 <button id="btn-calendar" class="nav-btn" data-page="calendar" type="button">Kalender</button>
+                <button id="btn-settings" class="nav-btn" data-page="settings" type="button">Einstellungen</button>
             </nav>
         </aside>
 
@@ -93,6 +94,59 @@
                     <p id="note-feedback" class="feedback" role="status" aria-live="polite"></p>
                 </form>
                 <div id="note-list" class="list"></div>
+            </section>
+
+            <section id="page-settings" class="page" aria-labelledby="settings-heading">
+                <div class="section-head">
+                    <h2 id="settings-heading">Einstellungen</h2>
+                    <p>Passe Oberfläche und Kalenderdarstellung an.</p>
+                </div>
+                <form id="settings-form" class="stack" novalidate>
+                    <div class="setting-grid">
+                        <label class="setting-item" for="setting-accent">
+                            <span>Akzentfarbe</span>
+                            <select id="setting-accent" name="setting-accent">
+                                <option value="teal">Petrol</option>
+                                <option value="blue">Blau</option>
+                                <option value="green">Grün</option>
+                                <option value="orange">Orange</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-weekend">
+                            <span>Wochenenden</span>
+                            <select id="setting-weekend" name="setting-weekend">
+                                <option value="blue">Blau</option>
+                                <option value="gray">Grau</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-radius">
+                            <span>Rundungen</span>
+                            <select id="setting-radius" name="setting-radius">
+                                <option value="soft">Weich</option>
+                                <option value="sharp">Kompakt</option>
+                                <option value="rounded">Rund</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-density">
+                            <span>Dichte</span>
+                            <select id="setting-density" name="setting-density">
+                                <option value="comfortable">Komfort</option>
+                                <option value="compact">Kompakt</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-background">
+                            <span>Hintergrund</span>
+                            <select id="setting-background" name="setting-background">
+                                <option value="dynamic">Dynamisch</option>
+                                <option value="plain">Einfarbig</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="inline-form">
+                        <button id="settings-reset" class="btn btn-ghost" type="button">Zurücksetzen</button>
+                    </div>
+                    <p id="settings-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
             </section>
         </main>
     </div>

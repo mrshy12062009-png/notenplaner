@@ -9,12 +9,20 @@
 
 const STORAGE_KEYS = {
     subjects: "gf_data",
-    events: "gf_events"
+    events: "gf_events",
+    settings: "gf_settings"
 };
 
 const SCHEMA_VERSION = 2;
 
 const DEFAULT_EVENTS_SEED = {};
+const DEFAULT_SETTINGS = {
+    accent: "teal",
+    weekend: "blue",
+    radius: "soft",
+    density: "comfortable",
+    background: "dynamic"
+};
 
 export function loadSubjectsStore() {
     const fallback = { version: SCHEMA_VERSION, subjects: [] };
@@ -137,6 +145,29 @@ export function persistEvents(eventsStore) {
     return cleanStore;
 }
 
+export function loadSettings() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.settings);
+        if (!raw) {
+            localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(DEFAULT_SETTINGS));
+            return { ...DEFAULT_SETTINGS };
+        }
+        const parsed = JSON.parse(raw);
+        const clean = sanitizeSettings(parsed);
+        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(clean));
+        return clean;
+    } catch (_) {
+        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(DEFAULT_SETTINGS));
+        return { ...DEFAULT_SETTINGS };
+    }
+}
+
+export function persistSettings(settings) {
+    const clean = sanitizeSettings(settings);
+    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(clean));
+    return clean;
+}
+
 function mergeSeedWithUser(userEvents) {
     const merged = sanitizeEventsMap({ ...DEFAULT_EVENTS_SEED });
     Object.keys(userEvents).forEach((date) => {
@@ -223,4 +254,15 @@ function sanitizeEventList(list) {
             };
         })
         .filter(Boolean);
+}
+
+function sanitizeSettings(input) {
+    const settings = input && typeof input === "object" ? input : {};
+    return {
+        accent: ["teal", "blue", "green", "orange"].includes(settings.accent) ? settings.accent : DEFAULT_SETTINGS.accent,
+        weekend: ["blue", "gray"].includes(settings.weekend) ? settings.weekend : DEFAULT_SETTINGS.weekend,
+        radius: ["soft", "sharp", "rounded"].includes(settings.radius) ? settings.radius : DEFAULT_SETTINGS.radius,
+        density: ["comfortable", "compact"].includes(settings.density) ? settings.density : DEFAULT_SETTINGS.density,
+        background: ["dynamic", "plain"].includes(settings.background) ? settings.background : DEFAULT_SETTINGS.background
+    };
 }

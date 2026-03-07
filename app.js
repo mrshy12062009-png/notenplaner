@@ -12,12 +12,22 @@
 } from "./utils.js";
 import {
     loadEventsStore,
+    loadSettings,
     loadSubjectsStore,
     persistEvents,
+    persistSettings,
     persistSubjects
 } from "./storage.js";
 
 export function initApp() {
+    const defaultSettings = {
+        accent: "teal",
+        weekend: "blue",
+        radius: "soft",
+        density: "comfortable",
+        background: "dynamic"
+    };
+
     const state = {
         viewPage: "list",
         viewDate: new Date(),
@@ -28,7 +38,8 @@ export function initApp() {
             eventId: null
         },
         subjectsStore: loadSubjectsStore(),
-        eventsStore: loadEventsStore()
+        eventsStore: loadEventsStore(),
+        settings: loadSettings()
     };
 
     const els = {
@@ -65,9 +76,20 @@ export function initApp() {
         eventPriorityInput: document.getElementById("event-priority"),
         eventSubmit: document.getElementById("event-submit"),
         eventCancel: document.getElementById("event-cancel"),
-        eventFeedback: document.getElementById("event-feedback")
+        eventFeedback: document.getElementById("event-feedback"),
+
+        settingsForm: document.getElementById("settings-form"),
+        settingAccent: document.getElementById("setting-accent"),
+        settingWeekend: document.getElementById("setting-weekend"),
+        settingRadius: document.getElementById("setting-radius"),
+        settingDensity: document.getElementById("setting-density"),
+        settingBackground: document.getElementById("setting-background"),
+        settingsReset: document.getElementById("settings-reset"),
+        settingsFeedback: document.getElementById("settings-feedback")
     };
 
+    applyThemeSettings();
+    hydrateSettingsForm();
     bindEvents();
     showPage("list");
     renderAll();
@@ -136,6 +158,15 @@ export function initApp() {
                 deleteEvent(date, eventId);
             }
         });
+
+        els.settingsForm.addEventListener("change", onSettingsChange);
+        els.settingsReset.addEventListener("click", () => {
+            state.settings = persistSettings(defaultSettings);
+            hydrateSettingsForm();
+            applyThemeSettings();
+            renderCalendar();
+            setFeedback(els.settingsFeedback, "Einstellungen zurückgesetzt.");
+        });
     }
 
     function renderAll() {
@@ -155,6 +186,51 @@ export function initApp() {
         els.navButtons.forEach((button) => {
             button.classList.toggle("is-active", button.dataset.page === (pageId === "detail" ? "list" : pageId));
         });
+    }
+
+    function onSettingsChange() {
+        state.settings = persistSettings({
+            accent: els.settingAccent.value,
+            weekend: els.settingWeekend.value,
+            radius: els.settingRadius.value,
+            density: els.settingDensity.value,
+            background: els.settingBackground.value
+        });
+        applyThemeSettings();
+        renderCalendar();
+        setFeedback(els.settingsFeedback, "Einstellungen gespeichert.");
+    }
+
+    function hydrateSettingsForm() {
+        els.settingAccent.value = state.settings.accent;
+        els.settingWeekend.value = state.settings.weekend;
+        els.settingRadius.value = state.settings.radius;
+        els.settingDensity.value = state.settings.density;
+        els.settingBackground.value = state.settings.background;
+    }
+
+    function applyThemeSettings() {
+        const root = document.documentElement;
+        const body = document.body;
+
+        body.classList.toggle("weekend-blue", state.settings.weekend === "blue");
+        body.classList.toggle("weekend-gray", state.settings.weekend === "gray");
+        body.classList.toggle("density-compact", state.settings.density === "compact");
+        body.classList.toggle("bg-plain", state.settings.background === "plain");
+
+        root.classList.remove("radius-soft", "radius-sharp", "radius-rounded");
+        root.classList.add(`radius-${state.settings.radius}`);
+
+        const accentMap = {
+            teal: { primary: "#127f8f", strong: "#0d6774" },
+            blue: { primary: "#1f63dc", strong: "#1a4eb0" },
+            green: { primary: "#1f8a4c", strong: "#17693a" },
+            orange: { primary: "#c56b10", strong: "#9d550d" }
+        };
+
+        const colors = accentMap[state.settings.accent] || accentMap.teal;
+        root.style.setProperty("--primary", colors.primary);
+        root.style.setProperty("--primary-strong", colors.strong);
     }
 
     function createEmptyState(text) {
