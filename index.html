@@ -2,62 +2,114 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeFlow OS | Professional</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-shell">
         <aside class="sidebar">
-            <div class="logo">Grade<span>Flow</span></div>
-            <nav>
-                <button onclick="tab('dash')" id="t-dash" class="active">Dashboard</button>
-                <button onclick="tab('stats')" id="t-stats">Analyse & Stats</button>
+            <div class="sidebar-brand">
+                <div class="brand-icon"></div>
+                <span>Grade<b>Flow</b></span>
+            </div>
+            <nav class="sidebar-nav">
+                <button onclick="tab('dash')" id="t-dash" class="nav-item active">
+                    <span class="icon">⊞</span> Dashboard
+                </button>
+                <button onclick="tab('stats')" id="t-stats" class="nav-item">
+                    <span class="icon">📈</span> Statistiken
+                </button>
             </nav>
-            <button class="reset-btn" onclick="fullReset()">Daten löschen</button>
+            <div class="sidebar-footer">
+                <button class="btn-ghost" onclick="fullReset()">System Reset</button>
+            </div>
         </aside>
 
-        <main class="main-content">
+        <main class="main-stage">
+            
             <section id="view-dash" class="view active">
-                <div class="view-header">
-                    <h1>Deine Fächer</h1>
-                    <div class="glass-input">
-                        <input type="text" id="sub-in" placeholder="Neues Fach...">
-                        <button onclick="addSub()">Hinzufügen</button>
+                <header class="section-header">
+                    <div class="title-group">
+                        <h1>Dashboard</h1>
+                        <p>Willkommen zurück, behalte deine Ziele im Auge.</p>
                     </div>
-                </div>
+                    <div class="header-action">
+                        <div class="fancy-input-group">
+                            <input type="text" id="sub-in" placeholder="Neues Fach hinzufügen..." onkeydown="if(event.key==='Enter') addSub()">
+                            <button onclick="addSub()">Hinzufügen</button>
+                        </div>
+                    </div>
+                </header>
                 <div id="dash-grid" class="bento-grid"></div>
             </section>
 
             <section id="view-stats" class="view">
-                <h1>Statistiken</h1>
-                <div class="chart-card">
-                    <h3>Punkte-Verteilung (0 bis 15)</h3>
-                    <div id="stats-chart" class="visual-chart"></div>
-                    <div class="chart-legend">
-                        <span>0</span><span>5</span><span>10</span><span>15</span>
+                <header class="section-header">
+                    <div class="title-group">
+                        <h1>Analyse</h1>
+                        <p>Deine Notenverteilung im Detail.</p>
                     </div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-tile"><span>Schnitt</span><h2 id="st-avg">0.0</h2></div>
-                    <div class="stat-tile"><span>Bestwert</span><h2 id="st-best">-</h2></div>
+                </header>
+                
+                <div class="analytics-layout">
+                    <div class="glass-card chart-main">
+                        <div class="card-header">
+                            <h3>Punkteverteilung</h3>
+                            <span class="badge">0 - 15 Punkte</span>
+                        </div>
+                        <div class="chart-viewport">
+                            <div id="bar-chart" class="chart-bars"></div>
+                            <div class="chart-labels">
+                                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-sidebar">
+                        <div class="glass-card stat-widget">
+                            <label>Notendurchschnitt</label>
+                            <h2 id="st-avg">0.00</h2>
+                        </div>
+                        <div class="glass-card stat-widget">
+                            <label>Beste Leistung</label>
+                            <h2 id="st-best">-</h2>
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <section id="view-det" class="view">
-                <div class="det-nav">
-                    <button onclick="tab('dash')">← Zurück</button>
-                    <h2 id="det-name">Fach</h2>
+                <header class="det-top-nav">
+                    <button class="btn-back" onclick="tab('dash')">← Zurück zur Übersicht</button>
+                </header>
+
+                <div class="detail-hero">
+                    <div class="hero-content">
+                        <h1 id="det-name">Fachname</h1>
+                        <div class="avg-display">
+                            <span id="det-avg">0.0</span>
+                            <small>Schnitt</small>
+                        </div>
+                    </div>
                 </div>
-                <div class="score-hero">
-                    <div class="score-ring" id="det-avg">0.0</div>
+
+                <div class="grade-entry-section">
+                    <div class="fancy-input-group">
+                        <input type="number" id="grade-in" min="0" max="15" placeholder="Punkte eintragen (0-15)" onkeydown="if(event.key==='Enter') addGrade()">
+                        <button onclick="addGrade()">Eintragen</button>
+                    </div>
                 </div>
-                <div class="glass-input det-input">
-                    <input type="number" id="grade-in" placeholder="Punkte (0-15)">
-                    <button onclick="addGrade()">Eintragen</button>
+
+                <div class="history-container">
+                    <h3>Verlauf der Noten</h3>
+                    <div id="history" class="grade-list"></div>
                 </div>
-                <div id="history" class="noten-liste"></div>
-                <button class="delete-sub-btn" onclick="delSub()">Fach entfernen</button>
+
+                <div class="danger-zone">
+                    <button class="btn-danger" onclick="delSub()">Dieses Fach komplett löschen</button>
+                </div>
             </section>
         </main>
     </div>
