@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Elite</title>
+    <title>GradeFlow Ultimate</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
         <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Meine Ziele</button>
         <div class="spacer"></div>
-        <button class="nav-btn-reset" onclick="factoryReset()">Daten Reset</button>
+        <button class="nav-btn-reset" onclick="factoryReset()">Daten löschen</button>
     </nav>
 
     <main class="content">
@@ -22,14 +22,15 @@
                 <div class="main-avg" id="main-avg">0.0</div>
             </div>
             <div class="add-bar">
-                <input type="text" id="name-in" placeholder="Fach hinzufügen... (Enter)" onkeydown="if(event.key==='Enter') addFach()">
+                <input type="text" id="name-in" placeholder="Fach Name... (Enter)" onkeydown="if(event.key==='Enter') addFach()">
                 <button onclick="addFach()">+</button>
             </div>
             <div id="dash-grid" class="modern-grid"></div>
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Ziel-Konfiguration</h1>
+            <h1>🎯 Deine Wunsch-Ziele</h1>
+            <p style="opacity: 0.5; margin-bottom: 20px;">Stelle hier ein, wie viele Punkte du erreichen willst (max. 15).</p>
             <div id="goals-list" class="goals-container"></div>
         </section>
 
@@ -41,14 +42,14 @@
                 <div id="det-status" class="status-pill">-</div>
             </div>
             <div class="glass">
-                <h3>Neue Note (0-15)</h3>
+                <h3>Note eintragen</h3>
                 <div class="flex-input">
                     <input type="number" id="note-in" min="0" max="15" placeholder="Punkte..." onkeydown="if(event.key==='Enter') addNote()">
-                    <button class="btn-primary" onclick="addNote()">Hinzufügen</button>
+                    <button class="btn-primary" onclick="addNote()">OK</button>
                 </div>
             </div>
             <div id="note-history"></div>
-            <button class="btn-danger" onclick="delFach()">Fach löschen</button>
+            <button class="btn-danger" onclick="delFach()">Dieses Fach löschen</button>
         </section>
     </main>
     <script src="script.js"></script>
