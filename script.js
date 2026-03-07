@@ -1,66 +1,72 @@
-// GradeFlow v14.1 - Fix Build
-const DATA_KEY = 'gf_v14_data';
-const CONF_KEY = 'gf_v14_config';
+// GradeFlow v14.2 - Funktions-Fix
+const D_KEY = 'gf_v14_final_data';
+const C_KEY = 'gf_v14_final_conf';
 
-let appData = JSON.parse(localStorage.getItem(DATA_KEY)) || [];
-let config = JSON.parse(localStorage.getItem(CONF_KEY)) || {
+let appData = JSON.parse(localStorage.getItem(D_KEY)) || [];
+let config = JSON.parse(localStorage.getItem(C_KEY)) || {
     userName: 'Schüler',
     accentColor: '#5865f2',
     usePoints: true
 };
 
-// Startet die App
-window.onload = () => {
-    document.documentElement.style.setProperty('--accent', config.accentColor);
+// Start-Sequenz
+window.addEventListener('DOMContentLoaded', () => {
+    applyConfig();
     showPage('list');
-};
+});
+
+function applyConfig() {
+    document.documentElement.style.setProperty('--accent', config.accentColor);
+    const nameDisp = document.getElementById('display-name');
+    if(nameDisp) nameDisp.innerText = config.userName;
+}
 
 window.showPage = function(id) {
-    // Verstecke alle Seiten
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    
-    // Zeige Zielseite
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const target = document.getElementById('page-' + id);
-    if (target) target.style.display = 'block';
+    if(target) target.classList.add('active');
 
-    // Update UI
-    if (document.getElementById('display-name')) {
-        document.getElementById('display-name').innerText = config.userName;
-    }
-
-    if (id === 'list') renderGrid();
-    if (id === 'stats') renderStats();
+    if(id === 'list') renderGrid();
+    if(id === 'stats') renderStats();
 };
 
+// --- FACH LOGIK ---
 window.addFach = function() {
     const input = document.getElementById('f-name');
-    if (!input || !input.value.trim()) return;
+    if(!input || !input.value.trim()) return;
     
-    appData.push({ id: Date.now(), name: input.value.trim(), notes: [] });
-    save();
+    appData.push({
+        id: Date.now(),
+        name: input.value.trim(),
+        notes: []
+    });
+    
     input.value = '';
+    save();
     renderGrid();
 };
 
 function renderGrid() {
     const container = document.getElementById('grid-container');
-    if (!container) return;
+    if(!container) return;
     container.innerHTML = '';
 
     appData.forEach(f => {
-        const avg = f.notes.length ? (f.notes.reduce((a, b) => a + b, 0) / f.notes.length).toFixed(1) : '-';
-        const div = document.createElement('div');
-        div.className = 'subject-card';
-        div.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; color:var(--accent)">${avg}</p>`;
-        div.onclick = () => openDetail(f.id);
-        container.appendChild(div);
+        const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.innerHTML = `<h3>${f.name}</h3><p class="avg-display">${avg}</p>`;
+        card.onclick = () => openDetail(f.id);
+        container.appendChild(card);
     });
 }
 
+// --- NOTEN LOGIK ---
 window.openDetail = function(id) {
     window.activeFachId = id;
     const fach = appData.find(f => f.id === id);
-    if (!fach) return;
+    if(!fach) return;
+    
     document.getElementById('det-title').innerText = fach.name;
     showPage('detail');
     renderDetail();
@@ -68,46 +74,84 @@ window.openDetail = function(id) {
 
 window.addNote = function() {
     const input = document.getElementById('n-val');
-    const val = parseFloat(input.value);
-    if (isNaN(val)) return;
+    const val = parseFloat(input?.value);
+    if(isNaN(val)) return;
 
     const fach = appData.find(f => f.id === window.activeFachId);
-    if (fach) {
+    if(fach) {
         fach.notes.push(val);
         save();
-        input.value = '';
+        if(input) input.value = '';
         renderDetail();
     }
 };
 
 function renderDetail() {
     const fach = appData.find(f => f.id === window.activeFachId);
-    const avg = fach.notes.length ? (fach.notes.reduce((a, b) => a + b, 0) / fach.notes.length).toFixed(1) : '-';
-    document.getElementById('det-avg').innerText = avg;
+    if(!fach) return;
+
+    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
+    const avgDiv = document.getElementById('det-avg');
+    if(avgDiv) avgDiv.innerText = avg;
     
     const list = document.getElementById('notes-list');
-    list.innerHTML = '';
-    fach.notes.slice().reverse().forEach(n => {
-        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px">${n} Punkte</div>`;
-    });
-}
-
-function save() {
-    localStorage.setItem(DATA_KEY, JSON.stringify(appData));
-}
-
-// Einstellungen
-window.saveSettings = function() {
-    config.userName = document.getElementById('set-name').value;
-    config.usePoints = document.getElementById('set-system').value === 'points';
-    localStorage.setItem(CONF_KEY, JSON.stringify(config));
-    alert("Gespeichert!");
-    showPage('list');
-};
-
-window.resetAll = function() {
-    if (confirm("Alles löschen?")) {
-        localStorage.clear();
-        location.reload();
+    if(list) {
+        list.innerHTML = '<h4>Deine Noten</h4>';
+        fach.notes.slice().reverse().forEach((n, index) => {
+            list.innerHTML += `<div class="subject-card note-item">
+                <span>${n} ${config.usePoints ? 'Pkt' : 'Note'}</span>
+                <button onclick="deleteNote(${index})" class="delete-small">×</button>
+            </div>`;
+        });
     }
+}
+
+// --- STATS & DIAGRAMM ---
+window.renderStats = function() {
+    let total = 0, count = 0, labels = [], data = [];
+    appData.forEach(f => {
+        if(f.notes.length > 0) {
+            const avg = f.notes.reduce((a,b)=>a+b,0)/f.notes.length;
+            total += avg; count++;
+            labels.push(f.name); data.push(avg.toFixed(1));
+        }
+    });
+
+    if(document.getElementById('total-avg')) 
+        document.getElementById('total-avg').innerText = count > 0 ? (total/count).toFixed(1) : '-';
+    
+    const ctx = document.getElementById('myChart')?.getContext('2d');
+    if(!ctx) return;
+
+    if(window.myChartObj) window.myChartObj.destroy();
+    window.myChartObj = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Schnitt', data: data, backgroundColor: config.accentColor }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: config.usePoints ? 15 : 6 } } }
+    });
 };
+
+// --- EINSTELLUNGEN ---
+window.saveSettings = function() {
+    const nameInp = document.getElementById('set-name');
+    const sysInp = document.getElementById('set-system');
+    
+    if(nameInp) config.userName = nameInp.value;
+    if(sysInp) config.usePoints = (sysInp.value === 'points');
+    
+    localStorage.setItem(C_KEY, JSON.stringify(config));
+    applyConfig();
+    alert("Einstellungen übernommen!");
+};
+
+window.changeTheme = function(color) {
+    config.accentColor = color;
+    applyConfig();
+    localStorage.setItem(C_KEY, JSON.stringify(config));
+};
+
+function save() { localStorage.setItem(D_KEY, JSON.stringify(appData)); }
+window.resetAll = function() { if(confirm("Wirklich alles löschen?")) { localStorage.clear(); location.reload(); } };
