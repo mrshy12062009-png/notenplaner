@@ -106,6 +106,8 @@ export function initApp() {
         settingsFeedback: document.getElementById("settings-feedback"),
 
         statsGrid: document.getElementById("stats-grid"),
+        chartSubjectAvg: document.getElementById("chart-subject-avg"),
+        chartEventsMonth: document.getElementById("chart-events-month"),
         goalForm: document.getElementById("goal-form"),
         goalTextInput: document.getElementById("goal-text"),
         goalDateInput: document.getElementById("goal-date"),
@@ -258,6 +260,12 @@ export function initApp() {
             if (!action || !goalId) return;
             if (action === "toggle-goal") toggleGoal(goalId);
             if (action === "delete-goal") deleteGoal(goalId);
+        });
+        els.goalSubjects.addEventListener("click", (event) => {
+            const btn = event.target.closest("[data-action='goal-from-subject']");
+            if (!btn) return;
+            const subjectId = btn.dataset.id;
+            applySubjectGoalTemplate(subjectId);
         });
 
         els.confirmOk.addEventListener("click", () => {
@@ -557,6 +565,9 @@ export function initApp() {
                 </article>
             `)
             .join("");
+
+        renderSubjectAverageChart(subjects);
+        renderEventsByMonthChart();
     }
 
     function renderGoals() {
@@ -599,7 +610,64 @@ export function initApp() {
                         <p class="list-meta">Fach</p>
                         <strong>${escapeHtml(subject.name)}</strong>
                         <p class="list-meta">Schnitt: ${avg ?? "--"} · Noten: ${subject.notes.length}</p>
+                        <div class="row-actions">
+                            <button class="btn btn-ghost" data-action="goal-from-subject" data-id="${subject.id}" type="button">Ziel aus Fach erstellen</button>
+                        </div>
                     </article>
+                `;
+            })
+            .join("");
+    }
+
+    function renderSubjectAverageChart(subjects) {
+        if (!subjects.length) {
+            els.chartSubjectAvg.innerHTML = createEmptyState("Noch keine Fächer für ein Diagramm.");
+            return;
+        }
+        const rows = subjects.map((subject) => {
+            const avg = subject.notes.length ? (subject.notes.reduce((acc, n) => acc + n.value, 0) / subject.notes.length) : 0;
+            const pct = Math.max(2, Math.round((avg / 15) * 100));
+            return { name: subject.name, value: avg, pct };
+        });
+
+        els.chartSubjectAvg.innerHTML = rows
+            .map((row) => `
+                <div class="chart-row">
+                    <span class="chart-label">${escapeHtml(row.name)}</span>
+                    <div class="chart-track"><div class="chart-fill" style="width:${row.pct}%"></div></div>
+                    <span class="chart-value">${row.value.toFixed(1)}</span>
+                </div>
+            `)
+            .join("");
+    }
+
+    function renderEventsByMonthChart() {
+        const base = new Date();
+        const months = [];
+        for (let i = 0; i < 6; i += 1) {
+            const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            const label = new Intl.DateTimeFormat("de-DE", { month: "short" }).format(d);
+            months.push({ key, label, count: 0 });
+        }
+
+        Object.keys(state.eventsStore.events).forEach((date) => {
+            const key = date.slice(0, 7);
+            const target = months.find((m) => m.key === key);
+            if (!target) return;
+            target.count += (state.eventsStore.events[date] || []).length;
+        });
+
+        const max = Math.max(1, ...months.map((m) => m.count));
+        els.chartEventsMonth.innerHTML = months
+            .map((m) => {
+                const pct = Math.max(4, Math.round((m.count / max) * 100));
+                return `
+                    <div class="chart-row">
+                        <span class="chart-label">${escapeHtml(m.label)}</span>
+                        <div class="chart-track"><div class="chart-fill chart-fill-alt" style="width:${pct}%"></div></div>
+                        <span class="chart-value">${m.count}</span>
+                    </div>
                 `;
             })
             .join("");
@@ -915,6 +983,16 @@ export function initApp() {
         renderGoals();
         renderStats();
         setFeedback(els.goalFeedback, "Ziel gespeichert.");
+    }
+
+    function applySubjectGoalTemplate(subjectId) {
+        const subject = state.subjectsStore.subjects.find((entry) => entry.id === subjectId);
+        if (!subject) return;
+        const avg = calculateAverage(subject.notes) || "0.0";
+        const baseTarget = Math.min(15, Math.max(8, Math.ceil(Number.parseFloat(avg) + 1)));
+        els.goalTextInput.value = `${subject.name}: Schnitt auf ${baseTarget.toFixed(1)} steigern`;
+        els.goalTextInput.focus();
+        setFeedback(els.goalFeedback, `Vorlage für ${subject.name} eingefügt.`);
     }
 
     function toggleGoal(goalId) {

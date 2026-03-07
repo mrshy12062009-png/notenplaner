@@ -72,7 +72,7 @@
                     </div>
                     <div id="selected-day-chip" class="selected-day-chip">Kein Tag ausgewählt</div>
                     <div class="inline-form responsive-3">
-                        <input id="event-date" name="event-date" type="date" required>
+                        <input id="event-date" name="event-date" type="text" placeholder="YYYY-MM-DD" required>
                         <input id="event-text" name="event-text" type="text" maxlength="70" placeholder="z. B. Mathe Klausur" required>
                         <select id="event-type" name="event-type">
                             <option value="exam" selected>Prüfung</option>
@@ -129,6 +129,14 @@
                     <p>Deine aktuellen Kennzahlen auf einen Blick.</p>
                 </div>
                 <div id="stats-grid" class="stats-grid"></div>
+                <div class="stack">
+                    <h3>Fach-Schnitt (0-15)</h3>
+                    <div id="chart-subject-avg" class="chart-bars"></div>
+                </div>
+                <div class="stack">
+                    <h3>Termine pro Monat (6 Monate)</h3>
+                    <div id="chart-events-month" class="chart-bars"></div>
+                </div>
             </section>
 
             <section id="page-goals" class="page" aria-labelledby="goals-heading">
@@ -143,7 +151,7 @@
                 <form id="goal-form" class="stack" novalidate>
                     <div class="inline-form responsive-3">
                         <input id="goal-text" type="text" maxlength="90" placeholder="z. B. Mathe auf 12 Punkte verbessern" required>
-                        <input id="goal-date" type="date">
+                        <input id="goal-date" type="text" placeholder="YYYY-MM-DD (optional)">
                         <button id="goal-submit" class="btn btn-primary" type="submit">Ziel speichern</button>
                     </div>
                     <p id="goal-feedback" class="feedback" role="status" aria-live="polite"></p>
