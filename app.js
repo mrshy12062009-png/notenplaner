@@ -257,6 +257,18 @@ export function initApp() {
                 closeConfirmModal();
             }
         });
+        document.addEventListener("keydown", (event) => {
+            if (els.confirmModal.classList.contains("hidden")) return;
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeConfirmModal();
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                const action = confirmAction;
+                closeConfirmModal();
+                if (typeof action === "function") action();
+            }
+        });
     }
 
     function renderAll() {
@@ -985,6 +997,7 @@ export function initApp() {
         els.confirmMessage.textContent = message;
         els.confirmModal.classList.remove("hidden");
         els.confirmModal.setAttribute("aria-hidden", "false");
+        els.confirmOk.focus();
     }
 
     function closeConfirmModal() {

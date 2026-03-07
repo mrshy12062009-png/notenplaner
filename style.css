@@ -66,45 +66,59 @@ p {
     top: 0;
     height: 100vh;
     overflow: auto;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06), 18px 0 40px rgba(6, 14, 22, 0.24);
 }
 
 .brand-kicker {
     text-transform: uppercase;
     letter-spacing: 0.14em;
     font-size: 0.75rem;
-    opacity: 0.75;
+    opacity: 0.85;
+    color: #9ec7ff;
 }
 
 .brand h1 {
     font-family: "Sora", "Manrope", sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.9rem;
     letter-spacing: 0.02em;
+    text-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .nav {
     display: grid;
-    gap: var(--space-2);
+    gap: 0.55rem;
+    padding: 0.4rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
 }
 
 .nav-btn {
-    border: 1px solid rgba(247, 251, 255, 0.22);
-    background: rgba(247, 251, 255, 0.08);
+    border: 1px solid transparent;
+    background: transparent;
     color: var(--text-inverse);
-    border-radius: var(--radius-sm);
-    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    padding: 0.8rem 0.95rem;
     text-align: left;
     cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .nav-btn:hover {
-    transform: translateY(-1px);
-    background: rgba(247, 251, 255, 0.16);
+    transform: translateX(2px);
+    background: rgba(247, 251, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.24);
 }
 
 .nav-btn.is-active {
-    background: rgba(247, 251, 255, 0.24);
-    border-color: rgba(247, 251, 255, 0.45);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.2));
+    border-color: rgba(255, 255, 255, 0.62);
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(8, 15, 29, 0.28);
 }
 
 .content {
@@ -591,6 +605,7 @@ button:focus-visible {
     z-index: 1200;
     display: grid;
     place-items: center;
+    animation: modal-fade 0.2s ease;
 }
 
 .modal-backdrop {
@@ -611,6 +626,7 @@ button:focus-visible {
     padding: var(--space-4);
     display: grid;
     gap: var(--space-2);
+    animation: modal-scale 0.2s ease;
 }
 
 .modal-title {
@@ -798,10 +814,11 @@ body.density-compact {
         position: static;
         height: auto;
         overflow: visible;
+        box-shadow: 0 16px 30px rgba(5, 10, 18, 0.24);
     }
 
     .nav {
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }
 }
 
@@ -828,5 +845,21 @@ body.density-compact {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-scale {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
