@@ -1,9 +1,7 @@
-let subjects = JSON.parse(localStorage.getItem('GF_STABLE_V2')) || [];
+let subjects = JSON.parse(localStorage.getItem('GF_ELITE_V3')) || [];
 let currentId = null;
 
-function save() {
-    localStorage.setItem('GF_STABLE_V2', JSON.stringify(subjects));
-}
+const save = () => localStorage.setItem('GF_ELITE_V3', JSON.stringify(subjects));
 
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -14,38 +12,45 @@ function showPage(id) {
     if(id === 'goals') renderGoals();
 }
 
-function getStatus(avg) {
-    if (avg === null) return { g: 'linear-gradient(135deg, #222, #333)', t: 'KEINE DATEN' };
-    // Feste Logik fürs Dashboard: Ab 10 Pkt ist es gut (Blau)
-    return avg >= 10 ? { g: 'linear-gradient(135deg, #00d2ff, #3a7bd5)', t: 'GUT' } 
-                     : { g: 'linear-gradient(135deg, #f83600, #f9d423)', t: 'SCHLECHT' };
+function getStatusInfo(avg, target) {
+    if (avg === null) return { g: 'var(--card)', t: 'KEINE DATEN', c: '#444' };
+    const goal = target || 10;
+    const diff = avg - goal;
+    
+    if (diff >= 2) return { g: 'var(--g-green)', t: 'EXZELLENT', c: '#43e97b' };
+    if (diff >= 0) return { g: 'var(--g-blue)', t: 'AUF KURS', c: '#4facfe' };
+    return { g: 'var(--g-orange)', t: 'STEIGERUNG NÖTIG', c: '#ff4e50' };
 }
 
 function renderDash() {
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = '';
-    let total = 0, count = 0;
+    let totalSum = 0, count = 0;
 
     subjects.forEach(s => {
         const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-        const style = getStatus(avg);
-        if(avg !== null) { total += avg; count++; }
+        const status = getStatusInfo(avg, s.target);
+        if(avg !== null) { totalSum += avg; count++; }
+
+        const progress = avg !== null ? Math.min((avg / 15) * 100, 100) : 0;
 
         grid.innerHTML += `
-            <div class="card" style="background: ${style.g}" onclick="openDetail(${s.id})">
-                <span style="font-weight:900; font-size:12px; opacity:0.8">${s.name}</span>
-                <h1>${avg !== null ? avg.toFixed(1) : '-'}</h1>
+            <div class="card" onclick="openDetail(${s.id})">
+                <span class="label">${s.name} • ${status.t}</span>
+                <h2 style="color: ${avg !== null ? '#fff' : '#333'}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <div class="mini-bar-bg">
+                    <div class="mini-bar-fill" style="width: ${progress}%; background: ${status.g}"></div>
+                </div>
             </div>`;
     });
-    document.getElementById('main-avg').innerText = count > 0 ? (total/count).toFixed(2) : '0.0';
+    document.getElementById('main-avg').innerText = count > 0 ? (totalSum/count).toFixed(2) : '0.0';
 }
 
 function addFach() {
-    const input = document.getElementById('name-in');
-    if(!input.value.trim()) return;
-    subjects.push({ id: Date.now(), name: input.value, notes: [], target: 15 });
-    input.value = '';
-    save(); renderDash();
+    const el = document.getElementById('name-in');
+    if(!el.value.trim()) return;
+    subjects.push({ id: Date.now(), name: el.value, notes: [], target: 10 });
+    el.value = ''; save(); renderDash();
 }
 
 function openDetail(id) {
@@ -53,12 +58,12 @@ function openDetail(id) {
     const s = subjects.find(x => x.id === id);
     showPage('detail');
     const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-    const style = getStatus(avg);
+    const status = getStatusInfo(avg, s.target);
 
-    document.getElementById('det-hero').style.background = style.g;
+    document.getElementById('det-hero').style.background = status.g;
     document.getElementById('det-title').innerText = s.name;
     document.getElementById('det-score').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-status').innerText = style.t;
+    document.getElementById('det-status').innerText = status.t;
 
     const hist = document.getElementById('note-history');
     hist.innerHTML = s.notes.map((n, i) => `
@@ -69,12 +74,11 @@ function openDetail(id) {
 }
 
 function addNote() {
-    const input = document.getElementById('note-in');
-    const val = parseFloat(input.value);
+    const el = document.getElementById('note-in');
+    const val = Math.min(Math.max(parseFloat(el.value), 0), 15);
     if(isNaN(val)) return;
     subjects.find(x => x.id === currentId).notes.push(val);
-    input.value = '';
-    save(); openDetail(currentId);
+    el.value = ''; save(); openDetail(currentId);
 }
 
 function delNote(i) {
@@ -84,10 +88,7 @@ function delNote(i) {
 }
 
 function delFach() {
-    if(confirm("Löschen?")) {
-        subjects = subjects.filter(x => x.id !== currentId);
-        save(); showPage('list');
-    }
+    if(confirm("Löschen?")) { subjects = subjects.filter(x => x.id !== currentId); save(); showPage('list'); }
 }
 
 function renderGoals() {
@@ -97,19 +98,19 @@ function renderGoals() {
         list.innerHTML += `
             <div class="goal-card">
                 <span style="font-weight:900">${s.name}</span>
-                <input type="number" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
+                <div>
+                    <span style="font-size:10px; opacity:0.5; margin-right:10px">DEIN ZIEL (0-15)</span>
+                    <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
+                </div>
             </div>`;
     });
 }
 
 function updateGoal(id, val) {
-    subjects.find(x => x.id === id).target = val;
+    subjects.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
     save();
 }
 
-function factoryReset() {
-    if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); }
-}
+function factoryReset() { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } }
 
-// Start
 renderDash();

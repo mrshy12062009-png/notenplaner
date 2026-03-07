@@ -1,43 +1,50 @@
 :root {
-    --bg: #000; --card: #111; --accent: #6366f1;
-    --grad-good: linear-gradient(135deg, #00d2ff, #3a7bd5); /* Blau */
-    --grad-bad: linear-gradient(135deg, #f83600, #f9d423);  /* Rot-Orange */
+    --bg: #000; --side: #080808; --card: #111; --accent: #6366f1;
+    --g-blue: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    --g-green: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --g-orange: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
 }
 
 body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-.sidebar { width: 240px; background: #080808; padding: 40px 20px; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; }
-.logo { font-size: 26px; font-weight: 900; margin-bottom: 40px; text-align: center; }
+.sidebar { width: 220px; background: var(--side); padding: 40px 20px; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; }
+.logo { font-size: 24px; font-weight: 900; margin-bottom: 40px; color: #fff; }
 .logo span { color: var(--accent); }
-.nav-btn { width: 100%; padding: 15px; margin: 5px 0; border: none; background: transparent; color: #555; text-align: left; cursor: pointer; font-weight: 700; border-radius: 12px; }
+.nav-btn { width: 100%; padding: 14px; margin: 5px 0; border: none; background: transparent; color: #555; text-align: left; cursor: pointer; font-weight: 700; border-radius: 12px; transition: 0.3s; }
 .nav-btn.active { background: var(--accent); color: white; }
 .spacer { flex: 1; }
+.nav-btn-reset { background: none; border: none; color: #333; font-size: 12px; cursor: pointer; }
 
 .content { flex: 1; padding: 40px; overflow-y: auto; }
 .page { display: none; }
 .active { display: block; }
 
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.main-avg { background: white; color: black; padding: 10px 20px; border-radius: 15px; font-weight: 900; }
+.main-avg { background: #fff; color: #000; padding: 8px 18px; border-radius: 12px; font-weight: 900; font-size: 22px; }
 
 .add-bar { display: flex; gap: 10px; margin-bottom: 30px; }
-.add-bar input { flex: 1; background: var(--card); border: 1px solid #222; color: white; padding: 15px; border-radius: 12px; outline: none; }
-.add-bar button { background: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+.add-bar input { flex: 1; background: var(--card); border: 1px solid #222; color: white; padding: 15px; border-radius: 15px; outline: none; }
+.add-bar button { background: #fff; border: none; width: 50px; border-radius: 15px; font-weight: 900; cursor: pointer; font-size: 20px; }
 
-.modern-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-.card { height: 180px; border-radius: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; }
-.card h1 { font-size: 60px; margin: 0; font-weight: 900; }
+/* Dashboard Cards (Bild 2 modernisiert) */
+.modern-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.card { background: var(--card); padding: 30px; border-radius: 40px; border: 1px solid #222; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
+.card:hover { border-color: #444; transform: translateY(-3px); }
+.card .label { font-size: 11px; font-weight: 900; text-transform: uppercase; opacity: 0.5; margin-bottom: 5px; display: block; }
+.card h2 { margin: 0; font-size: 48px; font-weight: 900; }
+.mini-bar-bg { width: 100%; height: 6px; background: #222; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+.mini-bar-fill { height: 100%; transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
 
 .hero-card { padding: 60px; border-radius: 45px; text-align: center; margin-bottom: 30px; }
-.hero-score { font-size: 90px; font-weight: 900; }
-.status-pill { background: rgba(0,0,0,0.2); padding: 5px 20px; border-radius: 50px; font-weight: 900; display: inline-block; }
+.hero-score { font-size: 80px; font-weight: 900; }
+.status-pill { background: rgba(0,0,0,0.2); padding: 5px 20px; border-radius: 50px; font-weight: 900; display: inline-block; margin-top: 10px; }
 
 .glass { background: var(--card); padding: 25px; border-radius: 30px; border: 1px solid #222; margin-bottom: 20px; }
 .flex-input { display: flex; gap: 10px; }
 .flex-input input { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 15px; border-radius: 12px; font-size: 18px; outline: none; }
 .btn-primary { background: white; color: black; border: none; padding: 0 20px; border-radius: 12px; font-weight: 900; cursor: pointer; }
 .btn-danger { background: none; border: 1px solid #ff4444; color: #ff4444; width: 100%; padding: 15px; border-radius: 15px; margin-top: 20px; cursor: pointer; }
-.back-link { background: none; border: none; color: #666; cursor: pointer; font-weight: 700; margin-bottom: 10px; display: block; }
+.back-link { background: none; border: none; color: #555; cursor: pointer; font-weight: 700; margin-bottom: 10px; display: block; }
 
 .goal-card { background: var(--card); padding: 25px; border-radius: 25px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #222; }
-.goal-card input { width: 80px; background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; text-align: center; font-weight: 900; }
+.goal-card input { width: 70px; background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; text-align: center; font-weight: 900; }
