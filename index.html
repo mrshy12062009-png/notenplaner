@@ -54,30 +54,32 @@
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← Dashboard</button>
-            <div class="detail-hero" id="det-header">
-                <div class="hero-content">
-                    <h1 id="det-title">-</h1>
-                    <div id="det-status-badge" class="status-pill">-</div>
-                </div>
-                <div class="hero-avg" id="det-avg">-</div>
-            </div>
-            
-            <div class="detail-grid">
-                <div class="input-card">
-                    <h3>Note hinzufügen</h3>
-                    <input type="number" id="n-val" placeholder="Punkte (0-15)...">
-                    <button class="btn-accent" onclick="addNote()">Speichern</button>
-                </div>
-                <div class="input-card" id="det-analysis-box">
-                    <h3>Info</h3>
-                    <p id="det-analysis-text">Wird berechnet...</p>
-                </div>
-            </div>
-            <h3>Notenverlauf</h3>
-            <div id="notes-list" class="history-list"></div>
-            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
-        </section>
+    <button onclick="showPage('list')" class="btn-secondary">← Zurück</button>
+    
+    <div class="detail-hero">
+        <h1 id="det-title">Fach</h1>
+        <div class="hero-avg" id="det-avg">-</div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="input-card">
+            <h3>Note hinzufügen</h3>
+            <input type="number" id="n-val" placeholder="0-15 Punkte">
+            <button class="btn-accent" onclick="addNote()">Speichern</button>
+        </div>
+
+        <div class="input-card">
+            <h3>Fach-Ziel festlegen</h3>
+            <input type="number" id="f-target-input" placeholder="z.B. 15">
+            <button class="btn-secondary" onclick="saveFachTarget()">Ziel speichern</button>
+            <p class="hint">Dieses Ziel wird nur unter "Meine Ziele" geprüft.</p>
+        </div>
+    </div>
+
+    <h3>Verlauf</h3>
+    <div id="notes-list"></div>
+    <button onclick="deleteFach()" class="btn-link-danger">Fach komplett löschen</button>
+</section>
     </main>
     <script src="script.js"></script>
 </body>
