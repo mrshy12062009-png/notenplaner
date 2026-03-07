@@ -454,6 +454,7 @@ export function initApp() {
         const monthFormatter = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" });
         const month = state.viewDate.getMonth();
         const year = state.viewDate.getFullYear();
+        const compactCalendar = window.innerWidth <= 700;
         els.monthName.textContent = monthFormatter.format(state.viewDate);
 
         const firstDay = new Date(year, month, 1).getDay();
@@ -469,7 +470,7 @@ export function initApp() {
             const dateStr = toIsoDate(year, month + 1, day);
             const meta = getDayMeta(dateStr);
             const events = getEventsForDate(dateStr);
-            const previewEvents = state.settings.showEventLabels === "on" ? events.slice(0, 2) : [];
+            const previewEvents = state.settings.showEventLabels === "on" ? events.slice(0, compactCalendar ? 1 : 2) : [];
 
             const dayClasses = ["day"];
             if (meta.isWeekend) dayClasses.push("is-weekend");
@@ -478,6 +479,17 @@ export function initApp() {
             if (meta.holidayNames.length) dayClasses.push("is-holiday");
             if (meta.vacationNames.length) dayClasses.push("is-vacation");
             if (state.selectedDate === dateStr) dayClasses.push("is-selected");
+            if (compactCalendar) dayClasses.push("is-compact");
+
+            const holidayMarkup = compactCalendar
+                ? (meta.holidayNames.length ? '<span class="day-chip-mini day-chip-mini-holiday">H</span>' : "")
+                : (meta.holidayNames.length ? `<span class="day-pill day-pill-holiday">${escapeHtml(summarizeLabel(meta.holidayNames))}</span>` : "");
+            const vacationMarkup = compactCalendar
+                ? (meta.vacationNames.length ? '<span class="day-chip-mini day-chip-mini-vacation">V</span>' : "")
+                : (meta.vacationNames.length ? `<span class="day-pill day-pill-vacation">${escapeHtml(summarizeLabel(meta.vacationNames))}</span>` : "");
+            const eventMarkup = compactCalendar
+                ? previewEvents.map((entry) => `<span class="day-chip-mini day-chip-mini-event event-type-${entry.type || "exam"}">P</span>`).join("")
+                : previewEvents.map((entry) => `<span class="day-pill day-pill-event event-type-${entry.type || "exam"}">${escapeHtml(entry.text)}</span>`).join("");
 
             html += `
                 <article class="${dayClasses.join(" ")}" title="${escapeHtml(meta.title)}" data-date="${dateStr}" role="button" tabindex="0" aria-label="Tag ${day}. ${escapeHtml(meta.title)}">
@@ -486,9 +498,9 @@ export function initApp() {
                         ${meta.isToday ? '<span class="today-badge">Heute</span>' : ""}
                     </div>
                     <div class="day-meta">
-                        ${meta.holidayNames.length ? `<span class="day-pill day-pill-holiday">${escapeHtml(summarizeLabel(meta.holidayNames))}</span>` : ""}
-                        ${meta.vacationNames.length ? `<span class="day-pill day-pill-vacation">${escapeHtml(summarizeLabel(meta.vacationNames))}</span>` : ""}
-                        ${previewEvents.map((entry) => `<span class="day-pill day-pill-event event-type-${entry.type || "exam"}">${escapeHtml(entry.text)}</span>`).join("")}
+                        ${holidayMarkup}
+                        ${vacationMarkup}
+                        ${eventMarkup}
                     </div>
                 </article>
             `;

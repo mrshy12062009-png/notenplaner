@@ -535,6 +535,48 @@ button:focus-visible {
     background: #f1d9f4;
 }
 
+.day-chip-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 700;
+}
+
+.day-chip-mini-holiday {
+    color: #5b0e07;
+    background: #ffd8d4;
+}
+
+.day-chip-mini-vacation {
+    color: #17465b;
+    background: #d7f1ff;
+}
+
+.day-chip-mini-event {
+    color: #4b3005;
+    background: #ffe3a5;
+}
+
+.day-chip-mini-event.event-type-test {
+    color: #1a3f59;
+    background: #cbe9ff;
+}
+
+.day-chip-mini-event.event-type-deadline {
+    color: #234d16;
+    background: #d8f2c3;
+}
+
+.day-chip-mini-event.event-type-other {
+    color: #57345b;
+    background: #f1d9f4;
+}
+
 .day.is-weekend {
     background: #e0ecff;
     border-color: #bed4f7;
@@ -854,6 +896,36 @@ body.mode-dark .day-pill-event.event-type-other {
     background: #5f3566;
 }
 
+body.mode-dark .day-chip-mini-holiday {
+    color: #ffd7d2;
+    background: #5a2b2b;
+}
+
+body.mode-dark .day-chip-mini-vacation {
+    color: #c8e8ff;
+    background: #1f4157;
+}
+
+body.mode-dark .day-chip-mini-event {
+    color: #ffe8bf;
+    background: #6a4f1a;
+}
+
+body.mode-dark .day-chip-mini-event.event-type-test {
+    color: #d9efff;
+    background: #1f4e6e;
+}
+
+body.mode-dark .day-chip-mini-event.event-type-deadline {
+    color: #d9f7cc;
+    background: #2b5b28;
+}
+
+body.mode-dark .day-chip-mini-event.event-type-other {
+    color: #f3daf6;
+    background: #5f3566;
+}
+
 body.mode-dark .selected-day-chip {
     background: #1c3348;
     border-color: #35648f;
@@ -984,12 +1056,39 @@ body.density-compact {
         grid-template-columns: 1fr;
     }
 
+    .calendar-card {
+        padding: 0.6rem;
+    }
+
+    .weekdays,
+    .days-grid {
+        gap: 0.22rem;
+    }
+
+    .weekdays span {
+        font-size: 0.72rem;
+    }
+
     .day {
-        min-height: 60px;
+        min-height: 52px;
+        padding: 0.28rem;
+    }
+
+    .day.is-compact .day-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.18rem;
+        flex-wrap: wrap;
+        margin-top: 0.05rem;
     }
 
     .calendar-nav h3 {
-        font-size: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .today-badge {
+        font-size: 0.5rem;
+        padding: 0.08rem 0.3rem;
     }
 }
 
