@@ -9,8 +9,9 @@
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn active" id="link-list" onclick="showPage('list')">Dashboard</button>
-        <button class="nav-btn" id="link-settings" onclick="showPage('settings')">Einstellungen</button>
+        <button class="nav-btn active" onclick="showPage('list')">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('stats')">Statistiken</button>
+        <button class="nav-btn" onclick="showPage('settings')">Einstellungen</button>
     </nav>
 
     <main class="main-content">
@@ -47,6 +48,20 @@
             </div>
         </section>
 
+        <section id="page-stats" class="page">
+            <h1>Statistiken</h1>
+            <div class="stats-container">
+                <div class="subject-hero" id="stats-banner" style="background: var(--accent)">
+                    <div class="hero-info">
+                        <h2>Gesamtdurchschnitt</h2>
+                        <p>Über alle Fächer hinweg</p>
+                    </div>
+                    <div id="total-avg" class="hero-grade">-</div>
+                </div>
+                <div id="stats-details" class="dashboard-grid"></div>
+            </div>
+        </section>
+
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
             <div class="settings-grid">
@@ -58,7 +73,6 @@
                 </div>
                 <div class="input-card">
                     <h3>Daten verwalten</h3>
-                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px;">Achtung: Das Löschen kann nicht rückgängig gemacht werden.</p>
                     <button class="btn-danger" onclick="resetAll()">Alle Daten löschen</button>
                 </div>
             </div>

@@ -1,58 +1,26 @@
 :root {
-    --bg: #080a12;
-    --side: #111421;
-    --card: #1a1f30;
-    --accent: #5865f2;
-    --text: #ffffff;
-    --danger: #ef4444;
+    --bg: #080a12; --side: #111421; --card: #1a1f30;
+    --accent: #5865f2; --text: #ffffff; --danger: #ef4444;
 }
-
-body {
-    background-color: var(--bg); color: var(--text);
-    margin: 0; display: flex; font-family: 'Segoe UI', sans-serif;
-    height: 100vh; overflow: hidden;
-}
-
+body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
 .sidebar { width: 280px; background: var(--side); padding: 40px 20px; border-right: 1px solid #252a3d; }
 .logo { font-size: 28px; font-weight: 800; margin-bottom: 50px; }
 .logo span { color: var(--accent); }
-
-.nav-btn {
-    width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px;
-    background: none; border: none; color: #94a3b8; text-align: left;
-    font-size: 17px; cursor: pointer; transition: 0.3s;
-}
+.nav-btn { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; background: none; border: none; color: #94a3b8; text-align: left; font-size: 17px; cursor: pointer; }
+.nav-btn:hover { background: rgba(255,255,255,0.05); }
 .nav-btn.active { background: var(--accent); color: white; }
-
 .page { display: none !important; }
 .page.active { display: block !important; }
-
 .main-content { flex: 1; padding: 60px; overflow-y: auto; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-
-.subject-card {
-    background: var(--card); padding: 30px; border-radius: 20px;
-    cursor: pointer; border-left: 6px solid var(--accent);
-    transition: 0.3s;
-}
-.subject-card:hover { transform: scale(1.02); background: #232a42; }
-
-.subject-hero {
-    padding: 50px; border-radius: 30px; display: flex;
-    justify-content: space-between; align-items: center; margin-bottom: 40px;
-}
+.subject-card { background: var(--card); padding: 30px; border-radius: 20px; cursor: pointer; border-left: 6px solid var(--accent); transition: 0.3s; }
+.subject-hero { padding: 50px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
 .hero-grade { font-size: 100px; font-weight: 900; }
-
 .detail-layout { display: flex; gap: 30px; }
 .history-column { flex: 2; }
 .input-column { flex: 1; }
-
 .input-card { background: var(--card); padding: 25px; border-radius: 20px; margin-bottom: 20px; }
-label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; }
 input { background: #0c0f1a; border: 1px solid #2d344d; color: white; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 15px; }
-
 .btn-accent { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 .btn-danger { background: var(--danger); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 .btn-link { background: none; border: none; color: var(--accent); cursor: pointer; margin-bottom: 20px; font-weight: bold; }
-
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
