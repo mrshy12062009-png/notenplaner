@@ -1,17 +1,17 @@
-// GradeFlow v14.4 - Final Stable Build
-const STORAGE_KEY = 'gradeflow_v14_data';
-const CONFIG_KEY = 'gradeflow_v14_config';
+// GradeFlow v15 - Advanced Visuals
+const STORAGE_KEY = 'gf_v15_data';
+const CONFIG_KEY = 'gf_v15_config';
 
 let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
     userName: 'Schüler',
     accentColor: '#5865f2',
-    isPoints: true
+    isPoints: true,
+    targetGrade: 11
 };
 
-// 1. INITIALISIERUNG
 document.addEventListener('DOMContentLoaded', () => {
-    updateTheme();
+    applySettings();
     showPage('list');
 });
 
@@ -20,74 +20,62 @@ function save() {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
 }
 
-function updateTheme() {
+function applySettings() {
     document.documentElement.style.setProperty('--accent', config.accentColor);
-    const nameDisp = document.getElementById('display-name');
-    if (nameDisp) nameDisp.innerText = config.userName;
+    document.getElementById('display-name').innerText = config.userName;
+    // UI-Felder füllen
+    document.getElementById('set-name').value = config.userName;
+    document.getElementById('set-target').value = config.targetGrade;
+    document.getElementById('set-system').value = config.isPoints ? 'points' : 'grades';
 }
 
-// 2. NAVIGATION
-window.showPage = function(pageId) {
-    // Alle Seiten verstecken
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-        p.style.display = 'none';
-    });
+window.showPage = function(id) {
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById('page-' + id).style.display = 'block';
     
-    // Zielseite zeigen
-    const target = document.getElementById('page-' + pageId);
-    if (target) {
-        target.classList.add('active');
-        target.style.display = 'block';
-    }
+    // Sidebar active state
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    event?.target?.classList?.add('active');
 
-    // Daten für die jeweilige Seite laden
-    if (pageId === 'list') renderDashboard();
-    if (pageId === 'stats') renderStats();
+    if (id === 'list') renderDashboard();
+    if (id === 'stats') renderStats();
 };
 
-// 3. DASHBOARD (Fächer hinzufügen & anzeigen)
 window.addFach = function() {
     const input = document.getElementById('f-name');
-    if (!input || !input.value.trim()) return;
-    
-    const newFach = {
-        id: Date.now().toString(),
-        name: input.value.trim(),
-        notes: []
-    };
-    
-    appData.push(newFach);
-    save();
+    if (!input.value.trim()) return;
+    appData.push({ id: Date.now().toString(), name: input.value.trim(), notes: [] });
     input.value = '';
+    save();
     renderDashboard();
 };
 
 function renderDashboard() {
     const container = document.getElementById('grid-container');
-    if (!container) return;
     container.innerHTML = '';
 
     appData.forEach(f => {
         const avg = calculateAvg(f.notes);
+        const isUnderTarget = avg !== '-' && parseFloat(avg) < config.targetGrade;
+        
         const card = document.createElement('div');
         card.className = 'subject-card';
+        card.style.borderLeft = `6px solid ${isUnderTarget ? 'var(--danger)' : 'var(--accent)'}`;
         card.innerHTML = `
-            <h3>${f.name}</h3>
-            <p class="avg-display" style="font-size: 24px; font-weight: bold; color: var(--accent)">${avg}</p>
-            <small>${f.notes.length} Noten eingetragen</small>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <h3>${f.name}</h3>
+                <span style="color:${isUnderTarget ? 'var(--danger)' : 'var(--success)'}; font-weight:bold">${avg}</span>
+            </div>
+            <p style="font-size:12px; color:#94a3b8">${f.notes.length} Noten • ${isUnderTarget ? 'Unter Ziel' : 'Im Ziel'}</p>
         `;
         card.onclick = () => openDetail(f.id);
         container.appendChild(card);
     });
 }
 
-// 4. DETAIL-ANSICHT (Noten verwalten)
 window.openDetail = function(id) {
     window.currentFachId = id;
     const fach = appData.find(f => f.id === id);
-    if (!fach) return;
-
     document.getElementById('det-title').innerText = fach.name;
     showPage('detail');
     renderDetail();
@@ -96,132 +84,44 @@ window.openDetail = function(id) {
 window.addNote = function() {
     const input = document.getElementById('n-val');
     const val = parseFloat(input.value);
-    
-    // Validierung (Anti-Quatsch)
-    if (isNaN(val)) return;
-    if (config.isPoints && (val < 0 || val > 15)) {
-        alert("Punkte müssen zwischen 0 und 15 liegen!");
-        return;
-    }
-    if (!config.isPoints && (val < 1 || val > 6)) {
-        alert("Noten müssen zwischen 1 und 6 liegen!");
-        return;
-    }
+    if (isNaN(val) || (config.isPoints && (val < 0 || val > 15))) return;
 
     const fach = appData.find(f => f.id === window.currentFachId);
-    if (fach) {
-        fach.notes.push(val);
-        save();
-        input.value = '';
-        renderDetail();
-    }
+    fach.notes.push(val);
+    save();
+    input.value = '';
+    renderDetail();
 };
 
 function renderDetail() {
     const fach = appData.find(f => f.id === window.currentFachId);
-    if (!fach) return;
-
     document.getElementById('det-avg').innerText = calculateAvg(fach.notes);
     const list = document.getElementById('notes-list');
-    list.innerHTML = '<h4>Notenverlauf</h4>';
-    
-    fach.notes.slice().reverse().forEach((n, idx) => {
-        const realIdx = fach.notes.length - 1 - idx;
-        list.innerHTML += `
-            <div class="subject-card" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span>${n} ${config.isPoints ? 'Punkte' : 'Note'}</span>
-                <button onclick="deleteNote(${realIdx})" style="background: none; border: none; color: #ef4444; cursor: pointer;">Löschen</button>
-            </div>`;
+    list.innerHTML = '';
+    fach.notes.slice().reverse().forEach((n, i) => {
+        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px; padding:15px">${n} Punkte</div>`;
     });
 }
 
-window.deleteNote = function(index) {
-    const fach = appData.find(f => f.id === window.currentFachId);
-    if (fach) {
-        fach.notes.splice(index, 1);
-        save();
-        renderDetail();
-    }
-};
-
-window.deleteFach = function() {
-    if (confirm("Dieses Fach und alle Noten unwiderruflich löschen?")) {
-        appData = appData.filter(f => f.id !== window.currentFachId);
-        save();
-        showPage('list');
-    }
-};
-
-// 5. STATISTIKEN
-function renderStats() {
-    let totalSum = 0, fachCount = 0, labels = [], chartData = [];
-
-    appData.forEach(f => {
-        if (f.notes.length > 0) {
-            const avg = parseFloat(calculateAvg(f.notes));
-            totalSum += avg;
-            fachCount++;
-            labels.push(f.name);
-            chartData.push(avg);
-        }
-    });
-
-    const avgEl = document.getElementById('total-avg');
-    const countEl = document.getElementById('total-count');
-    
-    if (avgEl) avgEl.innerText = fachCount > 0 ? (totalSum / fachCount).toFixed(2) : '-';
-    if (countEl) countEl.innerText = appData.reduce((sum, f) => sum + f.notes.length, 0);
-
-    const ctx = document.getElementById('myChart');
-    if (!ctx) return;
-
-    if (window.chartObj) window.chartObj.destroy();
-    window.chartObj = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: config.isPoints ? 'Punkte' : 'Schnitt',
-                data: chartData,
-                backgroundColor: config.accentColor,
-                borderRadius: 8
-            }]
-        },
-        options: {
-            scales: { y: { beginAtZero: true, max: config.isPoints ? 15 : 6 } }
-        }
-    });
-}
-
-// 6. HILFSFUNKTIONEN & EINSTELLUNGEN
-function calculateAvg(notes) {
-    if (!notes || notes.length === 0) return '-';
-    const sum = notes.reduce((a, b) => a + b, 0);
-    return (sum / notes.length).toFixed(2);
-}
-
+// NEU: Erweiterte Einstellungen speichern
 window.saveSettings = function() {
-    const nameInp = document.getElementById('set-name');
-    const sysInp = document.getElementById('set-system');
-    
-    if (nameInp) config.userName = nameInp.value || 'Schüler';
-    if (sysInp) config.isPoints = (sysInp.value === 'points');
-    
+    config.userName = document.getElementById('set-name').value;
+    config.targetGrade = parseFloat(document.getElementById('set-target').value);
+    config.isPoints = document.getElementById('set-system').value === 'points';
     save();
-    updateTheme();
-    alert("Einstellungen gespeichert!");
-    showPage('list');
+    applySettings();
+    alert("Einstellungen optimiert!");
 };
 
 window.changeTheme = function(color) {
     config.accentColor = color;
+    applySettings();
     save();
-    updateTheme();
 };
 
-window.resetAll = function() {
-    if (confirm("Wirklich ALLES löschen? Deine Daten sind dann weg.")) {
-        localStorage.clear();
-        location.reload();
-    }
-};
+function calculateAvg(notes) {
+    if (!notes.length) return '-';
+    return (notes.reduce((a,b) => a+b, 0) / notes.length).toFixed(1);
+}
+
+window.resetAll = function() { if(confirm("ALLES LÖSCHEN?")) { localStorage.clear(); location.reload(); } };
