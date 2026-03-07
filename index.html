@@ -1,135 +1,186 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-os-version="Enterprise-Gold-2026">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow OS | Ultra Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GradeFlow OS | Ultra-High-End Terminal</title>
+    
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,800;1,400&family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-logo"></div>
-                <span>Grade<b>Flow</b></span>
-            </div>
-            <nav class="side-nav">
-                <button onclick="tab('dash')" id="t-dash" class="nav-link active"><i>🏠</i> Dashboard</button>
-                <button onclick="tab('stats')" id="t-stats" class="nav-link"><i>📊</i> Analyse</button>
-                <button onclick="tab('settings')" id="t-settings" class="nav-link"><i>⚙️</i> System</button>
-            </nav>
-            <div class="sidebar-user">
-                <div class="user-avatar"></div>
-                <div class="user-info">
-                    <span class="user-name">Student Pro</span>
-                    <span class="user-status">Online</span>
+<body class="os-core-init">
+
+    <div id="bg-canvas-layer">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div id="app-container">
+        
+        <aside id="sidebar-main" class="glass-morph">
+            <div class="sidebar-top">
+                <div class="brand-container">
+                    <svg class="brand-icon" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00f2ff;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7000ff;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="20" y="20" width="60" height="60" rx="15" fill="url(#g1)" />
+                    </svg>
+                    <div class="brand-text">
+                        <span class="brand-main">GradeFlow</span>
+                        <span class="brand-sub">ARCHITECT OS</span>
+                    </div>
                 </div>
+
+                <nav class="navigation-engine">
+                    <div class="nav-section-label">Main Workspace</div>
+                    <button onclick="Router.push('dash')" class="nav-item active" id="nav-dash">
+                        <span class="nav-icon">▤</span>
+                        <span class="nav-label">Dashboard Terminal</span>
+                        <span class="nav-indicator"></span>
+                    </button>
+                    <button onclick="Router.push('stats')" class="nav-item" id="nav-stats">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Neural Analytics</span>
+                        <span class="nav-indicator"></span>
+                    </button>
+                    <button onclick="Router.push('export')" class="nav-item" id="nav-export">
+                        <span class="nav-icon">💾</span>
+                        <span class="nav-label">Data Archiving</span>
+                        <span class="nav-indicator"></span>
+                    </button>
+                    
+                    <div class="nav-section-label">Engine Management</div>
+                    <button onclick="Router.push('settings')" class="nav-item" id="nav-settings">
+                        <span class="nav-icon">⚙</span>
+                        <span class="nav-label">Core Settings</span>
+                        <span class="nav-indicator"></span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="system-health">
+                    <div class="health-label">Storage Efficiency</div>
+                    <div class="health-bar"><div id="storage-load" class="health-fill"></div></div>
+                </div>
+                <button class="os-btn btn-danger-glow" onclick="Modals.open('system-reset')">
+                    Master Reset
+                </button>
             </div>
         </aside>
 
-        <main class="viewport">
+        <main id="viewport-main">
             
-            <section id="view-dash" class="view active">
-                <header class="v-header">
-                    <div class="v-title">
-                        <h1>Akademische Übersicht</h1>
-                        <p>Deine Performance über alle Fächer hinweg.</p>
+            <section id="view-dash" class="view-module active">
+                <header class="view-header-pro">
+                    <div class="header-info">
+                        <h1>Operational Dashboard</h1>
+                        <p class="typewriter">System initialized. Waiting for data input...</p>
                     </div>
-                    <div class="action-bar">
-                        <div class="input-glass-group">
-                            <input type="text" id="sub-in" placeholder="Neues Fach...">
-                            <button onclick="addSub()">Hinzufügen</button>
+                    <div class="header-tools">
+                        <div class="search-wrap">
+                            <input type="text" id="subject-search" placeholder="Search entries...">
                         </div>
+                        <button class="btn-primary-pro" onclick="Core.initNewSubject()">
+                            <span class="plus-icon">+</span> Initialize Subject
+                        </button>
                     </div>
                 </header>
-                <div id="dash-grid" class="bento-grid"></div>
+
+                <div id="dashboard-grid" class="dynamic-bento">
+                    </div>
             </section>
 
-            <section id="view-stats" class="view">
-                <header class="v-header">
-                    <div class="v-title">
-                        <h1>Daten-Analyse</h1>
-                        <p>Statistische Auswertung deiner Notenpunkte.</p>
-                    </div>
-                </header>
-                <div class="stats-master-layout">
-                    <div class="chart-container glass">
-                        <div class="chart-header">
-                            <h3>Punkte-Distribution</h3>
-                            <div class="chart-legend">0 (Ungarungen) bis 15 (Eins Plus)</div>
+            <section id="view-stats" class="view-module">
+                <div class="analytics-layout">
+                    <div class="chart-main-frame glass-morph">
+                        <div class="chart-info">
+                            <h2>Neural Performance Distribution</h2>
+                            <p>Frequency analysis of grade points across all sectors.</p>
                         </div>
-                        <div id="bar-chart" class="chart-bars"></div>
-                        <div class="chart-axis-x">
-                            <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                        <div class="chart-viewport">
+                            <div id="distribution-chart" class="chart-bars-container"></div>
+                            <div class="chart-labels-x">
+                                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="stats-widgets">
-                        <div class="widget glass">
-                            <label>Schnitt (Ø)</label>
-                            <h2 id="st-avg">0.00</h2>
+                    <div class="stats-sidebar">
+                        <div class="stat-card glass-morph">
+                            <label>Weighted Average</label>
+                            <div id="stat-avg-value" class="big-val">0.00</div>
                         </div>
-                        <div class="widget glass">
-                            <label>Max-Punkte</label>
-                            <h2 id="st-best">-</h2>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-det" class="view">
-                <div class="det-nav">
-                    <button class="btn-icon" onclick="tab('dash')">← Zurück</button>
-                </div>
-                <div class="det-hero glass">
-                    <div class="hero-info">
-                        <h1 id="det-name">Mathematik</h1>
-                        <p>Leistungsnachweis Historie</p>
-                    </div>
-                    <div class="hero-stats">
-                        <div class="hero-circle">
-                            <span id="det-avg">0.0</span>
-                            <small>Schnitt</small>
+                        <div class="stat-card glass-morph">
+                            <label>Statistical Variance</label>
+                            <div id="stat-variance" class="big-val">--</div>
                         </div>
                     </div>
-                </div>
-                <div class="det-input-area">
-                    <div class="input-glass-group">
-                        <input type="number" id="grade-in" min="0" max="15" placeholder="Note (0-15 Pkt)">
-                        <button onclick="addGrade()">Eintragen</button>
-                    </div>
-                </div>
-                <div class="history-section">
-                    <h3>Einzelnoten</h3>
-                    <div id="history" class="history-stack"></div>
-                </div>
-                <div class="danger-zone">
-                    <button class="btn-danger" onclick="delSub()">Fach unwiderruflich löschen</button>
                 </div>
             </section>
 
-            <section id="view-settings" class="view">
-                <h1>System-Einstellungen</h1>
-                <div class="settings-card glass">
-                    <h3>Datenverwaltung</h3>
-                    <p>Hier kannst du alle gespeicherten Daten der App zurücksetzen.</p>
-                    <button class="btn-reset-full" onclick="openResetModal()">Vollständiger System-Reset</button>
+            <section id="view-details" class="view-module">
+                <div class="detail-container">
+                    <div class="detail-nav-bar">
+                        <button class="btn-back-os" onclick="Router.push('dash')">← Back to Console</button>
+                        <div class="sync-status">Status: Synchronized</div>
+                    </div>
+                    
+                    <div class="subject-focus-header glass-morph">
+                        <div class="focus-title-group">
+                            <h1 id="det-title-display">---</h1>
+                            <p id="det-uuid">UUID: loading...</p>
+                        </div>
+                        <div class="focus-score-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
+                                <circle id="score-ring-fill" class="ring-fill" cx="50" cy="50" r="45"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <span id="det-avg-display">0.0</span>
+                                <small>GPA</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="entry-control-panel glass-morph">
+                        <h3>Append Transaction</h3>
+                        <div class="input-row">
+                            <div class="input-field-os">
+                                <label>Points (0-15)</label>
+                                <input type="number" id="grade-input-field" placeholder="Entry value...">
+                            </div>
+                            <div class="input-field-os">
+                                <label>Timestamp</label>
+                                <input type="text" id="grade-date" disabled>
+                            </div>
+                            <button class="btn-execute-push" onclick="Core.pushNewGrade()">Commit to Chain</button>
+                        </div>
+                    </div>
+
+                    <div class="history-log-module">
+                        <div class="log-header">
+                            <h3>Ledger History</h3>
+                            <button onclick="Core.exportSubject()">Export Module</button>
+                        </div>
+                        <div id="history-stack" class="log-stack"></div>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <div id="modal-reset" class="modal-overlay">
-        <div class="modal-content glass">
-            <div class="modal-warn-icon">!</div>
-            <h2>System-Reset bestätigen</h2>
-            <p>Diese Aktion kann nicht rückgängig gemacht werden. Alle Fächer und Noten werden gelöscht.</p>
-            <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeResetModal()">Abbrechen</button>
-                <button class="btn-confirm-reset" onclick="executeReset()">Daten löschen</button>
-            </div>
+    <div id="modal-overlay" class="modal-layer hidden">
+        <div id="modal-box" class="modal-surface glass-morph">
+            <div id="modal-dynamic-content"></div>
         </div>
     </div>
+
+    <div id="notification-center"></div>
 
     <script src="script.js"></script>
 </body>
