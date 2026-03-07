@@ -22,7 +22,7 @@
             <div class="page-header">
                 <h1>Hallo, <span id="user-name-display">Schüler</span>! 👋</h1>
                 <div class="input-bar" style="display: flex; gap: 10px; margin-bottom: 30px;">
-                    <input type="text" id="f-name" placeholder="Neues Fach (z.B. Mathe)..." style="margin-bottom: 0;">
+                    <input type="text" id="f-name" placeholder="Neues Fach...">
                     <button class="btn-accent" onclick="addFach()" style="width: auto; padding: 0 25px;">Hinzufügen</button>
                 </div>
             </div>
@@ -41,12 +41,10 @@
                     <p>Noten gesamt</p>
                 </div>
             </div>
-            
             <div class="input-card">
                 <h3>Fächervergleich</h3>
                 <canvas id="myChart" height="120"></canvas>
             </div>
-            
             <div id="stats-details" class="dashboard-grid" style="margin-top: 20px;"></div>
         </section>
 
@@ -56,55 +54,42 @@
                 <div class="input-card">
                     <h3>👤 Profil & System</h3>
                     <label>Dein Name</label>
-                    <input type="text" id="set-name" placeholder="Name eingeben...">
-                    
+                    <input type="text" id="set-name" placeholder="Name...">
                     <label>Notensystem</label>
                     <select id="set-system" class="custom-select">
                         <option value="points">Oberstufe (0-15 Punkte)</option>
                         <option value="grades">Klassisch (1-6 Noten)</option>
                     </select>
-                    
-                    <button class="btn-accent" onclick="saveSettings()" style="margin-top:15px">Änderungen speichern</button>
+                    <button class="btn-accent" onclick="saveSettings()" style="margin-top:15px">Speichern</button>
                 </div>
-
                 <div class="input-card">
                     <h3>🎨 Design-Farbe</h3>
-                    <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 10px;">Wähle deine Akzentfarbe:</p>
-                    <div class="color-picker">
-                        <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
-                        <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
-                        <div class="color-dot" style="background:#ec4899" onclick="changeTheme('#ec4899')"></div>
-                        <div class="color-dot" style="background:#f97316" onclick="changeTheme('#f97316')"></div>
-                        <div class="color-dot" style="background:#22c55e" onclick="changeTheme('#22c55e')"></div>
+                    <div class="color-picker" style="display: flex; gap: 10px;">
+                        <div class="color-dot" style="background:#5865f2; width:30px; height:30px; border-radius:50%; cursor:pointer;" onclick="changeTheme('#5865f2')"></div>
+                        <div class="color-dot" style="background:#a855f7; width:30px; height:30px; border-radius:50%; cursor:pointer;" onclick="changeTheme('#a855f7')"></div>
+                        <div class="color-dot" style="background:#ec4899; width:30px; height:30px; border-radius:50%; cursor:pointer;" onclick="changeTheme('#ec4899')"></div>
                     </div>
                 </div>
-
                 <div class="input-card">
-                    <h3>⚠️ Datenverwaltung</h3>
-                    <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 15px;">Vorsicht: Das Löschen kann nicht rückgängig gemacht werden.</p>
-                    <button class="btn-danger" onclick="resetAll()">Alle Daten löschen</button>
+                    <h3>⚠️ Daten</h3>
+                    <button class="btn-danger" onclick="resetAll()">Alles löschen</button>
                 </div>
             </div>
         </section>
 
         <section id="page-detail" class="page">
-            <button class="btn-link" onclick="showPage('list')">← Zurück zum Dashboard</button>
+            <button class="btn-link" onclick="showPage('list')">← Zurück</button>
             <div id="hero-banner" class="subject-hero">
-                <div class="hero-info">
-                    <h2 id="det-title">-</h2>
-                    <p>Aktueller Durchschnitt</p>
-                </div>
+                <h2 id="det-title">-</h2>
                 <div id="det-avg" class="hero-grade">-</div>
             </div>
-            <div class="detail-layout">
-                <div id="notes-history">
-                    </div>
-                <div class="input-card" style="max-width: 350px; height: fit-content;">
-                    <h3>Neue Note eintragen</h3>
-                    <input type="number" id="n-val" placeholder="Punkte/Note eingeben..." min="0" max="15">
-                    <button class="btn-accent" onclick="addNote()">Note speichern</button>
-                    <hr style="border: 0; border-top: 1px solid #2d344d; margin: 25px 0;">
-                    <button class="btn-danger" style="background: transparent; border: 1px solid var(--danger); color: var(--danger);" onclick="deleteFach()">Fach löschen</button>
+            <div class="detail-layout" style="display: flex; gap: 20px;">
+                <div id="notes-history" style="flex: 1;"></div>
+                <div class="input-card" style="width: 300px;">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="n-val" placeholder="Wert...">
+                    <button class="btn-accent" onclick="addNote()">Speichern</button>
+                    <button class="btn-link" style="color:red; margin-top:20px" onclick="deleteFach()">Fach löschen</button>
                 </div>
             </div>
         </section>
