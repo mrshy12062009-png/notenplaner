@@ -2,66 +2,54 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Pro</title>
+    <title>GradeFlow Ultimate</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="modal-overlay" class="overlay hidden">
-        <div class="modal">
-            <h2 id="modal-msg">Aktion bestätigen?</h2>
-            <div class="modal-btns">
-                <button class="btn-confirm" id="modal-confirm">Ja, löschen</button>
-                <button class="btn-cancel" onclick="closeM()">Abbrechen</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-container">
+    <div class="app">
         <aside class="sidebar">
             <div class="logo">Grade<span>Flow</span></div>
-            <nav class="nav-menu">
-                <button class="nav-btn active" id="btn-dash" onclick="show('dash')">🏠 Dashboard</button>
-                <button class="nav-btn" id="btn-goals" onclick="show('goals')">🎯 Ziele</button>
+            <nav>
+                <button onclick="tab('dash')" id="t-dash" class="nav-active">Dashboard</button>
+                <button onclick="tab('goals')" id="t-goals">Ziele</button>
             </nav>
-            <button class="reset-link" onclick="fullReset()">Daten-Reset</button>
+            <button class="reset" onclick="localStorage.clear(); location.reload();">Reset</button>
         </aside>
 
-        <main class="main-content">
+        <main class="main">
             <section id="view-dash" class="view active">
-                <div class="view-header">
-                    <h1>Deine Noten</h1>
-                    <div class="avg-pill">Schnitt: <span id="total-avg">0.0</span></div>
+                <div class="header">
+                    <h1>Dashboard</h1>
+                    <div class="avg-box">Schnitt: <b id="total-avg">0.0</b></div>
                 </div>
-                <div class="input-bar">
-                    <input type="text" id="add-sub-input" placeholder="Neues Fach... (Enter)" onkeydown="if(event.key==='Enter') addSub()">
-                    <button onclick="addSub()">+</button>
+                <div class="input-group">
+                    <input type="text" id="sub-in" placeholder="Fach-Name..." onkeydown="if(event.key==='Enter') addSub()">
+                    <button onclick="addSub()">Hinzufügen</button>
                 </div>
-                <div id="dash-grid" class="grid"></div>
+                <div id="grid" class="grid"></div>
             </section>
 
             <section id="view-goals" class="view">
-                <div class="view-header"><h1>Wunsch-Ziele</h1></div>
-                <div id="goals-list" class="goals-stack"></div>
+                <h1>Deine Ziele</h1>
+                <div id="goals-list"></div>
             </section>
 
             <section id="view-det" class="view">
-                <button class="back-nav" onclick="show('dash')">← Zurück</button>
-                <div id="det-hero" class="hero-card">
-                    <h1 id="det-title">-</h1>
-                    <div class="hero-val" id="det-avg">0.0</div>
-                    <div class="hero-tag" id="det-tag">-</div>
+                <button class="back" onclick="tab('dash')">← Zurück</button>
+                <div id="hero" class="hero">
+                    <h2 id="det-name">Fach</h2>
+                    <div id="det-avg" class="big-num">0.0</div>
                 </div>
-                <div class="action-box">
+                <div class="card">
                     <h3>Note eintragen</h3>
-                    <div class="input-bar">
-                        <input type="number" id="add-grade-input" min="0" max="15" placeholder="Punkte (0-15)..." onkeydown="if(event.key==='Enter') addGrade()">
-                        <button onclick="addGrade()">Speichern</button>
+                    <div class="input-group">
+                        <input type="number" id="grade-in" placeholder="0-15 Punkte" onkeydown="if(event.key==='Enter') addGrade()">
+                        <button onclick="addGrade()">OK</button>
                     </div>
                 </div>
-                <div id="grade-history" class="history-list"></div>
-                <button class="btn-delete-sub" onclick="delSubTrigger()">Fach löschen</button>
+                <div id="history" class="history"></div>
+                <button class="del-btn" onclick="delSub()">Fach löschen</button>
             </section>
         </main>
     </div>
