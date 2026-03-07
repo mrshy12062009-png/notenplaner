@@ -280,6 +280,34 @@ button:focus-visible {
     box-shadow: var(--shadow);
 }
 
+.calendar-legend {
+    margin-top: var(--space-2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.legend-swatch {
+    width: 0.9rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.legend-today { background: #1aa2b5; }
+.legend-weekend { background: #bed4f7; }
+.legend-holiday { background: #ffd8d4; }
+.legend-vacation { background: #d7f1ff; }
+.legend-exam { background: #ffd36b; }
+
 .weekdays,
 .days-grid {
     display: grid;
@@ -361,6 +389,30 @@ button:focus-visible {
     background: #d7f1ff;
 }
 
+.day-pill-event {
+    color: #4b3005;
+    background: #ffe3a5;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.day-pill-event.event-type-test {
+    color: #1a3f59;
+    background: #cbe9ff;
+}
+
+.day-pill-event.event-type-deadline {
+    color: #234d16;
+    background: #d8f2c3;
+}
+
+.day-pill-event.event-type-other {
+    color: #57345b;
+    background: #f1d9f4;
+}
+
 .day.is-weekend {
     background: #e0ecff;
     border-color: #bed4f7;
@@ -432,6 +484,11 @@ button:focus-visible {
     border-left: 4px solid var(--warning);
     background: #fffdf8;
 }
+
+.event-item.event-type-exam { border-left: 4px solid #f0ad24; }
+.event-item.event-type-test { border-left: 4px solid #3192d4; }
+.event-item.event-type-deadline { border-left: 4px solid #53a045; }
+.event-item.event-type-other { border-left: 4px solid #9a63a3; }
 
 .event-form-top {
     display: flex;
@@ -540,6 +597,32 @@ body.weekend-rose .day.is-weekend {
 
 body.weekend-rose .day.is-weekend .day-number {
     color: #8f3153;
+}
+
+body.mode-dark {
+    --bg-main: #10171e;
+    --bg-panel: #18222d;
+    --bg-soft: #24313d;
+    --text-main: #e8f0f6;
+    --text-muted: #a6b6c4;
+    --border: #2d3d4c;
+    --shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+}
+
+body.mode-dark input,
+body.mode-dark select {
+    background: #11202d;
+    color: #e8f0f6;
+}
+
+body.mode-dark .day {
+    background: #1b2a36;
+}
+
+body.mode-dark .selected-day-chip {
+    background: #1c3348;
+    border-color: #35648f;
+    color: #cde7ff;
 }
 
 body.density-compact {

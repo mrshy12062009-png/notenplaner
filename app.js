@@ -27,7 +27,11 @@ export function initApp() {
         weekend: "blue",
         radius: "soft",
         density: "comfortable",
-        background: "dynamic"
+        background: "dynamic",
+        mode: "light",
+        showHolidays: "on",
+        showVacations: "on",
+        showEventLabels: "on"
     };
 
     const state = {
@@ -76,6 +80,7 @@ export function initApp() {
         eventIdInput: document.getElementById("event-id"),
         eventDateInput: document.getElementById("event-date"),
         eventTextInput: document.getElementById("event-text"),
+        eventTypeInput: document.getElementById("event-type"),
         eventPriorityInput: document.getElementById("event-priority"),
         eventSubmit: document.getElementById("event-submit"),
         eventCancel: document.getElementById("event-cancel"),
@@ -91,6 +96,10 @@ export function initApp() {
         settingRadius: document.getElementById("setting-radius"),
         settingDensity: document.getElementById("setting-density"),
         settingBackground: document.getElementById("setting-background"),
+        settingMode: document.getElementById("setting-mode"),
+        settingShowHolidays: document.getElementById("setting-show-holidays"),
+        settingShowVacations: document.getElementById("setting-show-vacations"),
+        settingShowEventLabels: document.getElementById("setting-show-event-labels"),
         settingsReset: document.getElementById("settings-reset"),
         settingsFeedback: document.getElementById("settings-feedback")
     };
@@ -167,6 +176,10 @@ export function initApp() {
         els.quickTemplateButtons.forEach((button) => {
             button.addEventListener("click", () => {
                 els.eventTextInput.value = button.dataset.template || "";
+                const tpl = (button.dataset.template || "").toLowerCase();
+                if (tpl.includes("test")) els.eventTypeInput.value = "test";
+                else if (tpl.includes("abgabe")) els.eventTypeInput.value = "deadline";
+                else els.eventTypeInput.value = "exam";
                 els.eventTextInput.focus();
             });
         });
@@ -205,6 +218,7 @@ export function initApp() {
             hydrateSettingsForm();
             applyThemeSettings();
             renderCalendar();
+            renderEventList();
             setFeedback(els.settingsFeedback, "Einstellungen zurückgesetzt.");
         });
     }
@@ -239,10 +253,15 @@ export function initApp() {
             weekend: els.settingWeekend.value,
             radius: els.settingRadius.value,
             density: els.settingDensity.value,
-            background: els.settingBackground.value
+            background: els.settingBackground.value,
+            mode: els.settingMode.value,
+            showHolidays: els.settingShowHolidays.value,
+            showVacations: els.settingShowVacations.value,
+            showEventLabels: els.settingShowEventLabels.value
         });
         applyThemeSettings();
         renderCalendar();
+        renderEventList();
         setFeedback(els.settingsFeedback, "Einstellungen gespeichert.");
     }
 
@@ -253,6 +272,10 @@ export function initApp() {
         els.settingRadius.value = state.settings.radius;
         els.settingDensity.value = state.settings.density;
         els.settingBackground.value = state.settings.background;
+        els.settingMode.value = state.settings.mode;
+        els.settingShowHolidays.value = state.settings.showHolidays;
+        els.settingShowVacations.value = state.settings.showVacations;
+        els.settingShowEventLabels.value = state.settings.showEventLabels;
     }
 
     function applyThemeSettings() {
@@ -265,6 +288,7 @@ export function initApp() {
         body.classList.toggle("weekend-gray", state.settings.weekend === "gray");
         body.classList.toggle("density-compact", state.settings.density === "compact");
         body.classList.toggle("bg-plain", state.settings.background === "plain");
+        body.classList.toggle("mode-dark", state.settings.mode === "dark");
 
         root.classList.remove("radius-soft", "radius-sharp", "radius-rounded");
         root.classList.add(`radius-${state.settings.radius}`);
@@ -366,6 +390,7 @@ export function initApp() {
             const meta = getDayMeta(dateStr);
             const events = getEventsForDate(dateStr);
             const dominantPriority = events.length ? events[0].priority : null;
+            const previewEvents = state.settings.showEventLabels === "on" ? events.slice(0, 2) : [];
 
             const dayClasses = ["day"];
             if (meta.isWeekend) dayClasses.push("is-weekend");
@@ -384,6 +409,7 @@ export function initApp() {
                     <div class="day-meta">
                         ${meta.holidayNames.length ? `<span class="day-pill day-pill-holiday">${escapeHtml(summarizeLabel(meta.holidayNames))}</span>` : ""}
                         ${meta.vacationNames.length ? `<span class="day-pill day-pill-vacation">${escapeHtml(summarizeLabel(meta.vacationNames))}</span>` : ""}
+                        ${previewEvents.map((entry) => `<span class="day-pill day-pill-event event-type-${entry.type || "exam"}">${escapeHtml(entry.text)}</span>`).join("")}
                     </div>
                     ${events.length ? `<span class="event-dot priority-${dominantPriority}" title="${events.length} Termin(e)"></span>` : ""}
                 </article>
@@ -448,9 +474,9 @@ export function initApp() {
                 }
 
                 return `
-                    <article class="list-item">
+                    <article class="list-item event-item event-type-${entry.type || "exam"}">
                         <strong>${escapeHtml(entry.text)}</strong>
-                        <p class="list-meta">${formatDate(entry.date)} · Priorität: ${PRIORITY_LABELS[entry.priority]}</p>
+                        <p class="list-meta">${formatDate(entry.date)} · ${eventTypeLabel(entry.type)} · Priorität: ${PRIORITY_LABELS[entry.priority]}</p>
                         <div class="row-actions">
                             <button class="btn btn-ghost" data-action="edit-event" data-date="${entry.date}" data-id="${entry.id}" type="button">Bearbeiten</button>
                             <button class="btn btn-ghost" data-action="delete-event" data-date="${entry.date}" data-id="${entry.id}" type="button">Löschen</button>
@@ -636,6 +662,7 @@ export function initApp() {
 
         const date = els.eventDateInput.value;
         const text = normalizeText(els.eventTextInput.value);
+        const type = sanitizeEventType(els.eventTypeInput.value);
         const priority = sanitizePriority(els.eventPriorityInput.value);
 
         if (!isIsoDate(date)) {
@@ -668,6 +695,7 @@ export function initApp() {
                 state.eventsStore.events[date].push({
                     id: target.id,
                     text,
+                    type,
                     priority,
                     seed: false
                 });
@@ -687,6 +715,7 @@ export function initApp() {
             state.eventsStore.events[date].push({
                 id: createId("event"),
                 text,
+                type,
                 priority,
                 seed: false
             });
@@ -708,6 +737,7 @@ export function initApp() {
         els.eventIdInput.value = item.id;
         els.eventDateInput.value = date;
         els.eventTextInput.value = item.text;
+        els.eventTypeInput.value = sanitizeEventType(item.type);
         els.eventPriorityInput.value = item.priority;
         els.eventSubmit.textContent = "Aktualisieren";
         els.eventFormTitle.textContent = "Termin bearbeiten";
@@ -734,6 +764,7 @@ export function initApp() {
         els.eventIdInput.value = "";
         els.eventDateInput.value = state.selectedDate || "";
         els.eventTextInput.value = "";
+        els.eventTypeInput.value = "exam";
         els.eventPriorityInput.value = "medium";
         els.eventSubmit.textContent = "Speichern";
         els.eventFormTitle.textContent = "Termin hinzufügen";
@@ -783,8 +814,8 @@ export function initApp() {
         const isWeekend = date.getDay() === 0 || date.getDay() === 6;
         const isToday = toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate()) === dateStr;
         const isPast = date < today;
-        const holidayNames = regional.holidayNames;
-        const vacationNames = regional.vacationNames;
+        const holidayNames = state.settings.showHolidays === "on" ? regional.holidayNames : [];
+        const vacationNames = state.settings.showVacations === "on" ? regional.vacationNames : [];
 
         const titleParts = [];
         if (holidayNames.length) titleParts.push(`Feiertag: ${holidayNames.join(", ")}`);
@@ -811,6 +842,20 @@ export function initApp() {
         if (!entries.length) return "";
         if (entries.length === 1) return entries[0];
         return `${entries[0]} +${entries.length - 1}`;
+    }
+
+    function sanitizeEventType(value) {
+        if (value === "exam" || value === "test" || value === "deadline" || value === "other") {
+            return value;
+        }
+        return "exam";
+    }
+
+    function eventTypeLabel(type) {
+        if (type === "test") return "Test";
+        if (type === "deadline") return "Abgabe";
+        if (type === "other") return "Sonstiges";
+        return "Prüfung";
     }
 
     function setFeedback(target, message, isError = false) {

@@ -22,7 +22,11 @@ const DEFAULT_SETTINGS = {
     weekend: "blue",
     radius: "soft",
     density: "comfortable",
-    background: "dynamic"
+    background: "dynamic",
+    mode: "light",
+    showHolidays: "on",
+    showVacations: "on",
+    showEventLabels: "on"
 };
 
 export function loadSubjectsStore() {
@@ -251,6 +255,7 @@ function sanitizeEventList(list) {
                 id: normalizeId(entry && entry.id, "event"),
                 text,
                 priority: sanitizePriority(entry && entry.priority),
+                type: sanitizeEventType(entry && entry.type),
                 seed: Boolean(entry && entry.seed)
             };
         })
@@ -265,6 +270,17 @@ function sanitizeSettings(input) {
         weekend: ["blue", "mint", "rose", "gray"].includes(settings.weekend) ? settings.weekend : DEFAULT_SETTINGS.weekend,
         radius: ["soft", "sharp", "rounded"].includes(settings.radius) ? settings.radius : DEFAULT_SETTINGS.radius,
         density: ["comfortable", "compact"].includes(settings.density) ? settings.density : DEFAULT_SETTINGS.density,
-        background: ["dynamic", "plain"].includes(settings.background) ? settings.background : DEFAULT_SETTINGS.background
+        background: ["dynamic", "plain"].includes(settings.background) ? settings.background : DEFAULT_SETTINGS.background,
+        mode: ["light", "dark"].includes(settings.mode) ? settings.mode : DEFAULT_SETTINGS.mode,
+        showHolidays: ["on", "off"].includes(settings.showHolidays) ? settings.showHolidays : DEFAULT_SETTINGS.showHolidays,
+        showVacations: ["on", "off"].includes(settings.showVacations) ? settings.showVacations : DEFAULT_SETTINGS.showVacations,
+        showEventLabels: ["on", "off"].includes(settings.showEventLabels) ? settings.showEventLabels : DEFAULT_SETTINGS.showEventLabels
     };
+}
+
+function sanitizeEventType(value) {
+    if (value === "exam" || value === "test" || value === "deadline" || value === "other") {
+        return value;
+    }
+    return "exam";
 }

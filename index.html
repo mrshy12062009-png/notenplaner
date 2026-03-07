@@ -52,6 +52,13 @@
                         <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
                     </div>
                     <div id="calendar-grid" class="days-grid"></div>
+                    <div class="calendar-legend">
+                        <span class="legend-item"><i class="legend-swatch legend-today"></i>Heute</span>
+                        <span class="legend-item"><i class="legend-swatch legend-weekend"></i>Wochenende</span>
+                        <span class="legend-item"><i class="legend-swatch legend-holiday"></i>Feiertag</span>
+                        <span class="legend-item"><i class="legend-swatch legend-vacation"></i>Ferien</span>
+                        <span class="legend-item"><i class="legend-swatch legend-exam"></i>Prüfung</span>
+                    </div>
                 </div>
                 <form id="event-form" class="stack event-form" novalidate>
                     <h3 id="event-form-title">Termin hinzufügen</h3>
@@ -64,6 +71,12 @@
                     <div class="inline-form responsive-3">
                         <input id="event-date" name="event-date" type="date" required>
                         <input id="event-text" name="event-text" type="text" maxlength="70" placeholder="z. B. Mathe Klausur" required>
+                        <select id="event-type" name="event-type">
+                            <option value="exam" selected>Prüfung</option>
+                            <option value="test">Test</option>
+                            <option value="deadline">Abgabe</option>
+                            <option value="other">Sonstiges</option>
+                        </select>
                         <select id="event-priority" name="event-priority">
                             <option value="high">Hoch</option>
                             <option value="medium" selected>Mittel</option>
@@ -174,6 +187,34 @@
                             <select id="setting-background" name="setting-background">
                                 <option value="dynamic">Dynamisch</option>
                                 <option value="plain">Einfarbig</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-mode">
+                            <span>Modus</span>
+                            <select id="setting-mode" name="setting-mode">
+                                <option value="light">Hell</option>
+                                <option value="dark">Dark Mode</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-show-holidays">
+                            <span>Feiertage</span>
+                            <select id="setting-show-holidays" name="setting-show-holidays">
+                                <option value="on">Anzeigen</option>
+                                <option value="off">Ausblenden</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-show-vacations">
+                            <span>Ferien</span>
+                            <select id="setting-show-vacations" name="setting-show-vacations">
+                                <option value="on">Anzeigen</option>
+                                <option value="off">Ausblenden</option>
+                            </select>
+                        </label>
+                        <label class="setting-item" for="setting-show-event-labels">
+                            <span>Prüfungslabels</span>
+                            <select id="setting-show-event-labels" name="setting-show-event-labels">
+                                <option value="on">Anzeigen</option>
+                                <option value="off">Ausblenden</option>
                             </select>
                         </label>
                     </div>
