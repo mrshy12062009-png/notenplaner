@@ -389,7 +389,6 @@ export function initApp() {
             const dateStr = toIsoDate(year, month + 1, day);
             const meta = getDayMeta(dateStr);
             const events = getEventsForDate(dateStr);
-            const dominantPriority = events.length ? events[0].priority : null;
             const previewEvents = state.settings.showEventLabels === "on" ? events.slice(0, 2) : [];
 
             const dayClasses = ["day"];
@@ -411,7 +410,6 @@ export function initApp() {
                         ${meta.vacationNames.length ? `<span class="day-pill day-pill-vacation">${escapeHtml(summarizeLabel(meta.vacationNames))}</span>` : ""}
                         ${previewEvents.map((entry) => `<span class="day-pill day-pill-event event-type-${entry.type || "exam"}">${escapeHtml(entry.text)}</span>`).join("")}
                     </div>
-                    ${events.length ? `<span class="event-dot priority-${dominantPriority}" title="${events.length} Termin(e)"></span>` : ""}
                 </article>
             `;
         }
@@ -791,16 +789,6 @@ export function initApp() {
                 text: name,
                 typeLabel: "Feiertag",
                 priority: "high"
-            });
-        });
-
-        meta.vacationNames.forEach((name) => {
-            special.push({
-                kind: "special",
-                date: dateStr,
-                text: name,
-                typeLabel: "Ferien",
-                priority: "medium"
             });
         });
 
