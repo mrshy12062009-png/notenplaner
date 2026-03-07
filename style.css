@@ -1,79 +1,52 @@
 :root {
-    --bg: #000000; 
-    --side: #0a0a0a; 
-    --card: #141414; 
-    --accent: #8b5cf6;
-    /* Optimierte Textfarben für bessere Lesbarkeit */
-    --text-main: #ffffff;  /* Reinweiß */
-    --text-muted: #a0a0a0; /* Deutliches Hellgrau statt Dunkelgrau */
-    --grad: linear-gradient(135deg, #8b5cf6, #d946ef);
+    --bg: #000; --card: #111; --accent: #8b5cf6;
+    --text: #ffffff; --muted: #b0b0b0;
+    --r: #ef4444; --y: #f59e0b; --g: #22c55e;
 }
 
-* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s ease; }
-body { background: var(--bg); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; }
+* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s; }
+body { background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; }
 
 .app-shell { display: grid; grid-template-columns: 240px 1fr; height: 100vh; }
 
-/* SIDEBAR - Hier lag das Hauptproblem */
-.sidebar { background: var(--side); padding: 40px 20px; border-right: 1px solid #222; display: flex; flex-direction: column; }
-.logo { font-size: 24px; font-weight: 800; margin-bottom: 50px; color: #fff; letter-spacing: -1px; }
+/* SIDEBAR */
+.sidebar { background: #080808; padding: 40px 20px; border-right: 1px solid #222; display: flex; flex-direction: column; }
+.logo { font-size: 26px; font-weight: 800; margin-bottom: 40px; color: #fff; }
 .logo span { color: var(--accent); }
-
 nav button { 
-    width: 100%; padding: 14px 18px; margin-bottom: 10px; border: none; background: transparent; 
-    color: var(--text-muted); /* Jetzt hell genug zum Lesen */
-    text-align: left; font-weight: 700; cursor: pointer; border-radius: 12px; font-size: 15px;
+    width: 100%; padding: 14px; margin-bottom: 10px; border: none; background: transparent; 
+    color: var(--muted); text-align: left; font-weight: 700; cursor: pointer; border-radius: 12px;
 }
+nav button.active { background: #1a1a1a; color: #fff; border: 1px solid #333; }
 
-nav button:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-nav button.active { 
-    background: #1a1a1a; 
-    color: #ffffff; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    border: 1px solid #333;
-}
-
-/* MAIN VIEWPORT */
-.viewport { padding: 50px 70px; overflow-y: auto; }
+/* MAIN CONTENT */
+.viewport { padding: 50px; overflow-y: auto; height: 100vh; }
 .view { display: none; }
-.view.active { display: block; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.v-header h1 { font-size: 36px; font-weight: 800; color: #fff; margin: 0; }
+/* HEADER & INPUTS (BILD 2 FIX) */
+.v-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
+.input-row { display: flex; gap: 12px; flex-grow: 1; max-width: 500px; }
+input { background: #111; border: 1px solid #333; padding: 14px; border-radius: 12px; color: #fff; flex-grow: 1; font-size: 16px; }
+.btn-main { background: #fff; color: #000; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
 
-/* BENTO CARDS */
-.bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.card { 
-    background: var(--card); padding: 30px; border-radius: 24px; border: 1px solid #222; 
-    cursor: pointer; position: relative;
-}
-.card:hover { border-color: #444; background: #1c1c1c; }
-.card .label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
-.card .val { font-size: 54px; font-weight: 800; margin: 10px 0; color: #fff; }
+/* STATS DIAGRAMM (BILD 3) */
+.stats-card { background: var(--card); padding: 30px; border-radius: 28px; border: 1px solid #222; margin-bottom: 20px; }
+.chart-container { display: flex; align-items: flex-end; gap: 8px; height: 200px; margin-top: 20px; border-bottom: 2px solid #333; }
+.bar { flex: 1; border-radius: 4px 4px 0 0; min-height: 2px; }
+.chart-axis { display: flex; justify-content: space-between; padding-top: 10px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.stats-card p { font-size: 40px; font-weight: 800; margin: 10px 0; color: var(--accent); }
 
-/* INPUTS & BUTTONS */
-.input-glow input { 
-    background: #111; border: 1px solid #333; padding: 15px 20px; border-radius: 14px; 
-    color: #fff; font-size: 16px; width: 100%;
-}
-.input-glow input:focus { border-color: var(--accent); outline: none; background: #161616; }
+/* NOTENLISTE (BILD 1 FIX) */
+.history-list { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
+.h-item { background: #111; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--accent); }
+.h-item b { font-size: 18px; }
+.del-g { color: #ff4444; background: none; border: none; cursor: pointer; font-weight: 700; }
 
-button.primary { 
-    background: #fff; color: #000; border: none; padding: 12px 25px; 
-    border-radius: 14px; font-weight: 800; cursor: pointer; 
-}
-button.primary:hover { transform: scale(1.05); background: var(--accent); color: #fff; }
-
-/* STATS */
-.stat-box { background: var(--card); border: 1px solid #222; padding: 25px; border-radius: 20px; }
-.stat-box h3 { color: var(--text-muted); font-size: 13px; margin: 0 0 10px 0; text-transform: uppercase; }
-.stat-box p { font-size: 32px; font-weight: 800; margin: 0; color: #fff; }
-
-/* SCROLLBAR (Schön dezent) */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #000; }
-::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #333; }
+/* DASHBOARD & HERO */
+.bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+.card { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid #222; cursor: pointer; }
+.hero { text-align: center; padding: 40px; background: radial-gradient(circle at top, #1a1a1a, #000); border-radius: 30px; margin-bottom: 30px; }
+.big-score { font-size: 80px; font-weight: 800; text-shadow: 0 0 30px var(--accent); }

@@ -1,45 +1,31 @@
-let subjects = JSON.parse(localStorage.getItem('GF_INTEL_V1')) || [];
+let subjects = JSON.parse(localStorage.getItem('GF_V3')) || [];
 let activeId = null;
 
-// GLOBAL ENTER LISTENER
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        if (document.activeElement.id === 'sub-in') addSub();
-        if (document.activeElement.id === 'grade-in') addGrade();
-    }
-});
-
-const save = () => localStorage.setItem('GF_INTEL_V1', JSON.stringify(subjects));
+const save = () => localStorage.setItem('GF_V3', JSON.stringify(subjects));
+const getC = (n) => n >= 13 ? 'var(--g)' : n >= 7 ? 'var(--y)' : 'var(--r)';
 
 function tab(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     document.getElementById('view-' + id).classList.add('active');
-    document.getElementById('t-' + id).classList.add('active');
-    
-    if (id === 'dash') renderDash();
-    if (id === 'goals') renderGoals();
-    if (id === 'stats') renderStats();
+    if(id !== 'det') document.getElementById('t-' + id).classList.add('active');
+    if(id === 'dash') renderDash();
+    if(id === 'stats') renderStats();
 }
 
 function renderDash() {
-    const grid = document.getElementById('dash-grid');
-    grid.innerHTML = subjects.map(s => {
+    const g = document.getElementById('dash-grid');
+    g.innerHTML = subjects.map(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length).toFixed(1) : '-';
-        return `
-        <div class="card" onclick="openSub(${s.id})">
-            <div class="label">${s.name}</div>
-            <div class="val" style="color:${avg >= 10 ? '#8b5cf6' : '#fff'}">${avg}</div>
-            <div style="font-size:11px; color:#444">${s.notes.length} Einträge</div>
-        </div>`;
+        return `<div class="card" onclick="openSub(${s.id})"><small style="color:var(--muted)">${s.name}</small><h2 style="color:${avg==='-'?'#fff':getC(avg)}">${avg}</h2></div>`;
     }).join('');
 }
 
 function addSub() {
-    const input = document.getElementById('sub-in');
-    if (!input.value.trim()) return;
-    subjects.push({ id: Date.now(), name: input.value, notes: [], target: 12 });
-    input.value = ''; save(); renderDash();
+    const i = document.getElementById('sub-in');
+    if(!i.value) return;
+    subjects.push({ id: Date.now(), name: i.value, notes: [] });
+    i.value = ''; save(); renderDash();
 }
 
 function openSub(id) {
@@ -51,63 +37,47 @@ function openSub(id) {
 }
 
 function addGrade() {
-    const input = document.getElementById('grade-in');
-    const val = parseFloat(input.value);
-    if (isNaN(val) || val < 0 || val > 15) return;
-    subjects.find(x => x.id === activeId).notes.push(val);
-    input.value = ''; save(); updateDet();
+    const i = document.getElementById('grade-in');
+    const v = parseFloat(i.value);
+    if(isNaN(v) || v<0 || v>15) return;
+    subjects.find(x => x.id === activeId).notes.push(v);
+    i.value = ''; save(); updateDet();
 }
 
 function updateDet() {
     const s = subjects.find(x => x.id === activeId);
     const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length).toFixed(1) : '0.0';
     document.getElementById('det-avg').innerText = avg;
-    document.getElementById('history').innerHTML = s.notes.map((n, i) => `
-        <div class="h-row"><b>${n} Pkt</b><button onclick="delGrade(${i})" style="color:red; background:none; padding:0">Löschen</button></div>
-    `).reverse().join('');
-}
-
-function renderGoals() {
-    const grid = document.getElementById('goals-grid');
-    grid.innerHTML = subjects.map(s => {
-        const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : 0;
-        const perc = Math.min((avg / s.target) * 100, 100);
-        return `
-        <div class="card">
-            <div class="label">${s.name}</div>
-            <div class="val">${avg.toFixed(1)} <span style="font-size:14px; color:#333">/ ${s.target}</span></div>
-            <div class="progress-ring"><div class="progress-fill" style="width:${perc}%"></div></div>
-        </div>`;
-    }).join('');
+    document.getElementById('det-avg').style.color = getC(avg);
+    document.getElementById('history').innerHTML = s.notes.map((n, idx) => `
+        <div class="h-item">
+            <b style="color:${getC(n)}">${n} Punkte</b>
+            <button class="del-g" onclick="delG(${idx})">Löschen</button>
+        </div>`).reverse().join('');
 }
 
 function renderStats() {
-    const chart = document.getElementById('dist-chart');
+    const chart = document.getElementById('bar-chart');
     chart.innerHTML = '';
-    const distribution = new Array(16).fill(0);
-    let allNotes = [];
-    
-    subjects.forEach(s => s.notes.forEach(n => {
-        distribution[Math.floor(n)]++;
-        allNotes.push(n);
-    }));
-
-    const max = Math.max(...distribution) || 1;
-    distribution.forEach((count, i) => {
-        const h = (count / max) * 100;
-        chart.innerHTML += `<div class="bar-item" style="height:${h}%" title="${i} Punkte: ${count}x"></div>`;
+    const dist = new Array(16).fill(0);
+    let all = [];
+    subjects.forEach(s => s.notes.forEach(n => { dist[Math.floor(n)]++; all.push(n); }));
+    const max = Math.max(...dist) || 1;
+    dist.forEach((v, i) => {
+        const h = (v / max) * 100;
+        chart.innerHTML += `<div class="bar" style="height:${h}%; background:${getC(i)}"></div>`;
     });
-
-    const totalAvg = allNotes.length ? (allNotes.reduce((a,b)=>a+b,0)/allNotes.length).toFixed(2) : '0.0';
-    document.getElementById('s-avg').innerText = totalAvg;
-    document.getElementById('s-best').innerText = allNotes.length ? Math.max(...allNotes) : '-';
+    document.getElementById('st-avg').innerText = all.length ? (all.reduce((a,b)=>a+b,0)/all.length).toFixed(2) : '0.0';
+    document.getElementById('st-best').innerText = all.length ? Math.max(...all) : '-';
 }
 
-function delGrade(idx) {
-    subjects.find(x => x.id === activeId).notes.splice(subjects.find(x => x.id === activeId).notes.length - 1 - idx, 1);
+function delG(idx) {
+    const s = subjects.find(x => x.id === activeId);
+    s.notes.splice(s.notes.length - 1 - idx, 1);
     save(); updateDet();
 }
 
-function fullReset() { if(confirm('Sicher?')) { localStorage.clear(); location.reload(); } }
+function delSub() { subjects = subjects.filter(x => x.id !== activeId); save(); tab('dash'); }
+function fullReset() { if(confirm('Alles löschen?')) { localStorage.clear(); location.reload(); } }
 
 tab('dash');
