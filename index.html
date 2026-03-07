@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow v13</title>
+    <title>GradeFlow v14</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav class="sidebar">
@@ -16,7 +16,7 @@
     </nav>
 
     <main class="main-content">
-        <section id="page-list" class="page active">
+        <section id="page-list" class="page">
             <h1>Hallo, <span id="display-name">Schüler</span>!</h1>
             <div class="input-card">
                 <input type="text" id="f-name" placeholder="Neues Fach...">
@@ -63,4 +63,18 @@
             <button onclick="showPage('list')" class="btn-link">← Zurück</button>
             <div class="subject-hero" id="hero-bg">
                 <h1 id="det-title">Fach</h1>
-                <div id="det-avg" class="hero-grade">-
+                <div id="det-avg" class="hero-grade">-</div>
+            </div>
+            <div class="detail-layout" style="display: flex; gap: 20px;">
+                <div id="notes-list" style="flex: 1;"></div>
+                <div class="input-card" style="width: 300px;">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="n-val" placeholder="Wert...">
+                    <button class="btn-accent" onclick="addNote()">Speichern</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
