@@ -1,48 +1,53 @@
-let appData = JSON.parse(localStorage.getItem('gf_v20')) || [];
-let activeFachId = null;
+let subjects = JSON.parse(localStorage.getItem('gf_data')) || [];
+let activeId = null;
+
+// Berechnet die Farbe basierend auf den Punkten (0-15 System)
+function getStatusColor(points) {
+    if (points >= 11) return '#22c55e'; // Grün
+    if (points >= 5) return '#eab308';  // Gelb
+    if (points > 0) return '#ef4444';   // Rot
+    return '#5865f2';                   // Standard Blau
+}
 
 function showPage(pageId) {
-    // Alle Seiten ausblenden
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-    // Zielseite einblenden
-    const target = document.getElementById('page-' + pageId);
-    if(target) target.classList.add('active');
+    document.getElementById('page-' + pageId).classList.add('active');
     
-    const btn = document.getElementById('btn-' + pageId);
-    if(btn) btn.classList.add('active');
-
-    if(pageId === 'list') renderDashboard();
-    if(pageId === 'stats') renderStats();
+    if(pageId === 'list') renderGrid();
 }
 
 function addFach() {
     const input = document.getElementById('f-name');
     if(!input.value.trim()) return;
-    appData.push({ id: Date.now(), name: input.value, notes: [] });
+    subjects.push({ id: Date.now(), name: input.value, notes: [] });
     input.value = '';
-    saveData();
-    renderDashboard();
+    save();
+    renderGrid();
 }
 
-function renderDashboard() {
-    const container = document.getElementById('grid-container');
-    container.innerHTML = '';
-    appData.forEach(f => {
-        const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-        container.innerHTML += `
-            <div class="subject-card" onclick="openDetail(${f.id})">
-                <h3 style="margin:0; font-size:22px;">${f.name}</h3>
-                <div style="font-size:32px; font-weight:900; margin-top:10px;">${avg}</div>
+function renderGrid() {
+    const grid = document.getElementById('grid-container');
+    if(!grid) return;
+    grid.innerHTML = '';
+    
+    subjects.forEach(s => {
+        const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : 0;
+        const color = getStatusColor(avg);
+        
+        grid.innerHTML += `
+            <div class="subject-card" onclick="openDetail(${s.id})" style="border-left-color: ${color}">
+                <h3>${s.name}</h3>
+                <div style="font-size: 24px; font-weight: bold; color: ${color}">
+                    ${s.notes.length ? avg.toFixed(1) : 'Keine Noten'}
+                </div>
             </div>`;
     });
 }
 
 function openDetail(id) {
-    activeFachId = id;
-    const f = appData.find(x => x.id === id);
-    document.getElementById('det-title').innerText = f.name;
+    activeId = id;
+    const s = subjects.find(x => x.id === id);
+    document.getElementById('det-title').innerText = s.name;
     showPage('detail');
     renderDetail();
 }
@@ -51,34 +56,30 @@ function addNote() {
     const input = document.getElementById('n-val');
     const val = parseFloat(input.value);
     if(isNaN(val) || val < 0 || val > 15) return;
-    const f = appData.find(x => x.id === activeFachId);
-    f.notes.push(val);
+    
+    const s = subjects.find(x => x.id === activeId);
+    s.notes.push(val);
     input.value = '';
-    saveData();
+    save();
     renderDetail();
 }
 
 function renderDetail() {
-    const f = appData.find(x => x.id === activeFachId);
-    const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-    document.getElementById('det-avg').innerText = avg;
+    const s = subjects.find(x => x.id === activeId);
+    const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : 0;
+    const color = getStatusColor(avg);
+    
+    document.getElementById('det-avg').innerText = s.notes.length ? avg.toFixed(1) : '-';
+    document.getElementById('hero-banner').style.background = `linear-gradient(135deg, ${color}, #080a12)`;
     
     const list = document.getElementById('notes-history');
-    list.innerHTML = '<h2>Notenverlauf</h2>';
-    f.notes.slice().reverse().forEach(n => {
-        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px; padding:15px; cursor:default;">${n} Punkte</div>`;
+    list.innerHTML = '<h2>Verlauf</h2>';
+    s.notes.slice().reverse().forEach(n => {
+        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px; padding:15px;">${n} Punkte</div>`;
     });
 }
 
-function renderStats() {
-    const container = document.getElementById('stats-list');
-    container.innerHTML = '';
-    appData.forEach(f => {
-        if(!f.notes.length) return;
-        const avg = (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1);
-        container.innerHTML += `<div class="subject-card" style="margin-bottom:10px; cursor:default;"><b>${f.name}:</b> ${avg} Schnitt</div>`;
-    });
-}
+function save() { localStorage.setItem('gf_data', JSON.stringify(subjects)); }
 
-function saveData() { localStorage.setItem('gf_v20', JSON.stringify(appData)); }
-renderDashboard();
+// Initialer Start
+renderGrid();
