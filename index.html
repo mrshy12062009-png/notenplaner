@@ -1,186 +1,63 @@
 <!DOCTYPE html>
-<html lang="de" data-os-version="Enterprise-Gold-2026">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GradeFlow OS | Ultra-High-End Terminal</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeFlow Live</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,800;1,400&family=JetBrains+Mono:wght@100;400;700&display=swap" rel="stylesheet">
 </head>
-<body class="os-core-init">
-
-    <div id="bg-canvas-layer">
-        <div class="glow-orb orb-1"></div>
-        <div class="glow-orb orb-2"></div>
-        <div class="grid-overlay"></div>
-    </div>
-
-    <div id="app-container">
+<body>
+    <nav class="sidebar">
+        <div class="logo">GRADE<span>FLOW</span></div>
+        <button class="nav-btn active" id="btn-list" onclick="showPage('list')">DASHBOARD</button>
+        <button class="nav-btn" id="btn-calendar" onclick="showPage('calendar')">KALENDER</button>
         
-        <aside id="sidebar-main" class="glass-morph">
-            <div class="sidebar-top">
-                <div class="brand-container">
-                    <svg class="brand-icon" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#00f2ff;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#7000ff;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <rect x="20" y="20" width="60" height="60" rx="15" fill="url(#g1)" />
-                    </svg>
-                    <div class="brand-text">
-                        <span class="brand-main">GradeFlow</span>
-                        <span class="brand-sub">ARCHITECT OS</span>
-                    </div>
-                </div>
-
-                <nav class="navigation-engine">
-                    <div class="nav-section-label">Main Workspace</div>
-                    <button onclick="Router.push('dash')" class="nav-item active" id="nav-dash">
-                        <span class="nav-icon">▤</span>
-                        <span class="nav-label">Dashboard Terminal</span>
-                        <span class="nav-indicator"></span>
-                    </button>
-                    <button onclick="Router.push('stats')" class="nav-item" id="nav-stats">
-                        <span class="nav-icon">📈</span>
-                        <span class="nav-label">Neural Analytics</span>
-                        <span class="nav-indicator"></span>
-                    </button>
-                    <button onclick="Router.push('export')" class="nav-item" id="nav-export">
-                        <span class="nav-icon">💾</span>
-                        <span class="nav-label">Data Archiving</span>
-                        <span class="nav-indicator"></span>
-                    </button>
-                    
-                    <div class="nav-section-label">Engine Management</div>
-                    <button onclick="Router.push('settings')" class="nav-item" id="nav-settings">
-                        <span class="nav-icon">⚙</span>
-                        <span class="nav-label">Core Settings</span>
-                        <span class="nav-indicator"></span>
-                    </button>
-                </nav>
-            </div>
-
-            <div class="sidebar-bottom">
-                <div class="system-health">
-                    <div class="health-label">Storage Efficiency</div>
-                    <div class="health-bar"><div id="storage-load" class="health-fill"></div></div>
-                </div>
-                <button class="os-btn btn-danger-glow" onclick="Modals.open('system-reset')">
-                    Master Reset
-                </button>
-            </div>
-        </aside>
-
-        <main id="viewport-main">
-            
-            <section id="view-dash" class="view-module active">
-                <header class="view-header-pro">
-                    <div class="header-info">
-                        <h1>Operational Dashboard</h1>
-                        <p class="typewriter">System initialized. Waiting for data input...</p>
-                    </div>
-                    <div class="header-tools">
-                        <div class="search-wrap">
-                            <input type="text" id="subject-search" placeholder="Search entries...">
-                        </div>
-                        <button class="btn-primary-pro" onclick="Core.initNewSubject()">
-                            <span class="plus-icon">+</span> Initialize Subject
-                        </button>
-                    </div>
-                </header>
-
-                <div id="dashboard-grid" class="dynamic-bento">
-                    </div>
-            </section>
-
-            <section id="view-stats" class="view-module">
-                <div class="analytics-layout">
-                    <div class="chart-main-frame glass-morph">
-                        <div class="chart-info">
-                            <h2>Neural Performance Distribution</h2>
-                            <p>Frequency analysis of grade points across all sectors.</p>
-                        </div>
-                        <div class="chart-viewport">
-                            <div id="distribution-chart" class="chart-bars-container"></div>
-                            <div class="chart-labels-x">
-                                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stats-sidebar">
-                        <div class="stat-card glass-morph">
-                            <label>Weighted Average</label>
-                            <div id="stat-avg-value" class="big-val">0.00</div>
-                        </div>
-                        <div class="stat-card glass-morph">
-                            <label>Statistical Variance</label>
-                            <div id="stat-variance" class="big-val">--</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-details" class="view-module">
-                <div class="detail-container">
-                    <div class="detail-nav-bar">
-                        <button class="btn-back-os" onclick="Router.push('dash')">← Back to Console</button>
-                        <div class="sync-status">Status: Synchronized</div>
-                    </div>
-                    
-                    <div class="subject-focus-header glass-morph">
-                        <div class="focus-title-group">
-                            <h1 id="det-title-display">---</h1>
-                            <p id="det-uuid">UUID: loading...</p>
-                        </div>
-                        <div class="focus-score-ring">
-                            <svg viewBox="0 0 100 100">
-                                <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
-                                <circle id="score-ring-fill" class="ring-fill" cx="50" cy="50" r="45"></circle>
-                            </svg>
-                            <div class="score-text">
-                                <span id="det-avg-display">0.0</span>
-                                <small>GPA</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="entry-control-panel glass-morph">
-                        <h3>Append Transaction</h3>
-                        <div class="input-row">
-                            <div class="input-field-os">
-                                <label>Points (0-15)</label>
-                                <input type="number" id="grade-input-field" placeholder="Entry value...">
-                            </div>
-                            <div class="input-field-os">
-                                <label>Timestamp</label>
-                                <input type="text" id="grade-date" disabled>
-                            </div>
-                            <button class="btn-execute-push" onclick="Core.pushNewGrade()">Commit to Chain</button>
-                        </div>
-                    </div>
-
-                    <div class="history-log-module">
-                        <div class="log-header">
-                            <h3>Ledger History</h3>
-                            <button onclick="Core.exportSubject()">Export Module</button>
-                        </div>
-                        <div id="history-stack" class="log-stack"></div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="modal-overlay" class="modal-layer hidden">
-        <div id="modal-box" class="modal-surface glass-morph">
-            <div id="modal-dynamic-content"></div>
+        <div class="settings">
+            <label for="bundesland">Bundesland:</label>
+            <select id="bundesland" onchange="saveBundesland()">
+                <option value="BE">Berlin</option>
+                <option value="BY">Bayern</option>
+                <option value="NW">NRW</option>
+                </select>
         </div>
-    </div>
+    </nav>
 
-    <div id="notification-center"></div>
+    <main class="content">
+        <section id="page-list" class="page active">
+            <h1>MEINE FÄCHER</h1>
+            <div class="input-group">
+                <input type="text" id="f-in" placeholder="Fach hinzufügen (z.B. Mathe)...">
+                <button class="add-btn" onclick="addFach()">OK</button>
+            </div>
+            <div id="grid" class="grid"></div>
+        </section>
+        
+        <section id="page-detail" class="page">
+            <button class="back" onclick="showPage('list')">← Zurück</button>
+            <div class="banner">
+                <h2 id="d-title">-</h2>
+                <div id="d-avg">-</div>
+            </div>
+            
+            <div class="goal-section">
+                <label>Mein Ziel: </label>
+                <input type="number" id="goal-in" min="0" max="15" onchange="updateGoal()">
+                <p id="goal-status"></p>
+            </div>
+
+            <div class="input-group">
+                <input type="number" id="n-in" placeholder="Note (0-15)">
+                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
+            </div>
+            <div id="n-list"></div>
+        </section>
+
+        <section id="page-calendar" class="page">
+            <h1>SCHULKALENDER</h1>
+            <div id="calendar-info">Wähle dein Bundesland, um Ferientermine zu sehen.</div>
+            <div id="dates-grid"></div>
+        </section>
+    </main>
 
     <script src="script.js"></script>
 </body>

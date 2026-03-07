@@ -1,213 +1,118 @@
-/**
- * GRADEFLOW ARCHITECT OS - KERNEL V4.0.0
- * FULL SCALE ACADEMIC DATA PROCESSOR
- */
+// Daten laden oder neu anlegen
+let db = JSON.parse(localStorage.getItem('gradeflow_data')) || [];
+let selectedBundesland = localStorage.getItem('gradeflow_bl') || 'BE';
+let currentFachId = null;
 
-"use strict";
+// Initialisierung beim Laden
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('bundesland').value = selectedBundesland;
+    renderGrid();
+});
 
-const Core = {
-    state: {
-        subjects: JSON.parse(localStorage.getItem('GF_OS_V4_DATA')) || [],
-        activeID: null,
-        sessionLogs: []
-    },
+function save() {
+    localStorage.setItem('gradeflow_data', JSON.stringify(db));
+    renderGrid();
+}
 
-    /** Initialisiert das System */
-    init() {
-        console.log("%c GF-OS Kernel Initialized ", "background: #00f2ff; color: #000; font-weight: bold;");
-        this.sync();
-        Router.init();
-        NotificationEngine.push("System Secure. Ready for Operation.");
-    },
+function saveBundesland() {
+    selectedBundesland = document.getElementById('bundesland').value;
+    localStorage.setItem('gradeflow_bl', selectedBundesland);
+}
 
-    /** Datenpersistenz */
-    sync() {
-        localStorage.setItem('GF_OS_V4_DATA', JSON.stringify(this.state.subjects));
-        this.updateGlobalMetrics();
-    },
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById('page-' + pageId).classList.add('active');
+    document.getElementById('btn-' + pageId)?.classList.add('active');
+}
 
-    /** Erstellt ein neues Fach mit Validierung */
-    initNewSubject() {
-        const name = prompt("Enter Subject Module Identifier:");
-        if (!name || name.trim().length < 2) {
-            NotificationEngine.push("Error: Invalid Module Name", "danger");
-            return;
-        }
+function addFach() {
+    const input = document.getElementById('f-in');
+    if (!input.value.trim()) return;
 
-        const newSubject = {
-            uid: crypto.randomUUID(),
-            name: name.trim(),
-            entries: [],
-            meta: {
-                created: new Date().toISOString(),
-                color: `hsl(${Math.random() * 360}, 60%, 50%)`
-            }
-        };
+    db.push({
+        id: Date.now(),
+        name: input.value,
+        notes: [],
+        goal: 10
+    });
 
-        this.state.subjects.push(newSubject);
-        this.sync();
-        this.renderDashboard();
-        NotificationEngine.push(`Module [${name}] Virtualized.`);
-    },
+    input.value = '';
+    save();
+}
 
-    /** Berechnet GPA und Statistiken */
-    calculateGPA(notes) {
-        if (!notes || notes.length === 0) return 0;
-        const sum = notes.reduce((a, b) => a + b, 0);
-        return (sum / notes.length).toFixed(1);
-    },
+function getColorClass(points) {
+    if (points >= 11) return 'grade-good';
+    if (points >= 5) return 'grade-mid';
+    return 'grade-bad';
+}
 
-    /** Dashboard Renderer */
-    renderDashboard() {
-        const grid = document.getElementById('dashboard-grid');
-        grid.innerHTML = '';
-
-        this.state.subjects.forEach(s => {
-            const avg = this.calculateGPA(s.entries);
-            const card = document.createElement('div');
-            card.className = 'glass-morph subject-card-pro';
-            card.style.borderLeft = `4px solid ${s.meta.color}`;
-            card.onclick = () => this.bootSubjectModule(s.uid);
-            
-            card.innerHTML = `
-                <div class="card-label">Module ID: ${s.uid.substring(0,8)}</div>
-                <h2>${avg === 0 && s.entries.length === 0 ? '--' : avg}</h2>
-                <div class="card-footer-os">
-                    <strong>${s.name}</strong>
-                    <p>${s.entries.length} Transaction(s)</p>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    },
-
-    /** Öffnet ein Fach im Detail-Modus */
-    bootSubjectModule(uid) {
-        this.state.activeID = uid;
-        const subject = this.state.subjects.find(x => x.uid === uid);
+function renderGrid() {
+    const g = document.getElementById('grid');
+    g.innerHTML = '';
+    
+    db.forEach(f => {
+        const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length) : null;
+        const colorClass = avg !== null ? getColorClass(avg) : '';
         
-        Router.push('details');
-        document.getElementById('det-title-display').innerText = subject.name;
-        document.getElementById('det-uuid').innerText = `KERNEL_PATH: //${subject.uid}`;
-        
-        this.renderSubjectDetails();
-    },
+        g.innerHTML += `
+            <div class="card" onclick="openDetail(${f.id})">
+                <h3>${f.name}</h3>
+                <p class="${colorClass}" style="font-size: 28px; font-weight: bold;">
+                    ${avg !== null ? avg.toFixed(1) : '--'}
+                </p>
+                <small>Ziel: ${f.goal}</small>
+            </div>`;
+    });
+}
 
-    /** Schreibt eine neue Note in die "Chain" */
-    pushNewGrade() {
-        const input = document.getElementById('grade-input-field');
-        const val = parseInt(input.value);
+function openDetail(id) {
+    currentFachId = id;
+    const fach = db.find(f => f.id === id);
+    document.getElementById('d-title').innerText = fach.name;
+    document.getElementById('goal-in').value = fach.goal;
+    renderNotes();
+    showPage('detail');
+}
 
-        if (isNaN(val) || val < 0 || val > 15) {
-            NotificationEngine.push("Logic Error: Grade out of bounds (0-15)", "danger");
-            return;
-        }
+function addNote() {
+    const input = document.getElementById('n-in');
+    const val = parseInt(input.value);
+    if (isNaN(val) || val < 0 || val > 15) return;
 
-        const subject = this.state.subjects.find(x => x.uid === this.state.activeID);
-        subject.entries.push(val);
-        
-        input.value = '';
-        this.sync();
-        this.renderSubjectDetails();
-        NotificationEngine.push("Data committed to Ledger.");
-    },
+    const fach = db.find(f => f.id === currentFachId);
+    fach.notes.push(val);
+    input.value = '';
+    renderNotes();
+    save();
+}
 
-    /** Rendert die Detailansicht mit Ring-Animation */
-    renderSubjectDetails() {
-        const subject = this.state.subjects.find(x => x.uid === this.state.activeID);
-        const avg = this.calculateGPA(subject.entries);
-        
-        // Update Ring
-        const ring = document.getElementById('score-ring-fill');
-        const offset = 283 - (283 * (avg / 15));
-        ring.style.strokeDashoffset = offset;
-        document.getElementById('det-avg-display').innerText = avg;
+function updateGoal() {
+    const fach = db.find(f => f.id === currentFachId);
+    fach.goal = parseInt(document.getElementById('goal-in').value);
+    renderNotes();
+    save();
+}
 
-        // Render History
-        const stack = document.getElementById('history-stack');
-        stack.innerHTML = subject.entries.map((n, i) => `
-            <div class="history-item-os glass-morph">
-                <div class="h-info">
-                    <span class="h-p">#${i+1}</span>
-                    <span class="h-v" style="color: ${this.getGradeColor(n)}">${n} Pkt</span>
-                </div>
-                <button onclick="Core.popGrade(${i})" class="btn-pop">VOID</button>
-            </div>
-        `).reverse().join('');
-    },
-
-    /** Rendert das Diagramm in der Analyse-Ansicht */
-    renderAnalytics() {
-        const chart = document.getElementById('distribution-chart');
-        chart.innerHTML = '';
-        
-        const dist = new Array(16).fill(0);
-        let totalGrades = [];
-        
-        this.state.subjects.forEach(s => s.entries.forEach(n => {
-            dist[n]++;
-            totalGrades.push(n);
-        }));
-
-        const maxCount = Math.max(...dist) || 1;
-        dist.forEach((count, p) => {
-            const bar = document.createElement('div');
-            bar.className = 'chart-bar-unit';
-            bar.style.height = `${(count / maxCount) * 100}%`;
-            bar.style.backgroundColor = this.getGradeColor(p);
-            bar.title = `Value ${p}: ${count} occurrences`;
-            chart.appendChild(bar);
-        });
-
-        // KPI Update
-        const avgGlobal = this.calculateGPA(totalGrades);
-        document.getElementById('stat-avg-value').innerText = avgGlobal;
-    },
-
-    getGradeColor(p) {
-        if (p >= 13) return '#00ffa3';
-        if (p >= 10) return '#00f2ff';
-        if (p >= 7) return '#ffaa00';
-        return '#ff0055';
-    },
-
-    updateGlobalUI() {
-        const usage = (JSON.stringify(this.state.subjects).length / 10000) * 100;
-        document.getElementById('storage-load').style.width = usage + '%';
+function renderNotes() {
+    const fach = db.find(f => f.id === currentFachId);
+    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/f.notes.length) : 0;
+    
+    document.getElementById('d-avg').innerText = `Schnitt: ${avg.toFixed(1)}`;
+    
+    // Status-Berechnung
+    const diff = (fach.goal - avg).toFixed(1);
+    const statusEl = document.getElementById('goal-status');
+    if (avg >= fach.goal) {
+        statusEl.innerHTML = `<span class="grade-good">Ziel erreicht! 🎉</span>`;
+    } else {
+        statusEl.innerHTML = `Noch <b>${diff} Punkte</b> bis zum Ziel.`;
     }
-};
 
-/** Navigations-Logik */
-const Router = {
-    init() {
-        this.push('dash');
-    },
-    push(viewID) {
-        document.querySelectorAll('.view-module').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
-        const target = document.getElementById(`view-${viewID}`);
-        if(target) target.classList.add('active');
-        
-        const nav = document.getElementById(`nav-${viewID}`);
-        if(nav) nav.classList.add('active');
-
-        if(viewID === 'dash') Core.renderDashboard();
-        if(viewID === 'stats') Core.renderAnalytics();
-    }
-};
-
-/** Benachrichtigungs-System */
-const NotificationEngine = {
-    push(msg, type = "info") {
-        const container = document.getElementById('notification-center');
-        const toast = document.createElement('div');
-        toast.className = `toast-os ${type}`;
-        toast.innerText = msg;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-    }
-};
-
-// System Start
-window.onload = () => Core.init();
+    document.getElementById('n-list').innerHTML = fach.notes.map((n, i) => `
+        <div class="note-item">
+            Note ${i+1}: <b>${n} Punkte</b>
+        </div>
+    `).reverse().join('');
+}
