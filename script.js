@@ -1,132 +1,127 @@
-let subjects = JSON.parse(localStorage.getItem('GF_NEON_V12')) || [];
-let activeId = null;
-let mAction = null;
+let appData = JSON.parse(localStorage.getItem('GF_PRO_V14')) || [];
+let activeSubjectId = null;
+let modalAction = null;
 
-const sync = () => localStorage.setItem('GF_NEON_V12', JSON.stringify(subjects));
+const commit = () => localStorage.setItem('GF_PRO_V14', JSON.stringify(appData));
 
-// Farblogik für Neon-Effekte
-function getStyle(avg) {
-    if (avg === null) return { c: '#333', t: 'Keine Daten', glow: 'rgba(51,51,51,0.3)' };
-    if (avg >= 13) return { c: 'var(--neon-blue)', t: 'Exzellent', glow: 'rgba(0, 242, 254, 0.4)' };
-    if (avg >= 8) return { c: 'var(--neon-gold)', t: 'Stabil', glow: 'rgba(255, 204, 0, 0.3)' };
-    return { c: 'var(--neon-red)', t: 'Kritisch', glow: 'rgba(255, 0, 85, 0.4)' };
+function getTone(avg) {
+    if (avg === null) return { g: 'var(--card)', c: '#222', t: 'Keine Daten' };
+    if (avg >= 13) return { g: 'var(--good)', c: '#22c55e', t: 'Herausragend' };
+    if (avg >= 8) return { g: 'var(--mid)', c: '#eab308', t: 'Befriedigend' };
+    return { g: 'var(--bad)', c: '#ef4444', t: 'Handlungsbedarf' };
 }
 
-function tab(id) {
+function view(id) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('tab-' + id).classList.add('active');
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
     if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add('active');
-    if(id === 'dash') renderDash();
+    if(id === 'dash') renderDashboard();
     if(id === 'goals') renderGoals();
 }
 
-function renderDash() {
-    const grid = document.getElementById('grid');
+function renderDashboard() {
+    const grid = document.getElementById('subject-grid');
     grid.innerHTML = '';
-    let sum = 0, count = 0;
+    let totalSum = 0, count = 0;
 
-    subjects.forEach(s => {
+    appData.forEach(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-        const style = getStyle(avg);
-        if(avg !== null) { sum += avg; count++; }
+        const tone = getTone(avg);
+        if(avg !== null) { totalSum += avg; count++; }
 
         grid.innerHTML += `
-            <div class="n-card" onclick="openSubject(${s.id})" style="box-shadow: 0 10px 30px ${style.glow}">
-                <div class="label">${s.name}</div>
-                <h2 style="color: ${style.c}; text-shadow: 0 0 20px ${style.c}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <div style="font-size:12px; font-weight:800; color:${style.c}">${style.t}</div>
+            <div class="subject-card" onclick="openSubject(${s.id})">
+                <div style="font-size:11px; font-weight:800; color:#444; text-transform:uppercase">${s.name}</div>
+                <h2 style="color: ${avg !== null ? tone.c : '#1a1a1a'}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <div style="font-size:12px; font-weight:800; color:${tone.c}">${tone.t}</div>
             </div>`;
     });
-    document.getElementById('total-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
+    document.getElementById('total-avg').innerText = count > 0 ? (totalSum/count).toFixed(2) : '0.0';
 }
 
 function addSubject() {
-    const input = document.getElementById('in-subject');
+    const input = document.getElementById('subject-in');
     if(!input.value.trim()) return;
-    subjects.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
-    input.value = ''; sync(); renderDash();
+    appData.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
+    input.value = ''; commit(); renderDashboard();
 }
 
 function openSubject(id) {
-    activeId = id;
-    const s = subjects.find(x => x.id === id);
-    tab('det');
+    activeSubjectId = id;
+    const s = appData.find(x => x.id === id);
+    view('det');
     const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-    const style = getStyle(avg);
+    const tone = getTone(avg);
 
-    const hero = document.getElementById('det-hero');
-    hero.style.background = `linear-gradient(180deg, ${style.c}22 0%, transparent 100%)`;
-    hero.style.borderColor = style.c;
-    
+    const hero = document.getElementById('det-card');
+    hero.style.background = tone.g;
     document.getElementById('det-name').innerText = s.name;
     document.getElementById('det-num').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-num').style.color = style.c;
-    document.getElementById('det-num').style.textShadow = `0 0 30px ${style.c}`;
-    document.getElementById('det-status').innerText = style.t;
+    document.getElementById('det-status').innerText = tone.t;
 
     const hist = document.getElementById('history');
     hist.innerHTML = s.notes.map((n, i) => `
-        <div class="hist-item" style="border-left: 4px solid ${getStyle(n).c}">
-            <b style="font-size:20px; color:${getStyle(n).c}">${n} Pkt</b>
-            <button onclick="delGrade(${i})" style="background:none; border:none; color:#444; cursor:pointer; font-weight:800">Löschen</button>
+        <div class="history-row" style="border-left-color: ${getTone(n).c}">
+            <span style="font-weight:800; font-size:18px">${n} Punkte</span>
+            <button onclick="deleteGrade(${i})" style="background:none; border:none; color:#333; cursor:pointer; font-weight:800">Löschen</button>
         </div>`).reverse().join('');
 }
 
 function addGrade() {
-    const input = document.getElementById('in-grade');
+    const input = document.getElementById('grade-in');
     const val = parseFloat(input.value);
     if(isNaN(val) || val < 0 || val > 15) return;
-    subjects.find(x => x.id === activeId).notes.push(val);
-    input.value = ''; sync(); openSubject(activeId);
+    appData.find(x => x.id === activeSubjectId).notes.push(val);
+    input.value = ''; commit(); openSubject(activeSubjectId);
 }
 
-function delGrade(idx) {
-    const s = subjects.find(x => x.id === activeId);
+function deleteGrade(idx) {
+    const s = appData.find(x => x.id === activeSubjectId);
     s.notes.splice(s.notes.length - 1 - idx, 1);
-    sync(); openSubject(activeId);
+    commit(); openSubject(activeSubjectId);
 }
 
 function renderGoals() {
     const list = document.getElementById('goals-list');
     list.innerHTML = '';
-    subjects.forEach(s => {
+    appData.forEach(s => {
         list.innerHTML += `
-            <div class="goal-row">
-                <span class="name">${s.name}</span>
+            <div class="goal-item">
+                <span style="font-weight:800; font-size:20px">${s.name}</span>
                 <div style="display:flex; align-items:center; gap:15px">
-                    <span style="color:#444; font-size:12px; font-weight:800">ZIEL</span>
-                    <input type="number" min="0" max="15" value="${s.target}" onchange="updateTarget(${s.id}, this.value)">
+                    <span style="color:#444; font-size:11px; font-weight:800">ZIEL-PUNKTE</span>
+                    <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
                 </div>
             </div>`;
     });
 }
 
-function updateTarget(id, val) {
-    subjects.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
-    sync();
+function updateGoal(id, val) {
+    appData.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
+    commit();
 }
 
-function askDeleteSubject() {
-    openModal("Fach wirklich löschen?", () => {
-        subjects = subjects.filter(x => x.id !== activeId);
-        sync(); tab('dash');
+function deleteSubjectTrigger() {
+    showModal("Dieses Fach wirklich löschen?", () => {
+        appData = appData.filter(x => x.id !== activeSubjectId);
+        commit(); view('dash');
     });
 }
 
-function askReset() {
-    openModal("ALLES LÖSCHEN?", () => {
+function fullReset() {
+    showModal("KOMPLETTER RESET?", () => {
         localStorage.clear();
         location.reload();
     });
 }
 
-function openModal(txt, cb) {
-    document.getElementById('modal-title').innerText = txt;
+function showModal(msg, action) {
+    document.getElementById('modal-title').innerText = msg;
     document.getElementById('modal-overlay').classList.remove('hidden');
-    mAction = cb;
+    modalAction = action;
 }
 function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-document.getElementById('modal-confirm').onclick = () => { if(mAction) mAction(); closeModal(); };
+document.getElementById('modal-confirm').onclick = () => { if(modalAction) modalAction(); closeModal(); };
 
-renderDash();
+renderDashboard();
