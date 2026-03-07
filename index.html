@@ -11,6 +11,31 @@
         <button class="nav-btn active" onclick="showPage('list')">DASHBOARD</button>
         <button class="nav-btn" onclick="showPage('calendar')">KALENDER</button>
     </nav>
+    <button class="nav-btn" onclick="showPage('calendar')">KALENDER</button>
+
+<section id="page-calendar" class="page">
+    <div class="cal-nav" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <button class="add-btn" onclick="changeMonth(-1)">◀</button>
+        <h2 id="month-name">-</h2>
+        <button class="add-btn" onclick="changeMonth(1)">▶</button>
+    </div>
+
+    <div class="calendar-card" style="background:var(--card); padding:20px; border-radius:12px; border:1px solid #30363d;">
+        <div class="weekdays" style="display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-weight:bold; color:var(--accent); margin-bottom:10px;">
+            <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+        </div>
+        <div id="calendar-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:5px;"></div>
+    </div>
+
+    <div style="margin-top:20px; padding:15px; background:#161b22; border-radius:8px; border:1px solid #30363d;">
+        <h3 style="font-size:14px; margin-bottom:10px;">Termin hinzufügen (z.B. für 2027)</h3>
+        <div class="input-group">
+            <input type="date" id="event-date">
+            <input type="text" id="event-text" placeholder="Prüfungsname...">
+            <button class="add-btn" onclick="addUserEvent()">HINZUFÜGEN</button>
+        </div>
+    </div>
+</section>
     
     <main class="content">
         <section id="page-list" class="page active">
