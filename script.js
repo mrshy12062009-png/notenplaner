@@ -1,6 +1,6 @@
-// Speicher-Schlüssel für v13 (löscht alte Konflikte)
-const DATA_KEY = 'gf_v13_data';
-const CONF_KEY = 'gf_v13_conf';
+// GradeFlow v13 - Stable Build
+const DATA_KEY = 'gf_data_v13';
+const CONF_KEY = 'gf_conf_v13';
 
 let appData = JSON.parse(localStorage.getItem(DATA_KEY)) || [];
 let config = JSON.parse(localStorage.getItem(CONF_KEY)) || {
@@ -12,61 +12,70 @@ let config = JSON.parse(localStorage.getItem(CONF_KEY)) || {
 let activeFachId = null;
 let myChart = null;
 
-// Initialisierung: Farben und Name beim Start setzen
+// Initialisierung
 document.documentElement.style.setProperty('--accent', config.accentColor);
 
 function showPage(id) {
-    // 1. Alle Seiten verstecken
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    // 2. Zielseite zeigen
+    console.log("Wechsle zu Seite:", id); // Hilft beim Debuggen in der Konsole (F12)
+    
+    // Alle Seiten ausblenden
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(p => p.classList.remove('active'));
+    
+    // Zielseite einblenden
     const target = document.getElementById('page-' + id);
-    if(target) target.classList.add('active');
+    if (target) {
+        target.classList.add('active');
+    }
 
-    // 3. UI Updates je nach Seite
-    document.getElementById('display-name').innerText = config.userName;
+    // UI-Elemente füllen
+    const nameDisplay = document.getElementById('display-name');
+    if (nameDisplay) nameDisplay.innerText = config.userName;
 
-    if(id === 'list') renderGrid();
-    if(id === 'stats') renderStats();
-    if(id === 'settings') {
+    if (id === 'list') renderGrid();
+    if (id === 'stats') renderStats();
+    if (id === 'settings') {
         document.getElementById('set-name').value = config.userName;
         document.getElementById('set-system').value = config.usePoints ? 'points' : 'grades';
     }
 }
 
-// --- DASHBOARD ---
 function addFach() {
     const input = document.getElementById('f-name');
-    if(!input.value.trim()) return;
+    if (!input || !input.value.trim()) return;
     
-    appData.push({
+    const newFach = {
         id: Date.now(),
         name: input.value.trim(),
         notes: []
-    });
+    };
     
-    input.value = '';
+    appData.push(newFach);
     save();
+    input.value = '';
     renderGrid();
 }
 
 function renderGrid() {
     const container = document.getElementById('grid-container');
+    if (!container) return;
     container.innerHTML = '';
 
     appData.forEach(f => {
-        const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-        container.innerHTML += `
-            <div class="subject-card" onclick="openDetail(${f.id})">
-                <h3>${f.name}</h3>
-                <p style="font-size: 20px; font-weight: bold; color: var(--accent)">${avg}</p>
-            </div>`;
+        const avg = f.notes.length ? (f.notes.reduce((a, b) => a + b, 0) / f.notes.length).toFixed(1) : '-';
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.onclick = () => openDetail(f.id);
+        card.innerHTML = `<h3>${f.name}</h3><p style="font-size: 20px; font-weight: bold; color: var(--accent)">${avg}</p>`;
+        container.appendChild(card);
     });
 }
 
-// --- DETAIL ANSICHT ---
 function openDetail(id) {
     activeFachId = id;
     const fach = appData.find(f => f.id === id);
+    if (!fach) return;
+    
     document.getElementById('det-title').innerText = fach.name;
     showPage('detail');
     renderDetail();
@@ -74,23 +83,27 @@ function openDetail(id) {
 
 function addNote() {
     const input = document.getElementById('n-val');
+    if (!input) return;
     const val = parseFloat(input.value);
     
-    if(isNaN(val)) return;
+    if (isNaN(val)) return;
 
     const fach = appData.find(f => f.id === activeFachId);
-    fach.notes.push(val);
-    
-    input.value = '';
-    save();
-    renderDetail();
+    if (fach) {
+        fach.notes.push(val);
+        save();
+        input.value = '';
+        renderDetail();
+    }
 }
 
 function renderDetail() {
     const fach = appData.find(f => f.id === activeFachId);
-    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/fach.notes.length).toFixed(1) : '-';
-    
+    if (!fach) return;
+
+    const avg = fach.notes.length ? (fach.notes.reduce((a, b) => a + b, 0) / fach.notes.length).toFixed(1) : '-';
     document.getElementById('det-avg').innerText = avg;
+    
     const list = document.getElementById('notes-list');
     list.innerHTML = '<h3>Notenverlauf</h3>';
 
@@ -99,13 +112,12 @@ function renderDetail() {
     });
 }
 
-// --- STATISTIKEN (CHART) ---
 function renderStats() {
     let total = 0, count = 0, labels = [], dataPoints = [];
 
     appData.forEach(f => {
-        if(f.notes.length > 0) {
-            const avg = f.notes.reduce((a,b)=>a+b,0)/f.notes.length;
+        if (f.notes.length > 0) {
+            const avg = f.notes.reduce((a, b) => a + b, 0) / f.notes.length;
             total += avg;
             count++;
             labels.push(f.name);
@@ -113,12 +125,17 @@ function renderStats() {
         }
     });
 
-    document.getElementById('total-avg').innerText = count > 0 ? (total/count).toFixed(1) : '-';
-    document.getElementById('total-count').innerText = appData.reduce((a,b) => a + b.notes.length, 0);
+    const avgDisplay = document.getElementById('total-avg');
+    const countDisplay = document.getElementById('total-count');
+    
+    if (avgDisplay) avgDisplay.innerText = count > 0 ? (total / count).toFixed(1) : '-';
+    if (countDisplay) countDisplay.innerText = appData.reduce((a, b) => a + b.notes.length, 0);
 
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if(myChart) myChart.destroy();
-
+    const canvas = document.getElementById('myChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -136,12 +153,11 @@ function renderStats() {
     });
 }
 
-// --- EINSTELLUNGEN ---
 function saveSettings() {
     config.userName = document.getElementById('set-name').value || 'Schüler';
     config.usePoints = document.getElementById('set-system').value === 'points';
     localStorage.setItem(CONF_KEY, JSON.stringify(config));
-    alert("Gespeichert!");
+    alert("Einstellungen gespeichert!");
     showPage('list');
 }
 
@@ -152,7 +168,7 @@ function changeTheme(color) {
 }
 
 function deleteFach() {
-    if(confirm('Fach wirklich löschen?')) {
+    if (confirm('Fach wirklich löschen?')) {
         appData = appData.filter(f => f.id !== activeFachId);
         save();
         showPage('list');
@@ -160,7 +176,7 @@ function deleteFach() {
 }
 
 function resetAll() {
-    if(confirm('ACHTUNG: Alle Noten und Fächer werden gelöscht!')) {
+    if (confirm('Wirklich ALLES löschen?')) {
         localStorage.clear();
         location.reload();
     }
@@ -170,5 +186,7 @@ function save() {
     localStorage.setItem(DATA_KEY, JSON.stringify(appData));
 }
 
-// Start der App
-showPage('list');
+// App starten
+window.onload = () => {
+    showPage('list');
+};
