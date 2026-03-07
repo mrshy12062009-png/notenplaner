@@ -16,6 +16,8 @@
             <nav class="nav">
                 <button id="btn-list" class="nav-btn is-active" data-page="list" type="button">Dashboard</button>
                 <button id="btn-calendar" class="nav-btn" data-page="calendar" type="button">Kalender</button>
+                <button id="btn-stats" class="nav-btn" data-page="stats" type="button">Stats</button>
+                <button id="btn-goals" class="nav-btn" data-page="goals" type="button">Ziele</button>
                 <button id="btn-settings" class="nav-btn" data-page="settings" type="button">Einstellungen</button>
             </nav>
         </aside>
@@ -118,6 +120,30 @@
                     <p id="note-feedback" class="feedback" role="status" aria-live="polite"></p>
                 </form>
                 <div id="note-list" class="list"></div>
+            </section>
+
+            <section id="page-stats" class="page" aria-labelledby="stats-heading">
+                <div class="section-head">
+                    <h2 id="stats-heading">Lern-Statistik</h2>
+                    <p>Deine aktuellen Kennzahlen auf einen Blick.</p>
+                </div>
+                <div id="stats-grid" class="stats-grid"></div>
+            </section>
+
+            <section id="page-goals" class="page" aria-labelledby="goals-heading">
+                <div class="section-head">
+                    <h2 id="goals-heading">Ziele</h2>
+                    <p>Plane Ziele und markiere erledigte Schritte.</p>
+                </div>
+                <form id="goal-form" class="stack" novalidate>
+                    <div class="inline-form responsive-3">
+                        <input id="goal-text" type="text" maxlength="90" placeholder="z. B. Mathe auf 12 Punkte verbessern" required>
+                        <input id="goal-date" type="date">
+                        <button id="goal-submit" class="btn btn-primary" type="submit">Ziel speichern</button>
+                    </div>
+                    <p id="goal-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div id="goal-list" class="list"></div>
             </section>
 
             <section id="page-settings" class="page" aria-labelledby="settings-heading">

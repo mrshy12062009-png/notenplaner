@@ -233,6 +233,27 @@ button:focus-visible {
     gap: var(--space-3);
 }
 
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-3);
+}
+
+.stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 0.35rem;
+}
+
+.stat-card strong {
+    font-size: 1.9rem;
+    font-family: "Sora", "Manrope", sans-serif;
+}
+
 .card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
@@ -462,6 +483,10 @@ button:focus-visible {
     box-shadow: var(--shadow);
     display: grid;
     gap: var(--space-1);
+}
+
+.goal-item.done {
+    opacity: 0.72;
 }
 
 .list-item-special {

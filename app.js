@@ -46,7 +46,8 @@ export function initApp() {
         },
         subjectsStore: loadSubjectsStore(),
         eventsStore: loadEventsStore(),
-        settings: loadSettings()
+        settings: loadSettings(),
+        goals: loadGoals()
     };
 
     const els = {
@@ -101,7 +102,14 @@ export function initApp() {
         settingShowVacations: document.getElementById("setting-show-vacations"),
         settingShowEventLabels: document.getElementById("setting-show-event-labels"),
         settingsReset: document.getElementById("settings-reset"),
-        settingsFeedback: document.getElementById("settings-feedback")
+        settingsFeedback: document.getElementById("settings-feedback"),
+
+        statsGrid: document.getElementById("stats-grid"),
+        goalForm: document.getElementById("goal-form"),
+        goalTextInput: document.getElementById("goal-text"),
+        goalDateInput: document.getElementById("goal-date"),
+        goalFeedback: document.getElementById("goal-feedback"),
+        goalList: document.getElementById("goal-list")
     };
 
     applyThemeSettings();
@@ -221,6 +229,15 @@ export function initApp() {
             renderEventList();
             setFeedback(els.settingsFeedback, "Einstellungen zurückgesetzt.");
         });
+
+        els.goalForm.addEventListener("submit", onGoalSubmit);
+        els.goalList.addEventListener("click", (event) => {
+            const action = event.target.dataset.action;
+            const goalId = event.target.dataset.id;
+            if (!action || !goalId) return;
+            if (action === "toggle-goal") toggleGoal(goalId);
+            if (action === "delete-goal") deleteGoal(goalId);
+        });
     }
 
     function renderAll() {
@@ -228,6 +245,8 @@ export function initApp() {
         renderSubjectDetail();
         renderCalendar();
         renderEventList();
+        renderStats();
+        renderGoals();
     }
 
     function showPage(pageId) {
@@ -431,27 +450,14 @@ export function initApp() {
             dayEvents.forEach((item) => {
                 entries.push({
                     date,
-                    ...item,
-                    kind: "user"
+                    ...item
                 });
             });
         });
 
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day += 1) {
-            const dateStr = toIsoDate(year, month + 1, day);
-            const specialEntries = getSpecialEntriesForDate(dateStr);
-            specialEntries.forEach((entry) => {
-                entries.push(entry);
-            });
-        }
-
         entries.sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);
             if (dateCompare !== 0) return dateCompare;
-            if (a.kind !== b.kind) {
-                return a.kind === "special" ? -1 : 1;
-            }
             return priorityRank(a.priority) - priorityRank(b.priority);
         });
 
@@ -462,15 +468,6 @@ export function initApp() {
 
         els.eventList.innerHTML = entries
             .map((entry) => {
-                if (entry.kind === "special") {
-                    return `
-                        <article class="list-item list-item-special">
-                            <strong>${escapeHtml(entry.text)}</strong>
-                            <p class="list-meta">${formatDate(entry.date)} · ${entry.typeLabel}</p>
-                        </article>
-                    `;
-                }
-
                 return `
                     <article class="list-item event-item event-type-${entry.type || "exam"}">
                         <strong>${escapeHtml(entry.text)}</strong>
@@ -482,6 +479,62 @@ export function initApp() {
                     </article>
                 `;
             })
+            .join("");
+    }
+
+    function renderStats() {
+        const subjects = state.subjectsStore.subjects;
+        const notes = subjects.flatMap((subject) => subject.notes || []);
+        const allEvents = Object.values(state.eventsStore.events).flat();
+        const nowIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+        const upcomingExams = Object.keys(state.eventsStore.events).reduce((count, date) => {
+            if (date < nowIso) return count;
+            const exams = (state.eventsStore.events[date] || []).filter((entry) => (entry.type || "exam") === "exam").length;
+            return count + exams;
+        }, 0);
+        const openGoals = state.goals.filter((goal) => goal.status === "open").length;
+
+        const stats = [
+            { label: "Fächer", value: String(subjects.length) },
+            { label: "Noten gesamt", value: String(notes.length) },
+            { label: "Schnitt gesamt", value: notes.length ? (notes.reduce((acc, note) => acc + note.value, 0) / notes.length).toFixed(1) : "--" },
+            { label: "Termine gesamt", value: String(allEvents.length) },
+            { label: "Prüfungen offen", value: String(upcomingExams) },
+            { label: "Offene Ziele", value: String(openGoals) }
+        ];
+
+        els.statsGrid.innerHTML = stats
+            .map((item) => `
+                <article class="stat-card">
+                    <p class="list-meta">${item.label}</p>
+                    <strong>${item.value}</strong>
+                </article>
+            `)
+            .join("");
+    }
+
+    function renderGoals() {
+        if (!state.goals.length) {
+            els.goalList.innerHTML = createEmptyState("Noch keine Ziele gesetzt.");
+            return;
+        }
+
+        els.goalList.innerHTML = state.goals
+            .slice()
+            .sort((a, b) => {
+                if (a.status !== b.status) return a.status === "open" ? -1 : 1;
+                return (a.targetDate || "9999-12-31").localeCompare(b.targetDate || "9999-12-31");
+            })
+            .map((goal) => `
+                <article class="list-item goal-item ${goal.status === "done" ? "done" : ""}">
+                    <strong>${escapeHtml(goal.text)}</strong>
+                    <p class="list-meta">${goal.targetDate ? `Zieldatum: ${formatDate(goal.targetDate)}` : "Ohne Zieldatum"} · Status: ${goal.status === "done" ? "Erledigt" : "Offen"}</p>
+                    <div class="row-actions">
+                        <button class="btn btn-ghost" data-action="toggle-goal" data-id="${goal.id}" type="button">${goal.status === "done" ? "Wieder öffnen" : "Erledigt"}</button>
+                        <button class="btn btn-ghost" data-action="delete-goal" data-id="${goal.id}" type="button">Löschen</button>
+                    </div>
+                </article>
+            `)
             .join("");
     }
 
@@ -525,6 +578,7 @@ export function initApp() {
             els.subjectSubmit.textContent = "Hinzufügen";
             state.subjectsStore = persistSubjects(state.subjectsStore);
             renderSubjects();
+            renderStats();
             setFeedback(els.subjectFeedback, "Fach aktualisiert.");
             els.subjectNameInput.value = "";
             return;
@@ -537,6 +591,7 @@ export function initApp() {
         });
         state.subjectsStore = persistSubjects(state.subjectsStore);
         renderSubjects();
+        renderStats();
         els.subjectNameInput.value = "";
         setFeedback(els.subjectFeedback, "Fach angelegt.");
     }
@@ -566,6 +621,7 @@ export function initApp() {
         state.subjectsStore = persistSubjects(state.subjectsStore);
         renderSubjects();
         renderSubjectDetail();
+        renderStats();
         setFeedback(els.subjectFeedback, "Fach gelöscht.");
     }
 
@@ -617,6 +673,7 @@ export function initApp() {
         resetNoteForm();
         renderSubjects();
         renderSubjectDetail();
+        renderStats();
     }
 
     function startEditNote(noteId) {
@@ -642,6 +699,7 @@ export function initApp() {
         resetNoteForm();
         renderSubjects();
         renderSubjectDetail();
+        renderStats();
         setFeedback(els.noteFeedback, "Note gelöscht.");
     }
 
@@ -725,6 +783,7 @@ export function initApp() {
         updateSelectedDayUI();
         renderCalendar();
         renderEventList();
+        renderStats();
     }
 
     function startEditEvent(date, eventId) {
@@ -754,7 +813,55 @@ export function initApp() {
         resetEventForm();
         renderCalendar();
         renderEventList();
+        renderStats();
         setFeedback(els.eventFeedback, "Termin gelöscht.");
+    }
+
+    function onGoalSubmit(event) {
+        event.preventDefault();
+        clearFeedback(els.goalFeedback);
+
+        const text = normalizeText(els.goalTextInput.value);
+        const targetDate = els.goalDateInput.value;
+        if (!text) {
+            setFeedback(els.goalFeedback, "Bitte ein Ziel eingeben.", true);
+            return;
+        }
+        if (targetDate && !isIsoDate(targetDate)) {
+            setFeedback(els.goalFeedback, "Ungültiges Zieldatum.", true);
+            return;
+        }
+
+        state.goals.push({
+            id: createId("goal"),
+            text,
+            targetDate: targetDate || "",
+            status: "open",
+            createdAt: new Date().toISOString()
+        });
+        persistGoals(state.goals);
+        els.goalTextInput.value = "";
+        els.goalDateInput.value = "";
+        renderGoals();
+        renderStats();
+        setFeedback(els.goalFeedback, "Ziel gespeichert.");
+    }
+
+    function toggleGoal(goalId) {
+        const goal = state.goals.find((entry) => entry.id === goalId);
+        if (!goal) return;
+        goal.status = goal.status === "done" ? "open" : "done";
+        persistGoals(state.goals);
+        renderGoals();
+        renderStats();
+    }
+
+    function deleteGoal(goalId) {
+        state.goals = state.goals.filter((entry) => entry.id !== goalId);
+        persistGoals(state.goals);
+        renderGoals();
+        renderStats();
+        setFeedback(els.goalFeedback, "Ziel gelöscht.");
     }
 
     function resetEventForm() {
@@ -776,23 +883,6 @@ export function initApp() {
     function getEventsForDate(date) {
         const events = state.eventsStore.events[date] || [];
         return [...events].sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
-    }
-
-    function getSpecialEntriesForDate(dateStr) {
-        const meta = getDayMeta(dateStr);
-        const special = [];
-
-        meta.holidayNames.forEach((name) => {
-            special.push({
-                kind: "special",
-                date: dateStr,
-                text: name,
-                typeLabel: "Feiertag",
-                priority: "high"
-            });
-        });
-
-        return special;
     }
 
     function getDayMeta(dateStr) {
@@ -844,6 +934,30 @@ export function initApp() {
         if (type === "deadline") return "Abgabe";
         if (type === "other") return "Sonstiges";
         return "Prüfung";
+    }
+
+    function loadGoals() {
+        try {
+            const raw = localStorage.getItem("gf_goals");
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+                .map((entry) => ({
+                    id: typeof entry.id === "string" ? entry.id : createId("goal"),
+                    text: normalizeText(entry.text),
+                    targetDate: isIsoDate(entry.targetDate) ? entry.targetDate : "",
+                    status: entry.status === "done" ? "done" : "open",
+                    createdAt: typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString()
+                }))
+                .filter((entry) => entry.text);
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function persistGoals(goals) {
+        localStorage.setItem("gf_goals", JSON.stringify(goals));
     }
 
     function setFeedback(target, message, isError = false) {
