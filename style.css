@@ -1,45 +1,59 @@
 :root { 
-    --bg: #0b0e14; --side: #151926; --card: #1c2230; --accent: #5865f2; 
-    --text: #fff; --danger: #ff4757; --success: #2ed573;
+    --bg: #0b0e14; 
+    --side: #151926; 
+    --card: #1c2230; 
+    --accent: #5865f2; /* Diese Variable wird per JS überschrieben */
+    --text: #fff; 
+    --danger: #ff4757; 
+    --success: #2ed573;
+    --warning-bg: rgba(255, 71, 87, 0.1);
 }
 
-body { background: var(--bg); color: var(--text); margin: 0; display: flex; font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    margin: 0; 
+    display: flex; 
+    font-family: 'Inter', -apple-system, sans-serif; 
+    height: 100vh; 
+    overflow: hidden; 
+}
 
-/* Sidebar */
+/* Sidebar Farben */
 .sidebar { width: 260px; background: var(--side); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.05); }
 .logo { font-size: 26px; font-weight: 800; color: var(--accent); margin-bottom: 40px; }
 .logo span { color: #fff; }
+
 .nav-btn { 
     width: 100%; padding: 14px; margin: 8px 0; border: none; background: none; 
     color: #94a3b8; text-align: left; cursor: pointer; border-radius: 12px; 
-    transition: 0.3s ease; 
+    transition: 0.3s; 
 }
-.nav-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+.nav-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
-/* Main & Animations */
-.main-content { flex: 1; padding: 40px; overflow-y: auto; }
-.page { display: none; opacity: 0; transform: translateY(10px); transition: 0.4s ease; }
-.page.active { display: block; opacity: 1; transform: translateY(0); }
-
-/* Dashboard Cards */
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+/* Card Farben & Warnungen */
 .subject-card { 
     background: var(--card); padding: 25px; border-radius: 20px; 
-    border-left: 5px solid var(--accent); cursor: pointer; transition: 0.3s;
+    border-left: 6px solid var(--accent); cursor: pointer; transition: 0.3s;
 }
 .subject-card:hover { transform: translateY(-5px); background: #232a42; }
-.subject-card.warning { border-left-color: var(--danger); }
 
-/* UI Elements */
-.stats-hero { 
-    background: linear-gradient(135deg, var(--accent), #404eed); padding: 30px; 
-    border-radius: 24px; display: flex; justify-content: space-around; margin-bottom: 30px; 
+/* Rote Warnung für Unterkurse */
+.subject-card.warning { 
+    border-left-color: var(--danger); 
+    background: var(--warning-bg); 
 }
-.input-card { background: var(--card); padding: 25px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-input, select { width: 100%; padding: 12px; margin: 10px 0; background: #080a12; border: 1px solid #2d344d; color: #fff; border-radius: 10px; box-sizing: border-box; }
-.btn-accent { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-.btn-danger { background: var(--danger); color: #fff; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px; }
-.color-picker { display: flex; gap: 10px; margin-top: 10px; }
-.color-dot { width: 35px; height: 35px; border-radius: 10px; cursor: pointer; border: 2px solid #fff; }
-.btn-back { background: none; border: none; color: var(--accent); cursor: pointer; margin-bottom: 20px; font-size: 16px; }
-.btn-link-danger { background: none; border: none; color: var(--danger); cursor: pointer; margin-top: 30px; }
+
+.stats-hero { 
+    background: linear-gradient(135deg, var(--accent), #404eed); 
+    padding: 30px; border-radius: 24px; display: flex; 
+    justify-content: space-around; margin-bottom: 30px; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Color Picker Dots */
+.color-dot { 
+    width: 35px; height: 35px; border-radius: 10px; cursor: pointer; 
+    border: 2px solid #fff; transition: 0.2s; 
+}
+.color-dot:hover { transform: scale(1.1); }

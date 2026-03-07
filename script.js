@@ -11,12 +11,47 @@ window.onload = () => {
     showPage('list');
 };
 
+// ... (Obere Variablen bleiben gleich)
+
 function applySettings() {
+    // DAS HIER ÄNDERT DIE FARBE IM CSS:
     document.documentElement.style.setProperty('--accent', config.accentColor);
+    
     document.getElementById('display-name').innerText = config.userName;
     document.getElementById('set-name').value = config.userName;
     document.getElementById('set-target').value = config.target;
     document.getElementById('set-system').value = config.isPoints ? 'points' : 'grades';
+}
+
+// Funktion für den Color-Picker in den Einstellungen
+window.changeTheme = function(newColor) {
+    config.accentColor = newColor;
+    save();
+    applySettings(); // Sofortige Aktualisierung ohne Reload
+    if(window.chartObj) renderStats(); // Grafikfarbe anpassen
+};
+
+function renderDash() {
+    const cont = document.getElementById('grid-container');
+    cont.innerHTML = '';
+    appData.forEach(f => {
+        const avgRaw = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
+        const avg = avgRaw !== null ? avgRaw.toFixed(1) : '-';
+        
+        // Farbe berechnen: Ist es ein Unterkurs? (Punkte < Target ODER Note > Target)
+        let isWarning = false;
+        if (avgRaw !== null) {
+            isWarning = config.isPoints ? (avgRaw < config.target) : (avgRaw > config.target);
+        }
+
+        cont.innerHTML += `
+            <div class="subject-card ${isWarning ? 'warning' : ''}" onclick="openDet(${f.id})">
+                <h3 style="margin:0; opacity:0.8">${f.name}</h3>
+                <p style="font-size:32px; font-weight:bold; margin:10px 0; color:${isWarning ? 'var(--danger)' : 'var(--text)'}">${avg}</p>
+                <small style="color:#94a3b8">${f.notes.length} Noten eingetragen</small>
+            </div>`;
+    });
+}
 }
 
 window.showPage = function(id) {
