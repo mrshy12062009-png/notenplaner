@@ -1,63 +1,101 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Pro</title>
+    <title>Notenplaner</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="sidebar">
-        <div class="logo">GRADE<span>FLOW</span></div>
-        <button class="nav-btn active" id="btn-list" onclick="showPage('list')">DASHBOARD</button>
-        <button class="nav-btn" id="btn-calendar" onclick="showPage('calendar')">KALENDER</button>
-    </nav>
-    
-    <main class="content">
-        <section id="page-list" class="page active">
-            <h1>MEINE FÄCHER</h1>
-            <div class="input-group">
-                <input type="text" id="f-in" placeholder="Neues Fach...">
-                <button class="add-btn" onclick="addFach()">HINZUFÜGEN</button>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <p class="brand-kicker">Schule</p>
+                <h1>Notenplaner</h1>
             </div>
-            <div id="grid" class="grid"></div>
-        </section>
+            <nav class="nav">
+                <button id="btn-list" class="nav-btn is-active" data-page="list" type="button">Dashboard</button>
+                <button id="btn-calendar" class="nav-btn" data-page="calendar" type="button">Kalender</button>
+            </nav>
+        </aside>
 
-        <section id="page-calendar" class="page">
-            <div class="cal-nav">
-                <button class="btn-icon" onclick="changeMonth(-1)">◀</button>
-                <h2 id="month-name">März 2026</h2>
-                <button class="btn-icon" onclick="changeMonth(1)">▶</button>
-            </div>
-            <div class="calendar-card">
-                <div class="weekdays">
-                    <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+        <main class="content">
+            <section id="page-list" class="page is-active" aria-labelledby="list-heading">
+                <div class="section-head">
+                    <h2 id="list-heading">Meine Fächer</h2>
+                    <p>Verwalte Fächer und behalte deinen aktuellen Schnitt im Blick.</p>
                 </div>
-                <div id="calendar-grid" class="days-grid"></div>
-            </div>
-            <div class="admin-panel">
-                <h3>Termin-Planer (Updates)</h3>
-                <div class="input-group">
-                    <input type="date" id="event-date">
-                    <input type="text" id="event-text" placeholder="Prüfungsname...">
-                    <button class="add-btn" onclick="addUserEvent()">HINZUFÜGEN</button>
+                <form id="subject-form" class="stack" novalidate>
+                    <label for="subject-name">Neues Fach</label>
+                    <div class="inline-form">
+                        <input id="subject-name" name="subject-name" type="text" maxlength="50" placeholder="z. B. Mathematik" required>
+                        <button id="subject-submit" class="btn btn-primary" type="submit">Hinzufügen</button>
+                    </div>
+                    <p id="subject-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div id="subjects-grid" class="subject-grid" aria-live="polite"></div>
+            </section>
+
+            <section id="page-calendar" class="page" aria-labelledby="calendar-heading">
+                <div class="section-head">
+                    <h2 id="calendar-heading">Prüfungskalender</h2>
+                    <p>Termine mit Priorität planen und jederzeit bearbeiten.</p>
                 </div>
-            </div>
-        </section>
-        
-        <section id="page-detail" class="page">
-            <button class="back-btn" onclick="showPage('list')">← Zurück zum Dashboard</button>
-            <div class="banner">
-                <h2 id="d-title">-</h2>
-                <div id="d-avg">-</div>
-            </div>
-            <div class="input-group">
-                <input type="number" id="n-in" placeholder="Punkte (0-15)">
-                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
-            </div>
-            <div id="n-list"></div>
-        </section>
-    </main>
+                <div class="calendar-nav">
+                    <button id="month-prev" class="btn btn-ghost" type="button" aria-label="Vorheriger Monat">◀</button>
+                    <h3 id="month-name"></h3>
+                    <button id="month-next" class="btn btn-ghost" type="button" aria-label="Nächster Monat">▶</button>
+                </div>
+                <div class="calendar-card">
+                    <div class="weekdays" aria-hidden="true">
+                        <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+                    </div>
+                    <div id="calendar-grid" class="days-grid"></div>
+                </div>
+                <form id="event-form" class="stack event-form" novalidate>
+                    <h3 id="event-form-title">Termin hinzufügen</h3>
+                    <input id="event-id" type="hidden">
+                    <div class="inline-form responsive-3">
+                        <input id="event-date" name="event-date" type="date" required>
+                        <input id="event-text" name="event-text" type="text" maxlength="70" placeholder="z. B. Mathe Klausur" required>
+                        <select id="event-priority" name="event-priority">
+                            <option value="high">Hoch</option>
+                            <option value="medium" selected>Mittel</option>
+                            <option value="low">Niedrig</option>
+                        </select>
+                    </div>
+                    <div class="inline-form">
+                        <button id="event-submit" class="btn btn-primary" type="submit">Speichern</button>
+                        <button id="event-cancel" class="btn btn-ghost hidden" type="button">Abbrechen</button>
+                    </div>
+                    <p id="event-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div class="stack">
+                    <h3>Termine in diesem Monat</h3>
+                    <div id="event-list" class="list"></div>
+                </div>
+            </section>
+
+            <section id="page-detail" class="page" aria-labelledby="detail-heading">
+                <button id="back-dashboard" class="btn btn-ghost back-btn" type="button">← Zurück zum Dashboard</button>
+                <header class="detail-banner">
+                    <h2 id="detail-heading">Fachdetails</h2>
+                    <p id="detail-average">Schnitt: -</p>
+                </header>
+                <form id="note-form" class="stack" novalidate>
+                    <h3 id="note-form-title">Note hinzufügen</h3>
+                    <input id="note-id" type="hidden">
+                    <div class="inline-form">
+                        <input id="note-value" name="note-value" type="number" min="0" max="15" step="1" placeholder="Punkte (0-15)" required>
+                        <button id="note-submit" class="btn btn-primary" type="submit">Speichern</button>
+                        <button id="note-cancel" class="btn btn-ghost hidden" type="button">Abbrechen</button>
+                    </div>
+                    <p id="note-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div id="note-list" class="list"></div>
+            </section>
+        </main>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
