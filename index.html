@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow v14.3</title>
+    <title>GradeFlow v15 Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -19,17 +19,17 @@
         <section id="page-list" class="page">
             <h1>Hallo, <span id="display-name">Schüler</span>!</h1>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach...">
+                <input type="text" id="f-name" placeholder="Neues Fach (z.B. Mathe)...">
                 <button class="btn-accent" onclick="addFach()">Fach hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
         </section>
 
         <section id="page-stats" class="page">
-            <h1>Performance-Analyse</h1>
+            <h1>Statistiken</h1>
             <div class="stats-hero">
-                <div><h2 id="total-avg">-</h2><p>Gesamtschnitt</p></div>
-                <div><h2 id="total-count">0</h2><p>Noten gesamt</p></div>
+                <div><h2 id="total-avg">-</h2><p>Schnitt</p></div>
+                <div><h2 id="total-count">0</h2><p>Noten</p></div>
             </div>
             <div class="input-card">
                 <canvas id="myChart"></canvas>
@@ -39,44 +39,33 @@
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
             <div class="input-card">
-                <h3>Profil</h3>
                 <input type="text" id="set-name" placeholder="Dein Name...">
+                <input type="number" id="set-target" placeholder="Ziel-Schnitt (z.B. 11)">
                 <select id="set-system">
-                    <option value="points">Oberstufe (0-15 Punkte)</option>
-                    <option value="grades">Sek I (1-6 Noten)</option>
+                    <option value="points">Punkte (0-15)</option>
+                    <option value="grades">Noten (1-6)</option>
                 </select>
                 <button class="btn-accent" onclick="saveSettings()">Speichern</button>
             </div>
-            <div class="input-card">
-                <h3>Design</h3>
-                <div class="color-picker">
-                    <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
-                    <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
-                    <div class="color-dot" style="background:#22c55e" onclick="changeTheme('#22c55e')"></div>
-                    <div class="color-dot" style="background:#f97316" onclick="changeTheme('#f97316')"></div>
-                </div>
+            <div class="color-picker">
+                <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
+                <div class="color-dot" style="background:#ef4444" onclick="changeTheme('#ef4444')"></div>
+                <div class="color-dot" style="background:#22c55e" onclick="changeTheme('#22c55e')"></div>
             </div>
-            <button class="btn-danger" onclick="resetAll()">⚠️ Alles löschen</button>
+            <button class="btn-danger" onclick="resetAll()">⚠️ Daten löschen</button>
         </section>
 
         <section id="page-detail" class="page">
             <button onclick="showPage('list')" class="btn-link">← Zurück</button>
-            <div class="subject-hero">
-                <h1 id="det-title">Fach</h1>
-                <div id="det-avg" class="hero-grade">-</div>
+            <h1 id="det-title">Fach</h1>
+            <div class="stats-hero"><h2 id="det-avg">-</h2></div>
+            <div class="input-card">
+                <input type="number" id="n-val" placeholder="Note/Punkte...">
+                <button class="btn-accent" onclick="addNote()">Note hinzufügen</button>
             </div>
-            <div style="display: flex; gap: 20px;">
-                <div id="notes-list" style="flex: 1;"></div>
-                <div class="input-card" style="width: 250px;">
-                    <h3>Note hinzufügen</h3>
-                    <input type="number" id="n-val" placeholder="Wert...">
-                    <button class="btn-accent" onclick="addNote()">Speichern</button>
-                    <button class="btn-danger" style="background:none; color:#ef4444" onclick="deleteFach()">Fach löschen</button>
-                </div>
-            </div>
+            <div id="notes-list"></div>
         </section>
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>
