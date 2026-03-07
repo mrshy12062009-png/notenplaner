@@ -1,99 +1,101 @@
-let appState = JSON.parse(localStorage.getItem('GF_ULTRA_V11')) || [];
-let activeID = null;
-let currentModalAction = null;
+let subjects = JSON.parse(localStorage.getItem('GF_NEON_V12')) || [];
+let activeId = null;
+let mAction = null;
 
-const sync = () => localStorage.setItem('GF_ULTRA_V11', JSON.stringify(appState));
+const sync = () => localStorage.setItem('GF_NEON_V12', JSON.stringify(subjects));
 
-// Logik für Farbdynamik
-const getVisuals = (val) => {
-    if (val === null) return { g: 'var(--panel)', t: 'Warten...', c: '#333' };
-    if (val >= 13) return { g: 'var(--grad-blue)', t: 'Exzellent', c: '#00d2ff' };
-    if (val >= 8) return { g: 'var(--grad-gold)', t: 'Stabil', c: '#f1c40f' };
-    return { g: 'var(--grad-red)', t: 'Kritisch', c: '#f85032' };
-};
+// Farblogik für Neon-Effekte
+function getStyle(avg) {
+    if (avg === null) return { c: '#333', t: 'Keine Daten', glow: 'rgba(51,51,51,0.3)' };
+    if (avg >= 13) return { c: 'var(--neon-blue)', t: 'Exzellent', glow: 'rgba(0, 242, 254, 0.4)' };
+    if (avg >= 8) return { c: 'var(--neon-gold)', t: 'Stabil', glow: 'rgba(255, 204, 0, 0.3)' };
+    return { c: 'var(--neon-red)', t: 'Kritisch', glow: 'rgba(255, 0, 85, 0.4)' };
+}
 
-function changeTab(id) {
-    document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+function tab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('tab-' + id).classList.add('active');
-    if(document.getElementById('tab-btn-' + id)) document.getElementById('tab-btn-' + id).classList.add('active');
+    if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add('active');
     if(id === 'dash') renderDash();
     if(id === 'goals') renderGoals();
 }
 
 function renderDash() {
-    const grid = document.getElementById('subject-grid');
+    const grid = document.getElementById('grid');
     grid.innerHTML = '';
     let sum = 0, count = 0;
 
-    appState.forEach(s => {
+    subjects.forEach(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-        const vis = getVisuals(avg);
+        const style = getStyle(avg);
         if(avg !== null) { sum += avg; count++; }
 
         grid.innerHTML += `
-            <div class="subject-card" onclick="openSubject(${s.id})">
+            <div class="n-card" onclick="openSubject(${s.id})" style="box-shadow: 0 10px 30px ${style.glow}">
                 <div class="label">${s.name}</div>
-                <h2 style="color: ${avg !== null ? vis.c : '#222'}; text-shadow: ${avg !== null ? '0 0 40px ' + vis.c + '44' : 'none'}">
-                    ${avg !== null ? avg.toFixed(1) : '-'}
-                </h2>
-                <div style="font-size:12px; font-weight:800; color:${vis.c}">${vis.t}</div>
+                <h2 style="color: ${style.c}; text-shadow: 0 0 20px ${style.c}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <div style="font-size:12px; font-weight:800; color:${style.c}">${style.t}</div>
             </div>`;
     });
-    document.getElementById('main-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
+    document.getElementById('total-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
 }
 
 function addSubject() {
-    const el = document.getElementById('subject-input');
-    if(!el.value.trim()) return;
-    appState.push({ id: Date.now(), name: el.value, notes: [], target: 10 });
-    el.value = ''; sync(); renderDash();
+    const input = document.getElementById('in-subject');
+    if(!input.value.trim()) return;
+    subjects.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
+    input.value = ''; sync(); renderDash();
 }
 
 function openSubject(id) {
-    activeID = id;
-    const s = appState.find(x => x.id === id);
-    changeTab('details');
+    activeId = id;
+    const s = subjects.find(x => x.id === id);
+    tab('det');
     const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-    const vis = getVisuals(avg);
+    const style = getStyle(avg);
 
-    const hero = document.getElementById('hero-card');
-    hero.style.background = vis.g;
-    document.getElementById('hero-title').innerText = s.name;
-    document.getElementById('hero-avg').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('hero-status').innerText = vis.t;
+    const hero = document.getElementById('det-hero');
+    hero.style.background = `linear-gradient(180deg, ${style.c}22 0%, transparent 100%)`;
+    hero.style.borderColor = style.c;
+    
+    document.getElementById('det-name').innerText = s.name;
+    document.getElementById('det-num').innerText = avg !== null ? avg.toFixed(1) : '0.0';
+    document.getElementById('det-num').style.color = style.c;
+    document.getElementById('det-num').style.textShadow = `0 0 30px ${style.c}`;
+    document.getElementById('det-status').innerText = style.t;
 
-    const hist = document.getElementById('grade-history');
+    const hist = document.getElementById('history');
     hist.innerHTML = s.notes.map((n, i) => `
-        <div class="history-item">
-            <b style="font-size:20px; color:${getVisuals(n).c}">${n} Pkt</b>
-            <button onclick="deleteGrade(${i})" style="background:none; border:none; color:#333; cursor:pointer; font-weight:800">Löschen</button>
+        <div class="hist-item" style="border-left: 4px solid ${getStyle(n).c}">
+            <b style="font-size:20px; color:${getStyle(n).c}">${n} Pkt</b>
+            <button onclick="delGrade(${i})" style="background:none; border:none; color:#444; cursor:pointer; font-weight:800">Löschen</button>
         </div>`).reverse().join('');
 }
 
-function saveGrade() {
-    const val = parseFloat(document.getElementById('grade-input').value);
+function addGrade() {
+    const input = document.getElementById('in-grade');
+    const val = parseFloat(input.value);
     if(isNaN(val) || val < 0 || val > 15) return;
-    appState.find(x => x.id === activeID).notes.push(val);
-    document.getElementById('grade-input').value = '';
-    sync(); openSubject(activeID);
+    subjects.find(x => x.id === activeId).notes.push(val);
+    input.value = ''; sync(); openSubject(activeId);
 }
 
-function deleteGrade(idx) {
-    const s = appState.find(x => x.id === activeID);
+function delGrade(idx) {
+    const s = subjects.find(x => x.id === activeId);
     s.notes.splice(s.notes.length - 1 - idx, 1);
-    sync(); openSubject(activeID);
+    sync(); openSubject(activeId);
 }
 
 function renderGoals() {
-    const container = document.getElementById('goals-container');
-    container.innerHTML = '';
-    appState.forEach(s => {
-        container.innerHTML += `
-            <div class="goal-card">
-                <div class="title">${s.name}</div>
-                <div style="display:flex; align-items:center; gap:20px">
-                    <span style="color:#444; font-weight:800">ZIEL</span>
+    const list = document.getElementById('goals-list');
+    list.innerHTML = '';
+    subjects.forEach(s => {
+        list.innerHTML += `
+            <div class="goal-row">
+                <span class="name">${s.name}</span>
+                <div style="display:flex; align-items:center; gap:15px">
+                    <span style="color:#444; font-size:12px; font-weight:800">ZIEL</span>
                     <input type="number" min="0" max="15" value="${s.target}" onchange="updateTarget(${s.id}, this.value)">
                 </div>
             </div>`;
@@ -101,30 +103,30 @@ function renderGoals() {
 }
 
 function updateTarget(id, val) {
-    appState.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
+    subjects.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
     sync();
 }
 
-function triggerDeleteSubject() {
+function askDeleteSubject() {
     openModal("Fach wirklich löschen?", () => {
-        appState = appState.filter(x => x.id !== activeID);
-        sync(); changeTab('dash');
+        subjects = subjects.filter(x => x.id !== activeId);
+        sync(); tab('dash');
     });
 }
 
-function triggerReset() {
-    openModal("Alle Daten unwiderruflich löschen?", () => {
+function askReset() {
+    openModal("ALLES LÖSCHEN?", () => {
         localStorage.clear();
         location.reload();
     });
 }
 
-function openModal(text, cb) {
-    document.getElementById('modal-title').innerText = text;
+function openModal(txt, cb) {
+    document.getElementById('modal-title').innerText = txt;
     document.getElementById('modal-overlay').classList.remove('hidden');
-    currentModalAction = cb;
+    mAction = cb;
 }
 function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-document.getElementById('modal-confirm').onclick = () => { if(currentModalAction) currentModalAction(); closeModal(); };
+document.getElementById('modal-confirm').onclick = () => { if(mAction) mAction(); closeModal(); };
 
 renderDash();

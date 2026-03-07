@@ -3,73 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow | Ultra</title>
+    <title>GradeFlow | Neon Edition</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="modal-overlay" class="overlay hidden">
         <div class="modal">
-            <h2 id="modal-title">Aktion bestätigen</h2>
-            <div class="modal-buttons">
-                <button class="confirm" id="modal-confirm">Ausführen</button>
+            <h2 id="modal-title">-</h2>
+            <div class="modal-btns">
+                <button class="confirm" id="modal-confirm">Löschen</button>
                 <button class="cancel" onclick="closeModal()">Abbrechen</button>
             </div>
         </div>
     </div>
 
-    <div class="layout">
-        <aside class="nav-sidebar">
-            <div class="brand-logo">Grade<span>Flow</span></div>
-            <div class="nav-group">
-                <button class="nav-link active" id="tab-btn-dash" onclick="changeTab('dash')">Dashboard</button>
-                <button class="nav-link" id="tab-btn-goals" onclick="changeTab('goals')">Ziele & Planung</button>
-            </div>
-            <div class="nav-footer">
-                <button class="btn-reset" onclick="triggerReset()">Daten-Reset</button>
-            </div>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo">Grade<span>Flow</span></div>
+            <nav>
+                <button class="nav-item active" id="btn-dash" onclick="tab('dash')">🏠 Dashboard</button>
+                <button class="nav-item" id="btn-goals" onclick="tab('goals')">🎯 Ziel-Planer</button>
+            </nav>
+            <button class="reset-btn" onclick="askReset()">System Reset</button>
         </aside>
 
-        <main class="main-content">
-            <section id="tab-dash" class="tab-view active">
-                <div class="view-header">
-                    <h1>Übersicht</h1>
-                    <div class="stats-pill">
-                        Schnitt <span id="main-avg">0.0</span>
-                    </div>
+        <main class="viewport">
+            <section id="tab-dash" class="tab active">
+                <div class="header">
+                    <h1>Dashboard</h1>
+                    <div class="glass-avg">Schnitt: <span id="total-avg">0.0</span></div>
                 </div>
-                <div class="entry-bar">
-                    <input type="text" id="subject-input" placeholder="Neues Fach eingeben..." onkeydown="if(event.key==='Enter') addSubject()">
-                    <button onclick="addSubject()">Hinzufügen</button>
+                <div class="input-box">
+                    <input type="text" id="in-subject" placeholder="Fach hinzufügen... (Enter)" onkeydown="if(event.key==='Enter') addSubject()">
+                    <button onclick="addSubject()">+</button>
                 </div>
-                <div id="subject-grid" class="cards-grid"></div>
+                <div id="grid" class="neon-grid"></div>
             </section>
 
-            <section id="tab-goals" class="tab-view">
-                <div class="view-header">
-                    <h1>Wunsch-Ziele</h1>
-                </div>
-                <div id="goals-container" class="goals-stack"></div>
+            <section id="tab-goals" class="tab">
+                <div class="header"><h1>Wunsch-Ziele</h1></div>
+                <div id="goals-list" class="goals-stack"></div>
             </section>
 
-            <section id="tab-details" class="tab-view">
-                <button class="btn-back" onclick="changeTab('dash')">← Zurück zum Dashboard</button>
-                <div class="detail-hero" id="hero-card">
-                    <h1 id="hero-title">-</h1>
-                    <div class="hero-val" id="hero-avg">0.0</div>
-                    <div class="hero-status" id="hero-status">-</div>
+            <section id="tab-det" class="tab">
+                <button class="back-link" onclick="tab('dash')">← Zurück</button>
+                <div id="det-hero" class="hero">
+                    <h1 id="det-name">-</h1>
+                    <div class="big-score" id="det-num">0.0</div>
+                    <div class="status-badge" id="det-status">-</div>
                 </div>
-                <div class="split-layout">
-                    <div class="glass-box">
-                        <h3>Note hinzufügen</h3>
-                        <div class="input-row">
-                            <input type="number" id="grade-input" min="0" max="15" placeholder="0-15 Punkte">
-                            <button onclick="saveGrade()">OK</button>
-                        </div>
+                <div class="action-card">
+                    <h3>Note hinzufügen</h3>
+                    <div class="input-row">
+                        <input type="number" id="in-grade" min="0" max="15" placeholder="0-15 Punkte..." onkeydown="if(event.key==='Enter') addGrade()">
+                        <button onclick="addGrade()">Eintragen</button>
                     </div>
                 </div>
-                <div id="grade-history" class="history-list"></div>
-                <button class="btn-delete-subject" onclick="triggerDeleteSubject()">Fach löschen</button>
+                <div id="history" class="history-stack"></div>
+                <button class="del-subject" onclick="askDeleteSubject()">Fach entfernen</button>
             </section>
         </main>
     </div>
