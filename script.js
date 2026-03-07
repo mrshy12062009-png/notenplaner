@@ -3,18 +3,14 @@ let db = JSON.parse(localStorage.getItem('gf_data')) || [];
 let viewDate = new Date(); 
 let currentFachId = null;
 
-// MSA-TERMINE & FERIEN 2026 (Fest integriert)
+// MSA Termine 2026
 const defaultEvents = {
-    "2026-01-12": "Start: Präsentationsprüfung",
-    "2026-01-23": "Ende: Präsentationsprüfung",
-    "2026-03-09": "Start: Englisch Mündlich",
     "2026-04-21": "MSA Deutsch",
     "2026-04-29": "MSA Mathe",
     "2026-05-05": "MSA Englisch (Schriftlich)",
-    "2026-07-09": "Sommerferien Beginn"
+    "2026-03-09": "Start: Englisch Mündlich",
+    "2026-01-12": "Start: Präsentationsprüfung"
 };
-
-// Lädt entweder deine selbst hinzugefügten Termine oder die Standard-Liste
 let userEvents = JSON.parse(localStorage.getItem('gf_events')) || defaultEvents;
 
 window.onload = () => {
@@ -22,77 +18,12 @@ window.onload = () => {
     initCalendar();
 };
 
-// --- SEITEN-NAVIGATION ---
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
-    
-    // Sidebar-Buttons optisch anpassen
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    const activeBtn = document.querySelector(`button[onclick*="'${pageId}'"]`);
-    if(activeBtn) activeBtn.classList.add('active');
-}
-
-// --- KALENDER-LOGIK (Befüllt das Grid mit Terminen) ---
-function changeMonth(offset) {
-    viewDate.setMonth(viewDate.getMonth() + offset);
-    initCalendar();
-}
-
-function initCalendar() {
-    const month = viewDate.getMonth();
-    const year = viewDate.getFullYear();
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    // Monatstitel (z.B. April 2026)
-    document.getElementById('month-name').innerText = 
-        new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(viewDate);
-
-    const grid = document.getElementById('calendar-grid');
-    if(!grid) return;
-    grid.innerHTML = '';
-
-    // Ersten Wochentag berechnen
-    let firstDay = new Date(year, month, 1).getDay();
-    let shift = (firstDay === 0 ? 6 : firstDay - 1); 
-
-    // Leere Felder für den Vormonat
-    for(let i=0; i < shift; i++) grid.innerHTML += `<div class="day" style="opacity:0;"></div>`;
-
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    for(let d=1; d <= daysInMonth; d++) {
-        const curr = new Date(year, month, d);
-        const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        
-        let classes = ['day'];
-        if (curr < today) classes.push('past');
-        if (curr.getTime() === today.getTime()) classes.push('today');
-
-        // Hier werden die Termine aus userEvents eingefügt
-        let content = userEvents[dateStr] ? `<span class="event-tag">${userEvents[dateStr]}</span>` : '';
-        
-        grid.innerHTML += `
-            <div class="${classes.join(' ')}">
-                <strong>${d}</strong>
-                ${content}
-            </div>`;
-    }
-}
-
-// --- FUNKTION: NEUE TERMINE HINZUFÜGEN (Zukunftssicher) ---
-function addUserEvent() {
-    const dateInput = document.getElementById('event-date').value;
-    const textInput = document.getElementById('event-text').value;
-    
-    if(!dateInput || !textInput) return;
-    
-    userEvents[dateInput] = textInput;
-    localStorage.setItem('gf_events', JSON.stringify(userEvents));
-    
-    document.getElementById('event-text').value = "";
-    initCalendar();
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(pageId === 'list') document.getElementById('btn-list').classList.add('active');
+    if(pageId === 'calendar') document.getElementById('btn-calendar').classList.add('active');
 }
 
 // --- FÄCHER-LOGIK ---
@@ -107,14 +38,13 @@ function addFach() {
 
 function renderGrid() {
     const g = document.getElementById('grid');
-    if(!g) return;
     g.innerHTML = '';
     db.forEach(f => {
         const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '--';
         const card = document.createElement('div');
         card.className = 'card';
-        card.addEventListener('click', () => openDetail(f.id));
-        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; font-weight:bold; color:var(--accent);">${avg}</p>`;
+        card.onclick = () => openDetail(f.id); // Hier wird die Reaktion repariert
+        card.innerHTML = `<h3>${f.name}</h3><p class="grade-text">${avg}</p>`;
         g.appendChild(card);
     });
 }
@@ -122,26 +52,59 @@ function renderGrid() {
 function openDetail(id) {
     currentFachId = id;
     const fach = db.find(f => f.id === id);
-    if(!fach) return;
     document.getElementById('d-title').innerText = fach.name;
     renderNotes();
     showPage('detail');
+}
+
+// --- KALENDER-LOGIK ---
+function initCalendar() {
+    const month = viewDate.getMonth();
+    const year = viewDate.getFullYear();
+    const grid = document.getElementById('calendar-grid');
+    document.getElementById('month-name').innerText = new Intl.DateTimeFormat('de-DE', {month:'long', year:'numeric'}).format(viewDate);
+    
+    grid.innerHTML = '';
+    let firstDay = new Date(year, month, 1).getDay();
+    let shift = (firstDay === 0 ? 6 : firstDay - 1); 
+
+    for(let i=0; i<shift; i++) grid.innerHTML += `<div class="day empty"></div>`;
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for(let d=1; d<=daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let event = userEvents[dateStr] ? `<span class="event-tag">${userEvents[dateStr]}</span>` : '';
+        grid.innerHTML += `<div class="day"><strong>${d}</strong>${event}</div>`;
+    }
+}
+
+function changeMonth(offset) {
+    viewDate.setMonth(viewDate.getMonth() + offset);
+    initCalendar();
+}
+
+function addUserEvent() {
+    const d = document.getElementById('event-date').value;
+    const t = document.getElementById('event-text').value;
+    if(d && t) {
+        userEvents[d] = t;
+        localStorage.setItem('gf_events', JSON.stringify(userEvents));
+        initCalendar();
+    }
 }
 
 function addNote() {
     const val = parseInt(document.getElementById('n-in').value);
     if(isNaN(val)) return;
     db.find(f => f.id === currentFachId).notes.push(val);
-    document.getElementById('n-in').value = '';
     save();
     renderNotes();
+    renderGrid();
 }
 
 function renderNotes() {
     const fach = db.find(f => f.id === currentFachId);
-    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '0.0';
-    document.getElementById('d-avg').innerText = `Schnitt: ${avg}`;
-    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div class="note-item">${n} Punkte</div>`).reverse().join('');
+    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div class="note-item">${n} Punkte</div>`).join('');
 }
 
 function save() { localStorage.setItem('gf_data', JSON.stringify(db)); }

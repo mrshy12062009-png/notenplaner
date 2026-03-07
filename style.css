@@ -33,43 +33,34 @@ body {
 .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
 .card:hover { border-color: var(--accent); transform: translateY(-3px); }
 
-/* Kalender Navigation */
-.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; background: var(--card); padding: 15px; border-radius: 10px; }
-.nav-btn-small { background: var(--sidebar); border: 1px solid var(--border); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+.content { flex: 1; padding: 40px; background: var(--bg); overflow-y: auto; }
 
-/* Kalender Grid */
-.calendar-wrapper { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; }
-.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; padding-bottom: 15px; color: var(--accent); }
+/* Kalender Styling */
+.cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.calendar-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #30363d; }
+.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: var(--accent); font-weight: bold; padding-bottom: 10px; }
 .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
 
-.day { min-height: 80px; padding: 8px; background: #1c2128; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
-.day.past { opacity: 0.3; background: #0d1117; } /* Vergangenheit ausgegraut */
-.day.today { border: 2px solid var(--accent); }
+.day {
+    background: #161b22;
+    aspect-ratio: 1/1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+}
 
 .event-tag {
-    display: block;
+    background: #238636;
     font-size: 10px;
-    margin-top: 4px;
     padding: 2px 4px;
-    border-radius: 3px;
+    border-radius: 4px;
+    margin-top: 5px;
     color: white;
 }
 
-.event-tag.exam {
-    background: #f85149; /* Rot für Prüfungen */
-}
-
-.event-tag.holiday {
-    background: #238636; /* Grün für Ferien/Feiertage */
-}
-
-.day.today {
-    border: 2px solid var(--accent);
-    background: rgba(88, 101, 242, 0.1);
-}
-/* Buttons & Inputs */
-.input-group { margin-bottom: 20px; display: flex; gap: 10px; }
-input { background: #0d1117; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 6px; flex: 1; }
-.add-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-.banner { background: var(--accent); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
-.back-btn { background: none; border: none; color: var(--accent); cursor: pointer; margin-bottom: 10px; font-size: 14px; }
+.input-group { display: flex; gap: 10px; margin: 20px 0; }
+input { background: #0d1117; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 6px; }
+.add-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
