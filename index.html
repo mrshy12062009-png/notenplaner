@@ -2,79 +2,64 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Elite</title>
+    <title>GradeFlow Intelligence</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-wrapper">
+    <div class="app-shell">
         <aside class="sidebar">
-            <div class="brand">GF<span>Elite</span></div>
+            <div class="logo">GF<span>.intel</span></div>
             <nav>
                 <button onclick="tab('dash')" id="t-dash" class="active">Dashboard</button>
                 <button onclick="tab('goals')" id="t-goals">Ziele</button>
-                <button onclick="tab('stats')" id="t-stats">Statistiken</button>
+                <button onclick="tab('stats')" id="t-stats">Analyse</button>
             </nav>
-            <div class="sidebar-footer">
-                <button onclick="clearAll()">Reset</button>
-            </div>
+            <button class="danger-zone" onclick="fullReset()">System Reset</button>
         </aside>
 
-        <main class="main-stage">
+        <main class="viewport">
             <section id="view-dash" class="view active">
-                <div class="view-header">
+                <header class="v-header">
                     <h1>Übersicht</h1>
-                    <div class="quick-add">
+                    <div class="input-glow">
                         <input type="text" id="sub-in" placeholder="Fach hinzufügen...">
                         <button onclick="addSub()">+</button>
                     </div>
-                </div>
-                <div id="grid" class="bento-grid"></div>
+                </header>
+                <div id="dash-grid" class="bento-grid"></div>
             </section>
 
             <section id="view-goals" class="view">
-                <div class="view-header"><h1>Ziel-Status</h1></div>
+                <header class="v-header"><h1>Ziel-Fokus</h1></header>
                 <div id="goals-grid" class="bento-grid"></div>
             </section>
 
             <section id="view-stats" class="view">
-                <div class="view-header"><h1>Analyse</h1></div>
-                <div class="stats-container">
-                    <div class="stats-card large">
-                        <h3>Gesamtschnitt Verlauf</h3>
-                        <div class="chart-sim" id="main-chart">
-                            <div class="bar" style="height: 60%"></div>
-                            <div class="bar" style="height: 80%"></div>
-                            <div class="bar" style="height: 70%"></div>
-                            <div class="bar" style="height: 95%"></div>
-                        </div>
+                <header class="v-header"><h1>Daten-Analyse</h1></header>
+                <div class="stats-layout">
+                    <div class="chart-card">
+                        <h3>Punkte-Verteilung</h3>
+                        <div id="dist-chart" class="bar-chart"></div>
                     </div>
-                    <div class="stats-row">
-                        <div class="stats-card">
-                            <h3>Beste Leistung</h3>
-                            <p id="best-sub">-</p>
-                        </div>
-                        <div class="stats-card">
-                            <h3>Noten-Anzahl</h3>
-                            <p id="total-count">0</p>
-                        </div>
+                    <div class="mini-grid">
+                        <div class="stat-box"><h3>Beste Note</h3><p id="s-best">-</p></div>
+                        <div class="stat-box"><h3>Schnitt</h3><p id="s-avg">0.0</p></div>
                     </div>
                 </div>
             </section>
 
             <section id="view-det" class="view">
-                <div class="det-header">
-                    <button class="back-btn" onclick="tab('dash')">←</button>
-                    <h1 id="det-name">Fach</h1>
+                <button class="back" onclick="tab('dash')">← Dashboard</button>
+                <div id="hero" class="hero">
+                    <h2 id="det-name">-</h2>
+                    <div class="score-display" id="det-avg">0.0</div>
                 </div>
-                <div class="hero-stats">
-                    <div class="big-circle" id="det-avg">0.0</div>
-                </div>
-                <div class="entry-zone">
+                <div class="add-grade-box">
                     <input type="number" id="grade-in" placeholder="Note (0-15)">
-                    <button onclick="addGrade()">Eintragen</button>
+                    <button onclick="addGrade()">Hinzufügen</button>
                 </div>
-                <div id="history" class="history-list"></div>
+                <div id="history" class="history"></div>
             </section>
         </main>
     </div>

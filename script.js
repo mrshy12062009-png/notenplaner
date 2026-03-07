@@ -1,7 +1,7 @@
-let subjects = JSON.parse(localStorage.getItem('GF_ELITE')) || [];
+let subjects = JSON.parse(localStorage.getItem('GF_INTEL_V1')) || [];
 let activeId = null;
 
-// ENTER-KEY LOGIK
+// GLOBAL ENTER LISTENER
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         if (document.activeElement.id === 'sub-in') addSub();
@@ -9,7 +9,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-function save() { localStorage.setItem('GF_ELITE', JSON.stringify(subjects)); }
+const save = () => localStorage.setItem('GF_INTEL_V1', JSON.stringify(subjects));
 
 function tab(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -23,21 +23,21 @@ function tab(id) {
 }
 
 function renderDash() {
-    const grid = document.getElementById('grid');
+    const grid = document.getElementById('dash-grid');
     grid.innerHTML = subjects.map(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length).toFixed(1) : '-';
         return `
-        <div class="bento-card" onclick="openSub(${s.id})">
-            <h3>${s.name}</h3>
-            <div class="val">${avg}</div>
-            <small style="color:#444">${s.notes.length} Noten</small>
+        <div class="card" onclick="openSub(${s.id})">
+            <div class="label">${s.name}</div>
+            <div class="val" style="color:${avg >= 10 ? '#8b5cf6' : '#fff'}">${avg}</div>
+            <div style="font-size:11px; color:#444">${s.notes.length} Einträge</div>
         </div>`;
     }).join('');
 }
 
 function addSub() {
     const input = document.getElementById('sub-in');
-    if (!input.value) return;
+    if (!input.value.trim()) return;
     subjects.push({ id: Date.now(), name: input.value, notes: [], target: 12 });
     input.value = ''; save(); renderDash();
 }
@@ -47,7 +47,7 @@ function openSub(id) {
     const s = subjects.find(x => x.id === id);
     tab('det');
     document.getElementById('det-name').innerText = s.name;
-    updateDetView();
+    updateDet();
 }
 
 function addGrade() {
@@ -55,15 +55,15 @@ function addGrade() {
     const val = parseFloat(input.value);
     if (isNaN(val) || val < 0 || val > 15) return;
     subjects.find(x => x.id === activeId).notes.push(val);
-    input.value = ''; save(); updateDetView();
+    input.value = ''; save(); updateDet();
 }
 
-function updateDetView() {
+function updateDet() {
     const s = subjects.find(x => x.id === activeId);
     const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length).toFixed(1) : '0.0';
     document.getElementById('det-avg').innerText = avg;
     document.getElementById('history').innerHTML = s.notes.map((n, i) => `
-        <div class="h-item"><span>${n} Punkte</span><button onclick="delGrade(${i})">X</button></div>
+        <div class="h-row"><b>${n} Pkt</b><button onclick="delGrade(${i})" style="color:red; background:none; padding:0">Löschen</button></div>
     `).reverse().join('');
 }
 
@@ -73,33 +73,41 @@ function renderGoals() {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : 0;
         const perc = Math.min((avg / s.target) * 100, 100);
         return `
-        <div class="bento-card">
-            <h3>${s.name}</h3>
-            <div class="val">${avg.toFixed(1)} <span style="font-size:14px; color:#444">/ ${s.target}</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: ${perc}%"></div></div>
+        <div class="card">
+            <div class="label">${s.name}</div>
+            <div class="val">${avg.toFixed(1)} <span style="font-size:14px; color:#333">/ ${s.target}</span></div>
+            <div class="progress-ring"><div class="progress-fill" style="width:${perc}%"></div></div>
         </div>`;
     }).join('');
 }
 
 function renderStats() {
-    let totalGrades = 0;
-    subjects.forEach(s => totalGrades += s.notes.length);
-    document.getElementById('total-count').innerText = totalGrades;
+    const chart = document.getElementById('dist-chart');
+    chart.innerHTML = '';
+    const distribution = new Array(16).fill(0);
+    let allNotes = [];
     
-    // Einfache Logik für Bestes Fach
-    let best = { name: '-', avg: 0 };
-    subjects.forEach(s => {
-        const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : 0;
-        if(avg > best.avg) best = { name: s.name, avg: avg };
+    subjects.forEach(s => s.notes.forEach(n => {
+        distribution[Math.floor(n)]++;
+        allNotes.push(n);
+    }));
+
+    const max = Math.max(...distribution) || 1;
+    distribution.forEach((count, i) => {
+        const h = (count / max) * 100;
+        chart.innerHTML += `<div class="bar-item" style="height:${h}%" title="${i} Punkte: ${count}x"></div>`;
     });
-    document.getElementById('best-sub').innerText = best.name;
+
+    const totalAvg = allNotes.length ? (allNotes.reduce((a,b)=>a+b,0)/allNotes.length).toFixed(2) : '0.0';
+    document.getElementById('s-avg').innerText = totalAvg;
+    document.getElementById('s-best').innerText = allNotes.length ? Math.max(...allNotes) : '-';
 }
 
 function delGrade(idx) {
     subjects.find(x => x.id === activeId).notes.splice(subjects.find(x => x.id === activeId).notes.length - 1 - idx, 1);
-    save(); updateDetView();
+    save(); updateDet();
 }
 
-function clearAll() { if(confirm('Alles löschen?')) { localStorage.clear(); location.reload(); } }
+function fullReset() { if(confirm('Sicher?')) { localStorage.clear(); location.reload(); } }
 
 tab('dash');
