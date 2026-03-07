@@ -3,66 +3,77 @@
     --side: #0a0a0a; 
     --card: #141414; 
     --accent: #8b5cf6;
-    --text-main: #ffffff; /* Reinweiß für maximale Lesbarkeit */
-    --text-sub: #b0b0b0;  /* Hellgrau für Nebeninfos */
+    /* Optimierte Textfarben für bessere Lesbarkeit */
+    --text-main: #ffffff;  /* Reinweiß */
+    --text-muted: #a0a0a0; /* Deutliches Hellgrau statt Dunkelgrau */
     --grad: linear-gradient(135deg, #8b5cf6, #d946ef);
 }
 
-* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s ease; }
 body { background: var(--bg); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; }
 
 .app-shell { display: grid; grid-template-columns: 240px 1fr; height: 100vh; }
 
-/* SIDEBAR */
+/* SIDEBAR - Hier lag das Hauptproblem */
 .sidebar { background: var(--side); padding: 40px 20px; border-right: 1px solid #222; display: flex; flex-direction: column; }
-.logo { font-size: 24px; font-weight: 800; margin-bottom: 50px; color: #fff; }
-.logo span { color: var(--accent); text-shadow: 0 0 10px rgba(139, 92, 246, 0.5); }
+.logo { font-size: 24px; font-weight: 800; margin-bottom: 50px; color: #fff; letter-spacing: -1px; }
+.logo span { color: var(--accent); }
 
 nav button { 
-    width: 100%; padding: 15px; margin-bottom: 8px; border: none; background: transparent; 
-    color: var(--text-sub); text-align: left; font-weight: 700; cursor: pointer; border-radius: 12px;
+    width: 100%; padding: 14px 18px; margin-bottom: 10px; border: none; background: transparent; 
+    color: var(--text-muted); /* Jetzt hell genug zum Lesen */
+    text-align: left; font-weight: 700; cursor: pointer; border-radius: 12px; font-size: 15px;
 }
-nav button.active { background: #1a1a1a; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+nav button:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+nav button.active { 
+    background: #1a1a1a; 
+    color: #ffffff; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    border: 1px solid #333;
+}
 
 /* MAIN VIEWPORT */
 .viewport { padding: 50px 70px; overflow-y: auto; }
 .view { display: none; }
-.view.active { display: block; animation: slideUp 0.4s ease; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.view.active { display: block; }
 
-.v-header h1 { font-size: 32px; font-weight: 800; color: #fff; margin: 0; }
+.v-header h1 { font-size: 36px; font-weight: 800; color: #fff; margin: 0; }
 
-/* BENTO GRID */
+/* BENTO CARDS */
 .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .card { 
-    background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; 
+    background: var(--card); padding: 30px; border-radius: 24px; border: 1px solid #222; 
     cursor: pointer; position: relative;
 }
-.card:hover { border-color: #444; transform: translateY(-5px); }
-.card .label { font-size: 12px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
-.card .val { font-size: 50px; font-weight: 800; margin: 10px 0; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+.card:hover { border-color: #444; background: #1c1c1c; }
+.card .label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
+.card .val { font-size: 54px; font-weight: 800; margin: 10px 0; color: #fff; }
 
-/* PROGRESS (ZIELE) */
-.progress-ring { height: 8px; background: #222; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--grad); box-shadow: 0 0 10px rgba(139, 92, 246, 0.5); }
+/* INPUTS & BUTTONS */
+.input-glow input { 
+    background: #111; border: 1px solid #333; padding: 15px 20px; border-radius: 14px; 
+    color: #fff; font-size: 16px; width: 100%;
+}
+.input-glow input:focus { border-color: var(--accent); outline: none; background: #161616; }
+
+button.primary { 
+    background: #fff; color: #000; border: none; padding: 12px 25px; 
+    border-radius: 14px; font-weight: 800; cursor: pointer; 
+}
+button.primary:hover { transform: scale(1.05); background: var(--accent); color: #fff; }
 
 /* STATS */
-.chart-card { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid #222; }
-.chart-card h3 { color: #fff; margin-bottom: 20px; }
-.bar-item { flex: 1; background: var(--accent); border-radius: 5px 5px 0 0; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
-.stat-box { background: var(--card); border: 1px solid #222; padding: 25px; border-radius: 25px; color: #fff; }
-.stat-box h3 { color: var(--text-sub); font-size: 14px; margin: 0; }
+.stat-box { background: var(--card); border: 1px solid #222; padding: 25px; border-radius: 20px; }
+.stat-box h3 { color: var(--text-muted); font-size: 13px; margin: 0 0 10px 0; text-transform: uppercase; }
+.stat-box p { font-size: 32px; font-weight: 800; margin: 0; color: #fff; }
 
-/* DETAIL VIEW */
-.hero { text-align: center; padding: 60px; border-radius: 40px; background: linear-gradient(180deg, #111 0%, #000 100%); margin-bottom: 30px; border: 1px solid #222; }
-.score-display { font-size: 100px; font-weight: 800; color: #fff; text-shadow: 0 0 40px var(--accent); }
-#det-name { color: #fff; font-size: 36px; margin-bottom: 10px; }
-
-/* INPUTS */
-input { background: #1a1a1a; border: 1px solid #333; padding: 15px 20px; border-radius: 15px; color: #fff; font-size: 16px; }
-input::placeholder { color: #666; }
-button { background: #fff; color: #000; border: none; padding: 10px 25px; border-radius: 15px; font-weight: 800; cursor: pointer; }
-button:hover { background: var(--accent); color: #fff; }
-
-.h-row { background: #141414; padding: 20px; border-radius: 15px; border: 1px solid #222; color: #fff; margin-bottom: 10px; }
-.danger-zone { color: #ff4444; opacity: 0.6; font-weight: 700; margin-top: auto; }
+/* SCROLLBAR (Schön dezent) */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
