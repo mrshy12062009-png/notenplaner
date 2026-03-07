@@ -1,0 +1,47 @@
+:root {
+    --bg: #050505; --card: #121212; --accent: #6366f1;
+    --grad-green: linear-gradient(135deg, #00ff87, #60efff);
+    --grad-yellow: linear-gradient(135deg, #ff930f, #fff95b);
+    --grad-red: linear-gradient(135deg, #ff0000, #ff6600);
+    --grad-neutral: linear-gradient(135deg, #222, #444);
+}
+
+body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 260px; background: #000; padding: 30px; border-right: 1px solid #222; }
+.logo { font-size: 28px; font-weight: 900; margin-bottom: 50px; }
+.logo span { color: var(--accent); }
+.nav-btn { width: 100%; padding: 18px; margin: 10px 0; border: none; background: transparent; color: #555; text-align: left; cursor: pointer; border-radius: 15px; font-weight: 700; transition: 0.3s; }
+.nav-btn.active { background: var(--accent); color: white; }
+
+/* General Layout */
+.main-content { flex: 1; padding: 40px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* Dashboard (Bild 2) */
+.header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.total-badge { background: var(--accent); padding: 10px 20px; border-radius: 15px; font-weight: 900; }
+.add-container { display: flex; gap: 10px; margin-bottom: 30px; }
+.add-container input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 15px; border-radius: 12px; }
+.add-container button { background: white; color: black; border: none; padding: 0 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+
+.ultra-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.subject-card { height: 210px; border-radius: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.subject-card h1 { font-size: 65px; margin: 0; font-weight: 900; }
+
+/* Ziele (Bild 1) */
+.huge-goals-stack { display: flex; flex-direction: column; gap: 25px; }
+.goal-card-huge { background: var(--card); padding: 40px; border-radius: 40px; border: 2px solid #222; }
+.progress-bg { height: 45px; background: #000; border-radius: 25px; overflow: hidden; margin-top: 20px; border: 3px solid #1a1a1a; }
+.progress-fill { height: 100%; transition: 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Detail (Bild 3) */
+.mega-hero { padding: 80px 40px; border-radius: 50px; text-align: center; margin-bottom: 40px; }
+.hero-circle { width: 120px; height: 120px; background: white; color: black; border-radius: 60px; display: flex; align-items: center; justify-content: center; font-size: 45px; font-weight: 900; margin: 20px auto; }
+.detail-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.glass-card { background: var(--card); padding: 30px; border-radius: 35px; border: 1px solid #222; }
+.glass-card input { width: 100%; padding: 18px; margin: 15px 0; background: #000; border: none; color: white; border-radius: 12px; font-size: 18px; box-sizing: border-box; }
+.btn-save { width: 100%; padding: 18px; background: white; color: black; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; }
+.btn-del-outline { background: none; border: 2px solid #ff4444; color: #ff4444; padding: 20px; border-radius: 20px; width: 100%; margin-top: 30px; cursor: pointer; font-weight: 800; }

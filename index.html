@@ -2,238 +2,65 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GRADEFLOW ULTRA - REBOOT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeFlow Ultra</title>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #050505; --card: #121212; --accent: #6366f1;
-            --grad-green: linear-gradient(135deg, #00ff87, #60efff);
-            --grad-yellow: linear-gradient(135deg, #ff930f, #fff95b);
-            --grad-red: linear-gradient(135deg, #ff0000, #ff6600);
-            --grad-gray: linear-gradient(135deg, #222, #444);
-        }
-
-        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar */
-        .sidebar { width: 250px; background: #000; padding: 30px; border-right: 1px solid #222; flex-shrink: 0; }
-        .logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; }
-        .logo span { color: var(--accent); }
-        .nav-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; background: transparent; color: #555; text-align: left; cursor: pointer; border-radius: 12px; font-weight: 700; transition: 0.3s; }
-        .nav-btn.active { background: var(--accent); color: white; }
-
-        /* Content Area */
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .page { display: none; }
-        .page.active { display: block; }
-
-        /* Dashboard (Bild 2) */
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .avg-badge { background: var(--accent); padding: 10px 20px; border-radius: 15px; font-weight: 900; font-size: 20px; }
-        .input-box { background: var(--card); padding: 20px; border-radius: 20px; display: flex; gap: 10px; margin-bottom: 30px; }
-        .input-box input { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 15px; border-radius: 12px; }
-        .btn-add { background: white; color: black; border: none; padding: 0 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-
-        .ultra-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-        .subject-card { height: 200px; border-radius: 35px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; }
-        .subject-card h1 { font-size: 60px; margin: 0; font-weight: 900; }
-
-        /* Ziele (Bild 1) */
-        .huge-goal-card { background: var(--card); padding: 40px; border-radius: 40px; margin-bottom: 20px; border: 2px solid #222; }
-        .progress-track { height: 45px; background: #000; border-radius: 25px; overflow: hidden; margin-top: 20px; border: 3px solid #1a1a1a; }
-        .progress-fill { height: 100%; transition: 1s ease-in-out; }
-
-        /* Detail (Bild 3) */
-        .hero { padding: 60px 30px; border-radius: 45px; text-align: center; margin-bottom: 30px; transition: 0.5s; }
-        .hero-circle { width: 110px; height: 110px; background: white; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 45px; font-weight: 900; margin: 20px auto; }
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card-ui { background: var(--card); padding: 25px; border-radius: 30px; }
-        .card-ui input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: none; color: white; border-radius: 10px; box-sizing: border-box; font-size: 18px; }
-        .btn-save { width: 100%; padding: 15px; background: white; color: black; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        .btn-del { color: #ff4444; background: none; border: 1px solid #ff4444; padding: 15px; width: 100%; border-radius: 12px; margin-top: 20px; cursor: pointer; }
-    </style>
 </head>
 <body>
-
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn active" id="b-list" onclick="nav('list')">🏠 Dashboard</button>
-        <button class="nav-btn" id="b-goals" onclick="nav('goals')">🎯 Ziele</button>
-        <button class="nav-btn" id="b-settings" onclick="nav('settings')">⚙️ Einstellungen</button>
+        <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
+        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Ziele</button>
+        <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Reset</button>
     </nav>
 
-    <main class="main">
-        <section id="p-list" class="page active">
+    <main class="main-content">
+        <section id="page-list" class="page active">
             <div class="header-flex">
                 <h1>Dashboard</h1>
-                <div class="avg-badge">Schnitt: <span id="total-avg">-</span></div>
+                <div class="total-badge">Schnitt: <span id="dash-total">-</span></div>
             </div>
-            <div class="input-box">
-                <input type="text" id="new-f-name" placeholder="Name des Fachs...">
-                <button class="btn-add" onclick="createFach()">Hinzufügen</button>
+            <div class="add-container">
+                <input type="text" id="f-name-in" placeholder="Fach hinzufügen...">
+                <button onclick="addFach()">Hinzufügen</button>
             </div>
-            <div id="grid" class="ultra-grid"></div>
+            <div id="grid-container" class="ultra-grid"></div>
         </section>
 
-        <section id="p-goals" class="page">
+        <section id="page-goals" class="page">
             <h1>🎯 Deine Fach-Ziele</h1>
-            <div id="goal-list"></div>
+            <div id="goals-list" class="huge-goals-stack"></div>
         </section>
 
-        <section id="p-settings" class="page">
-            <h1>Einstellungen</h1>
-            <button class="btn-del" onclick="factoryReset()">⚠️ ALLE DATEN LÖSCHEN</button>
-        </section>
-
-        <section id="p-detail" class="page">
-            <button onclick="nav('list')" style="color:white; background:none; border:none; cursor:pointer; font-weight:bold;">← ZURÜCK</button>
-            <div class="hero" id="d-hero">
-                <h1 id="d-title">-</h1>
-                <div class="hero-circle" id="d-avg">-</div>
-                <div id="d-status" style="font-weight:900; opacity:0.8; text-transform:uppercase;">-</div>
+        <section id="page-detail" class="page">
+            <button onclick="showPage('list')" class="btn-back">← ZURÜCK</button>
+            <div class="mega-hero" id="det-header">
+                <h1 id="det-title">-</h1>
+                <div class="hero-circle" id="det-avg">-</div>
+                <div id="det-status-label" class="status-pill">-</div>
             </div>
-            <div class="detail-grid">
-                <div class="card-ui">
-                    <h3>Punkte-Ziel (Unbegrenzt)</h3>
-                    <input type="number" id="d-target-in">
-                    <button class="btn-save" onclick="updateTarget()">Ziel Speichern</button>
+            <div class="detail-inputs">
+                <div class="glass-card">
+                    <h3>Punkte-Ziel (Unendlich)</h3>
+                    <input type="number" id="f-target-input">
+                    <button class="btn-save" onclick="saveTarget()">Ziel Speichern</button>
                 </div>
-                <div class="card-ui">
+                <div class="glass-card">
                     <h3>Note hinzufügen</h3>
-                    <input type="number" id="d-note-in">
-                    <button class="btn-save" onclick="addGrade()">Speichern</button>
+                    <input type="number" id="n-val-input">
+                    <button class="btn-save" onclick="addNote()">Speichern</button>
                 </div>
             </div>
-            <div id="d-history" style="margin-top:20px;"></div>
-            <button class="btn-del" onclick="killFach()">Fach löschen</button>
+            <div id="notes-list" class="history-list"></div>
+            <button onclick="deleteFach()" class="btn-del-outline">Fach löschen</button>
+        </section>
+
+        <section id="page-settings" class="page">
+            <h1>Einstellungen</h1>
+            <button class="btn-del-outline" onclick="factoryReset()">⚠️ ALLE DATEN LÖSCHEN</button>
         </section>
     </main>
-
-    <script>
-        let db = JSON.parse(localStorage.getItem('GF_V10')) || [];
-        let cur = null;
-
-        function save() { localStorage.setItem('GF_V10', JSON.stringify(db)); }
-
-        function nav(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('p-' + id).classList.add('active');
-            if(document.getElementById('b-' + id)) document.getElementById('b-' + id).classList.add('active');
-            if(id === 'list') drawDash();
-            if(id === 'goals') drawGoals();
-        }
-
-        function getStyle(avg, target) {
-            if (avg === null) return { g: 'var(--grad-gray)', l: 'KEINE DATEN' };
-            const goal = target || 15;
-            if (avg >= goal) return { g: 'var(--grad-green)', l: 'ZIEL ERREICHT' };
-            if (avg >= goal * 0.7) return { g: 'var(--grad-yellow)', l: 'KNAPP DRAN' };
-            return { g: 'var(--grad-red)', l: 'UNTER ZIEL' };
-        }
-
-        function createFach() {
-            const name = document.getElementById('new-f-name').value;
-            if(!name) return;
-            db.push({ id: Date.now(), name, grades: [], target: 15 });
-            document.getElementById('new-f-name').value = '';
-            save(); drawDash();
-        }
-
-        function drawDash() {
-            const container = document.getElementById('grid');
-            container.innerHTML = '';
-            let totalSum = 0, totalCount = 0;
-
-            db.forEach(f => {
-                const avg = f.grades.length ? f.grades.reduce((a,b)=>a+b,0)/f.grades.length : null;
-                const s = getStyle(avg, f.target);
-                if(avg !== null) { totalSum += avg; totalCount++; }
-
-                container.innerHTML += `
-                    <div class="subject-card" style="background:${s.g}" onclick="openDetail(${f.id})">
-                        <span style="font-weight:900; letter-spacing:1px; text-transform:uppercase;">${f.name}</span>
-                        <h1>${avg !== null ? avg.toFixed(1) : '-'}</h1>
-                        <span style="font-size:12px; font-weight:bold;">ZIEL: ${f.target}</span>
-                    </div>`;
-            });
-            document.getElementById('total-avg').innerText = totalCount > 0 ? (totalSum/totalCount).toFixed(2) : '-';
-        }
-
-        function drawGoals() {
-            const container = document.getElementById('goal-list');
-            container.innerHTML = '';
-            db.forEach(f => {
-                const avg = f.grades.length ? f.grades.reduce((a,b)=>a+b,0)/f.grades.length : 0;
-                const perc = Math.min((avg / (f.target || 15)) * 100, 100);
-                const s = getStyle(avg, f.target);
-                container.innerHTML += `
-                    <div class="huge-goal-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h2 style="margin:0; font-size:30px;">${f.name}</h2>
-                            <span style="font-size:35px; font-weight:900;">${Math.round(perc)}%</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width:${perc}%; background:${s.g}"></div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function openDetail(id) {
-            cur = db.find(x => x.id === id);
-            nav('detail');
-            const avg = cur.grades.length ? cur.grades.reduce((a,b)=>a+b,0)/cur.grades.length : null;
-            const s = getStyle(avg, cur.target);
-
-            document.getElementById('d-hero').style.background = s.g;
-            document.getElementById('d-title').innerText = cur.name;
-            document.getElementById('d-avg').innerText = avg !== null ? avg.toFixed(1) : '-';
-            document.getElementById('d-status').innerText = s.l;
-            document.getElementById('d-target-in').value = cur.target;
-            
-            const hist = document.getElementById('d-history');
-            hist.innerHTML = cur.grades.map((n, i) => `
-                <div class="card-ui" style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <b>Note: ${n}</b>
-                    <button onclick="delGrade(${i})" style="color:red; background:none; border:none; cursor:pointer;">LÖSCHEN</button>
-                </div>`).reverse().join('');
-        }
-
-        function updateTarget() {
-            cur.target = parseFloat(document.getElementById('d-target-in').value) || 0;
-            save(); openDetail(cur.id);
-        }
-
-        function addGrade() {
-            const v = parseFloat(document.getElementById('d-note-in').value);
-            if(isNaN(v)) return;
-            cur.grades.push(v);
-            document.getElementById('d-note-in').value = '';
-            save(); openDetail(cur.id);
-        }
-
-        function delGrade(i) {
-            cur.grades.splice(cur.grades.length - 1 - i, 1);
-            save(); openDetail(cur.id);
-        }
-
-        function killFach() {
-            if(confirm("Löschen?")) {
-                db = db.filter(x => x.id !== cur.id);
-                save(); nav('list');
-            }
-        }
-
-        function factoryReset() {
-            if(confirm("ALLES LÖSCHEN?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        // Start
-        drawDash();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
