@@ -1,56 +1,42 @@
-// GradeFlow v14 - Ultra Stable
-console.log("Script geladen...");
+// GradeFlow v14.1 - Fix Build
+const DATA_KEY = 'gf_v14_data';
+const CONF_KEY = 'gf_v14_config';
 
-const D_KEY = 'gf_v14_data';
-const C_KEY = 'gf_v14_config';
-
-let appData = JSON.parse(localStorage.getItem(D_KEY)) || [];
-let config = JSON.parse(localStorage.getItem(C_KEY)) || {
+let appData = JSON.parse(localStorage.getItem(DATA_KEY)) || [];
+let config = JSON.parse(localStorage.getItem(CONF_KEY)) || {
     userName: 'Schüler',
     accentColor: '#5865f2',
     usePoints: true
 };
 
-// Diese Funktion muss als allererstes laufen
-function init() {
-    console.log("Initialisierung...");
+// Startet die App
+window.onload = () => {
     document.documentElement.style.setProperty('--accent', config.accentColor);
     showPage('list');
-}
+};
 
 window.showPage = function(id) {
-    console.log("Zeige Seite:", id);
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(p => p.style.display = 'none');
+    // Verstecke alle Seiten
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
     
+    // Zeige Zielseite
     const target = document.getElementById('page-' + id);
-    if(target) {
-        target.style.display = 'block';
-    } else {
-        console.error("Seite nicht gefunden: page-" + id);
+    if (target) target.style.display = 'block';
+
+    // Update UI
+    if (document.getElementById('display-name')) {
+        document.getElementById('display-name').innerText = config.userName;
     }
 
-    if(id === 'list') renderGrid();
-    if(id === 'stats') renderStats();
-    if(id === 'settings') {
-        const inputName = document.getElementById('set-name');
-        if(inputName) inputName.value = config.userName;
-    }
-    
-    const nameDisplay = document.getElementById('display-name');
-    if(nameDisplay) nameDisplay.innerText = config.userName;
+    if (id === 'list') renderGrid();
+    if (id === 'stats') renderStats();
 };
 
 window.addFach = function() {
     const input = document.getElementById('f-name');
-    if(!input || !input.value.trim()) return;
+    if (!input || !input.value.trim()) return;
     
-    appData.push({
-        id: Date.now(),
-        name: input.value.trim(),
-        notes: []
-    });
-    
+    appData.push({ id: Date.now(), name: input.value.trim(), notes: [] });
     save();
     input.value = '';
     renderGrid();
@@ -58,14 +44,14 @@ window.addFach = function() {
 
 function renderGrid() {
     const container = document.getElementById('grid-container');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
 
     appData.forEach(f => {
-        const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
+        const avg = f.notes.length ? (f.notes.reduce((a, b) => a + b, 0) / f.notes.length).toFixed(1) : '-';
         const div = document.createElement('div');
         div.className = 'subject-card';
-        div.innerHTML = `<h3>${f.name}</h3><p style="font-size:20px; font-weight:bold; color:var(--accent)">${avg}</p>`;
+        div.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; color:var(--accent)">${avg}</p>`;
         div.onclick = () => openDetail(f.id);
         container.appendChild(div);
     });
@@ -74,20 +60,19 @@ function renderGrid() {
 window.openDetail = function(id) {
     window.activeFachId = id;
     const fach = appData.find(f => f.id === id);
-    if(!fach) return;
-    const title = document.getElementById('det-title');
-    if(title) title.innerText = fach.name;
+    if (!fach) return;
+    document.getElementById('det-title').innerText = fach.name;
     showPage('detail');
     renderDetail();
 };
 
 window.addNote = function() {
     const input = document.getElementById('n-val');
-    const val = parseFloat(input?.value);
-    if(isNaN(val)) return;
+    const val = parseFloat(input.value);
+    if (isNaN(val)) return;
 
     const fach = appData.find(f => f.id === window.activeFachId);
-    if(fach) {
+    if (fach) {
         fach.notes.push(val);
         save();
         input.value = '';
@@ -97,48 +82,32 @@ window.addNote = function() {
 
 function renderDetail() {
     const fach = appData.find(f => f.id === window.activeFachId);
-    if(!fach) return;
-
-    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-    const avgDiv = document.getElementById('det-avg');
-    if(avgDiv) avgDiv.innerText = avg;
+    const avg = fach.notes.length ? (fach.notes.reduce((a, b) => a + b, 0) / fach.notes.length).toFixed(1) : '-';
+    document.getElementById('det-avg').innerText = avg;
     
     const list = document.getElementById('notes-list');
-    if(list) {
-        list.innerHTML = '<h4>Verlauf</h4>';
-        fach.notes.slice().reverse().forEach(n => {
-            list.innerHTML += `<div class="subject-card" style="margin-bottom:8px; padding:10px">${n}</div>`;
-        });
-    }
+    list.innerHTML = '';
+    fach.notes.slice().reverse().forEach(n => {
+        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px">${n} Punkte</div>`;
+    });
 }
 
+function save() {
+    localStorage.setItem(DATA_KEY, JSON.stringify(appData));
+}
+
+// Einstellungen
 window.saveSettings = function() {
-    const newName = document.getElementById('set-name')?.value;
-    if(newName) config.userName = newName;
-    const system = document.getElementById('set-system')?.value;
-    config.usePoints = (system === 'points');
-    
-    localStorage.setItem(C_KEY, JSON.stringify(config));
+    config.userName = document.getElementById('set-name').value;
+    config.usePoints = document.getElementById('set-system').value === 'points';
+    localStorage.setItem(CONF_KEY, JSON.stringify(config));
     alert("Gespeichert!");
     showPage('list');
 };
 
-window.changeTheme = function(color) {
-    config.accentColor = color;
-    document.documentElement.style.setProperty('--accent', color);
-    localStorage.setItem(C_KEY, JSON.stringify(config));
-};
-
 window.resetAll = function() {
-    if(confirm("Alles löschen?")) {
+    if (confirm("Alles löschen?")) {
         localStorage.clear();
         location.reload();
     }
 };
-
-function save() {
-    localStorage.setItem(D_KEY, JSON.stringify(appData));
-}
-
-// Start
-init();
