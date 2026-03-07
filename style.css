@@ -302,6 +302,13 @@ button:focus-visible {
     display: grid;
     align-content: start;
     gap: 0.35rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.day:hover {
+    transform: translateY(-1px);
+    border-color: var(--primary);
 }
 
 .day.empty {
@@ -383,6 +390,11 @@ button:focus-visible {
     box-shadow: 0 0 0 2px rgba(18, 127, 143, 0.15);
 }
 
+.day.is-selected {
+    border: 2px solid var(--primary-strong);
+    box-shadow: 0 0 0 2px rgba(13, 103, 116, 0.2);
+}
+
 .event-dot {
     width: 100%;
     height: 6px;
@@ -419,6 +431,34 @@ button:focus-visible {
 .list-item-special {
     border-left: 4px solid var(--warning);
     background: #fffdf8;
+}
+
+.event-form-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+.selected-day-chip {
+    border: 1px solid #cde2f5;
+    background: #edf5ff;
+    color: #214d79;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.quick-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.quick-template {
+    min-height: 36px;
+    padding: 0.45rem 0.7rem;
 }
 
 .list-meta {
@@ -482,6 +522,24 @@ body.weekend-blue .day.is-weekend {
 
 body.weekend-blue .day.is-weekend .day-number {
     color: #1d4f9a;
+}
+
+body.weekend-mint .day.is-weekend {
+    background: #dcfaf2;
+    border-color: #a8dfcd;
+}
+
+body.weekend-mint .day.is-weekend .day-number {
+    color: #1f6e5d;
+}
+
+body.weekend-rose .day.is-weekend {
+    background: #ffe7ef;
+    border-color: #efc1d0;
+}
+
+body.weekend-rose .day.is-weekend .day-number {
+    color: #8f3153;
 }
 
 body.density-compact {

@@ -260,7 +260,7 @@ function sanitizeSettings(input) {
     const settings = input && typeof input === "object" ? input : {};
     return {
         accent: ["teal", "blue", "green", "orange"].includes(settings.accent) ? settings.accent : DEFAULT_SETTINGS.accent,
-        weekend: ["blue", "gray"].includes(settings.weekend) ? settings.weekend : DEFAULT_SETTINGS.weekend,
+        weekend: ["blue", "mint", "rose", "gray"].includes(settings.weekend) ? settings.weekend : DEFAULT_SETTINGS.weekend,
         radius: ["soft", "sharp", "rounded"].includes(settings.radius) ? settings.radius : DEFAULT_SETTINGS.radius,
         density: ["comfortable", "compact"].includes(settings.density) ? settings.density : DEFAULT_SETTINGS.density,
         background: ["dynamic", "plain"].includes(settings.background) ? settings.background : DEFAULT_SETTINGS.background

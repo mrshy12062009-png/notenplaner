@@ -31,6 +31,7 @@ export function initApp() {
     const state = {
         viewPage: "list",
         viewDate: new Date(),
+        selectedDate: toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
         currentSubjectId: null,
         editing: {
             subjectId: null,
@@ -77,6 +78,9 @@ export function initApp() {
         eventSubmit: document.getElementById("event-submit"),
         eventCancel: document.getElementById("event-cancel"),
         eventFeedback: document.getElementById("event-feedback"),
+        eventUseToday: document.getElementById("event-use-today"),
+        selectedDayChip: document.getElementById("selected-day-chip"),
+        quickTemplateButtons: document.querySelectorAll(".quick-template"),
 
         settingsForm: document.getElementById("settings-form"),
         settingAccent: document.getElementById("setting-accent"),
@@ -90,6 +94,7 @@ export function initApp() {
 
     applyThemeSettings();
     hydrateSettingsForm();
+    updateSelectedDayUI();
     bindEvents();
     showPage("list");
     renderAll();
@@ -145,6 +150,38 @@ export function initApp() {
 
         els.eventForm.addEventListener("submit", onEventSubmit);
         els.eventCancel.addEventListener("click", resetEventForm);
+        els.eventDateInput.addEventListener("change", () => {
+            if (isIsoDate(els.eventDateInput.value)) {
+                selectDate(els.eventDateInput.value);
+            }
+        });
+        els.eventUseToday.addEventListener("click", () => {
+            const today = startOfDay(new Date());
+            selectDate(toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate()));
+            setFeedback(els.eventFeedback, "Heute wurde als Datum gesetzt.");
+        });
+
+        els.quickTemplateButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                els.eventTextInput.value = button.dataset.template || "";
+                els.eventTextInput.focus();
+            });
+        });
+
+        els.calendarGrid.addEventListener("click", (event) => {
+            const dayElement = event.target.closest("[data-date]");
+            if (!dayElement) return;
+            selectDate(dayElement.dataset.date);
+            showPage("calendar");
+        });
+        els.calendarGrid.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            const dayElement = event.target.closest("[data-date]");
+            if (!dayElement) return;
+            event.preventDefault();
+            selectDate(dayElement.dataset.date);
+            showPage("calendar");
+        });
 
         els.eventList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
@@ -186,6 +223,10 @@ export function initApp() {
         els.navButtons.forEach((button) => {
             button.classList.toggle("is-active", button.dataset.page === (pageId === "detail" ? "list" : pageId));
         });
+
+        if (pageId === "calendar") {
+            updateSelectedDayUI();
+        }
     }
 
     function onSettingsChange() {
@@ -214,6 +255,8 @@ export function initApp() {
         const body = document.body;
 
         body.classList.toggle("weekend-blue", state.settings.weekend === "blue");
+        body.classList.toggle("weekend-mint", state.settings.weekend === "mint");
+        body.classList.toggle("weekend-rose", state.settings.weekend === "rose");
         body.classList.toggle("weekend-gray", state.settings.weekend === "gray");
         body.classList.toggle("density-compact", state.settings.density === "compact");
         body.classList.toggle("bg-plain", state.settings.background === "plain");
@@ -325,9 +368,10 @@ export function initApp() {
             if (meta.isToday) dayClasses.push("is-today");
             if (meta.holidayName) dayClasses.push("is-holiday");
             if (meta.vacationName) dayClasses.push("is-vacation");
+            if (state.selectedDate === dateStr) dayClasses.push("is-selected");
 
             html += `
-                <article class="${dayClasses.join(" ")}" title="${escapeHtml(meta.title)}">
+                <article class="${dayClasses.join(" ")}" title="${escapeHtml(meta.title)}" data-date="${dateStr}" role="button" tabindex="0" aria-label="Tag ${day}. ${escapeHtml(meta.title)}">
                     <div class="day-header">
                         <span class="day-number">${day}</span>
                         ${meta.isToday ? '<span class="today-badge">Heute</span>' : ""}
@@ -410,6 +454,25 @@ export function initApp() {
                 `;
             })
             .join("");
+    }
+
+    function selectDate(dateStr) {
+        if (!isIsoDate(dateStr)) return;
+        state.selectedDate = dateStr;
+        els.eventDateInput.value = dateStr;
+        updateSelectedDayUI();
+        renderCalendar();
+    }
+
+    function updateSelectedDayUI() {
+        if (!isIsoDate(state.selectedDate)) {
+            els.selectedDayChip.textContent = "Kein Tag ausgewählt";
+            return;
+        }
+        els.selectedDayChip.textContent = `Ausgewählt: ${formatDate(state.selectedDate)}`;
+        if (!state.editing.eventId) {
+            els.eventDateInput.value = state.selectedDate;
+        }
     }
 
     function onSubjectSubmit(event) {
@@ -580,6 +643,8 @@ export function initApp() {
             return;
         }
 
+        state.selectedDate = date;
+
         if (!state.eventsStore.events[date]) {
             state.eventsStore.events[date] = [];
         }
@@ -625,6 +690,7 @@ export function initApp() {
 
         state.eventsStore = persistEvents(state.eventsStore);
         resetEventForm();
+        updateSelectedDayUI();
         renderCalendar();
         renderEventList();
     }
@@ -641,6 +707,8 @@ export function initApp() {
         els.eventSubmit.textContent = "Aktualisieren";
         els.eventFormTitle.textContent = "Termin bearbeiten";
         els.eventCancel.classList.remove("hidden");
+        state.selectedDate = date;
+        updateSelectedDayUI();
     }
 
     function deleteEvent(date, eventId) {
@@ -659,7 +727,7 @@ export function initApp() {
     function resetEventForm() {
         state.editing.eventId = null;
         els.eventIdInput.value = "";
-        els.eventDateInput.value = "";
+        els.eventDateInput.value = state.selectedDate || "";
         els.eventTextInput.value = "";
         els.eventPriorityInput.value = "medium";
         els.eventSubmit.textContent = "Speichern";

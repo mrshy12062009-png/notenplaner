@@ -56,6 +56,11 @@
                 <form id="event-form" class="stack event-form" novalidate>
                     <h3 id="event-form-title">Termin hinzufügen</h3>
                     <input id="event-id" type="hidden">
+                    <div class="event-form-top">
+                        <p class="list-meta">Ausgewählter Tag</p>
+                        <button id="event-use-today" class="btn btn-ghost" type="button">Heute</button>
+                    </div>
+                    <div id="selected-day-chip" class="selected-day-chip">Kein Tag ausgewählt</div>
                     <div class="inline-form responsive-3">
                         <input id="event-date" name="event-date" type="date" required>
                         <input id="event-text" name="event-text" type="text" maxlength="70" placeholder="z. B. Mathe Klausur" required>
@@ -68,6 +73,12 @@
                     <div class="inline-form">
                         <button id="event-submit" class="btn btn-primary" type="submit">Speichern</button>
                         <button id="event-cancel" class="btn btn-ghost hidden" type="button">Abbrechen</button>
+                    </div>
+                    <div class="quick-templates" aria-label="Schnellvorlagen">
+                        <button class="btn btn-ghost quick-template" data-template="Klausur" type="button">Klausur</button>
+                        <button class="btn btn-ghost quick-template" data-template="Test" type="button">Test</button>
+                        <button class="btn btn-ghost quick-template" data-template="Abgabe" type="button">Abgabe</button>
+                        <button class="btn btn-ghost quick-template" data-template="Mündliche Prüfung" type="button">Mündliche Prüfung</button>
                     </div>
                     <p id="event-feedback" class="feedback" role="status" aria-live="polite"></p>
                 </form>
@@ -116,6 +127,8 @@
                             <span>Wochenenden</span>
                             <select id="setting-weekend" name="setting-weekend">
                                 <option value="blue">Blau</option>
+                                <option value="mint">Mint</option>
+                                <option value="rose">Rosé</option>
                                 <option value="gray">Grau</option>
                             </select>
                         </label>
