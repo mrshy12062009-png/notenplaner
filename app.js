@@ -53,6 +53,7 @@ export function initApp() {
     const els = {
         pages: document.querySelectorAll(".page"),
         navButtons: document.querySelectorAll(".nav-btn"),
+        sidebarToggle: document.getElementById("sidebar-toggle"),
         subjectsGrid: document.getElementById("subjects-grid"),
         subjectForm: document.getElementById("subject-form"),
         subjectNameInput: document.getElementById("subject-name"),
@@ -120,6 +121,7 @@ export function initApp() {
     let confirmAction = null;
 
     applyThemeSettings();
+    syncSidebarToggleState();
     hydrateSettingsForm();
     updateSelectedDayUI();
     bindEvents();
@@ -129,6 +131,18 @@ export function initApp() {
     function bindEvents() {
         els.navButtons.forEach((button) => {
             button.addEventListener("click", () => showPage(button.dataset.page));
+        });
+
+        els.sidebarToggle.addEventListener("click", () => {
+            document.body.classList.toggle("sidebar-expanded");
+            syncSidebarToggleState();
+        });
+
+        window.addEventListener("resize", () => {
+            if (window.innerWidth > 1200) {
+                document.body.classList.remove("sidebar-expanded");
+                syncSidebarToggleState();
+            }
         });
 
         els.subjectForm.addEventListener("submit", onSubjectSubmit);
@@ -990,6 +1004,12 @@ export function initApp() {
         if (type === "deadline") return "Abgabe";
         if (type === "other") return "Sonstiges";
         return "Prüfung";
+    }
+
+    function syncSidebarToggleState() {
+        const expanded = document.body.classList.contains("sidebar-expanded");
+        els.sidebarToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        els.sidebarToggle.textContent = expanded ? "Menü zuklappen" : "Menü";
     }
 
     function openConfirmModal(message, onConfirm) {

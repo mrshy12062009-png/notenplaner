@@ -85,6 +85,11 @@ p {
     text-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
+.sidebar-toggle {
+    display: none;
+    width: 100%;
+}
+
 .nav {
     display: grid;
     gap: 0.55rem;
@@ -120,6 +125,10 @@ p {
     font-size: 0.8rem;
     background: rgba(255, 255, 255, 0.16);
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-label {
+    white-space: nowrap;
 }
 
 .nav-btn:hover {
@@ -842,6 +851,64 @@ body.density-compact {
 
     .nav {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) and (min-width: 921px) {
+    .sidebar {
+        width: 92px;
+        min-width: 92px;
+        padding: var(--space-3) 0.7rem;
+        gap: var(--space-2);
+    }
+
+    .brand-kicker,
+    .brand h1 {
+        display: none;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 36px;
+        font-size: 0.78rem;
+        padding: 0.35rem 0.45rem;
+    }
+
+    .nav {
+        padding: 0.35rem;
+    }
+
+    .nav-btn {
+        justify-content: center;
+        padding: 0.65rem 0.4rem;
+    }
+
+    .nav-label {
+        display: none;
+    }
+
+    body.sidebar-expanded .sidebar {
+        width: 280px;
+        min-width: 280px;
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-5);
+    }
+
+    body.sidebar-expanded .brand-kicker,
+    body.sidebar-expanded .brand h1,
+    body.sidebar-expanded .nav-label {
+        display: block;
+    }
+
+    body.sidebar-expanded .sidebar-toggle {
+        justify-content: flex-start;
+    }
+
+    body.sidebar-expanded .nav-btn {
+        justify-content: flex-start;
+        padding: 0.8rem 0.95rem;
     }
 }
 
