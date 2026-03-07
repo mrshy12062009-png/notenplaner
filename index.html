@@ -30,42 +30,34 @@
             <h1>MEINE FÄCHER</h1>
             <div class="input-group">
                 <input type="text" id="f-in" placeholder="Neues Fach...">
-                <button class="add-btn" onclick="addFach()">HINZUFÜGEN</button>
+                <button class="add-btn" onclick="addFach()">OK</button>
             </div>
             <div id="grid" class="grid"></div>
         </section>
         
         <section id="page-detail" class="page">
-            <button class="back-btn" onclick="showPage('list')">← Dashboard</button>
+            <button class="back-btn" onclick="showPage('list')">← Zurück</button>
             <div class="banner">
-                <h2 id="d-title">Fachname</h2>
-                <div id="d-avg">Schnitt: --</div>
+                <h2 id="d-title">-</h2>
+                <div id="d-avg">-</div>
             </div>
-            
-            <div class="detail-grid">
-                <div class="card-ui">
-                    <h3>Ziel setzen</h3>
-                    <input type="number" id="goal-in" min="0" max="15" onchange="updateGoal()">
-                    <p id="goal-status" style="margin-top:10px;"></p>
-                </div>
-
-                <div class="card-ui">
-                    <h3>Note eintragen</h3>
-                    <div class="input-group">
-                        <input type="number" id="n-in" placeholder="Punkte (0-15)">
-                        <button class="add-btn" onclick="addNote()">OK</button>
-                    </div>
-                </div>
+            <div class="input-group">
+                <input type="number" id="n-in" placeholder="Punkte (0-15)">
+                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
             </div>
-
-            <h3>Notenverlauf</h3>
             <div id="n-list"></div>
         </section>
 
         <section id="page-calendar" class="page">
-            <h1>SCHULKALENDER 2026</h1>
-            <div id="calendar-info" class="calendar-grid">
+            <div class="cal-header">
+                <h1 id="month-name">Monat Jahr</h1>
+            </div>
+            <div class="calendar-wrapper">
+                <div class="weekdays">
+                    <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
                 </div>
+                <div id="calendar-grid" class="days-grid"></div>
+            </div>
         </section>
     </main>
 
