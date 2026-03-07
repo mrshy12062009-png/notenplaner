@@ -1,13 +1,13 @@
-let subjects = JSON.parse(localStorage.getItem('GF_PRO_DATA')) || [];
+let subjects = JSON.parse(localStorage.getItem('GF_ULTRA_V4')) || [];
 let activeId = null;
 
-const save = () => localStorage.setItem('GF_PRO_DATA', JSON.stringify(subjects));
+const save = () => localStorage.setItem('GF_ULTRA_V4', JSON.stringify(subjects));
 
-// Farblogik für Punkte
+// Farblogik für die dynamischen Elemente
 const getPktColor = (p) => {
-    if (p >= 13) return 'var(--success)';
-    if (p >= 7) return 'var(--warning)';
-    return 'var(--danger)';
+    if (p >= 13) return '#10b981'; // Grün
+    if (p >= 7) return '#f59e0b';  // Gelb
+    return '#ef4444';              // Rot
 };
 
 function tab(id) {
@@ -25,11 +25,12 @@ function renderDash() {
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = subjects.map(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length).toFixed(1) : '-';
+        const color = avg === '-' ? '#fff' : getPktColor(avg);
         return `
             <div class="glass-card subject-card" onclick="openSub(${s.id})">
                 <label>${s.name}</label>
-                <div class="avg-val" style="color:${avg === '-' ? '#fff' : getPktColor(avg)}">${avg}</div>
-                <div style="font-size:12px; color:var(--text-low)">${s.notes.length} Noten eingetragen</div>
+                <div class="avg-val" style="color:${color}">${avg}</div>
+                <div style="font-size:12px; color:#52525b">${s.notes.length} Einträge</div>
             </div>
         `;
     }).join('');
@@ -71,7 +72,7 @@ function updateDetailView() {
 
     document.getElementById('history').innerHTML = s.notes.map((n, i) => `
         <div class="grade-item">
-            <div class="grade-val"><span style="color:${getPktColor(n)}">${n}</span> <small style="font-size:12px; color:var(--text-low)">Punkte</small></div>
+            <div class="grade-val"><span style="color:${getPktColor(n)}">${n}</span> <small>Punkte</small></div>
             <button class="btn-del-grade" onclick="delGrade(${i})">Löschen</button>
         </div>
     `).reverse().join('');
@@ -95,16 +96,16 @@ function renderStats() {
         const color = getPktColor(pkt);
         const bar = document.createElement('div');
         bar.className = 'chart-bar-item';
-        bar.style.height = `${height}%`;
+        bar.style.height = `${Math.max(height, 2)}%`; // Mindesthöhe für Sichtbarkeit
         bar.style.backgroundColor = color;
-        bar.style.boxShadow = `0 0 15px ${color}44`;
+        bar.style.boxShadow = `0 0 20px ${color}33`;
         bar.title = `${pkt} Punkte: ${count}x`;
         container.appendChild(bar);
     });
 
     const totalAvg = allGrades.length ? (allGrades.reduce((a,b)=>a+b,0)/allGrades.length).toFixed(2) : '0.00';
     document.getElementById('st-avg').innerText = totalAvg;
-    document.getElementById('st-best').innerText = allGrades.length ? Math.max(...allGrades) + " Pkt" : "-";
+    document.getElementById('st-best').innerText = allGrades.length ? Math.max(...allGrades) : "-";
 }
 
 function delGrade(idx) {
@@ -121,11 +122,18 @@ function delSub() {
 }
 
 function fullReset() {
-    if(confirm("Alle Daten wirklich unwiderruflich löschen?")) {
+    if(confirm("Alle Daten löschen?")) {
         localStorage.clear();
         location.reload();
     }
 }
 
-// Init
+// Enter-Key Event Listener
+document.addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') {
+        if(document.activeElement.id === 'sub-in') addSub();
+        if(document.activeElement.id === 'grade-in') addGrade();
+    }
+});
+
 tab('dash');

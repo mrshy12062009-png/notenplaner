@@ -16,10 +16,10 @@
             </div>
             <nav class="sidebar-nav">
                 <button onclick="tab('dash')" id="t-dash" class="nav-item active">
-                    <span class="icon">⊞</span> Dashboard
+                    <span class="icon">🏠</span> Dashboard
                 </button>
                 <button onclick="tab('stats')" id="t-stats" class="nav-item">
-                    <span class="icon">📈</span> Statistiken
+                    <span class="icon">📊</span> Statistiken
                 </button>
             </nav>
             <div class="sidebar-footer">
@@ -28,16 +28,15 @@
         </aside>
 
         <main class="main-stage">
-            
             <section id="view-dash" class="view active">
                 <header class="section-header">
                     <div class="title-group">
                         <h1>Dashboard</h1>
-                        <p>Willkommen zurück, behalte deine Ziele im Auge.</p>
+                        <p>Deine Übersicht über alle Fächer.</p>
                     </div>
                     <div class="header-action">
                         <div class="fancy-input-group">
-                            <input type="text" id="sub-in" placeholder="Neues Fach hinzufügen..." onkeydown="if(event.key==='Enter') addSub()">
+                            <input type="text" id="sub-in" placeholder="Neues Fach...">
                             <button onclick="addSub()">Hinzufügen</button>
                         </div>
                     </div>
@@ -49,10 +48,9 @@
                 <header class="section-header">
                     <div class="title-group">
                         <h1>Analyse</h1>
-                        <p>Deine Notenverteilung im Detail.</p>
+                        <p>Visualisierung deiner gesamten Leistung.</p>
                     </div>
                 </header>
-                
                 <div class="analytics-layout">
                     <div class="glass-card chart-main">
                         <div class="card-header">
@@ -66,14 +64,13 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="analytics-sidebar">
                         <div class="glass-card stat-widget">
-                            <label>Notendurchschnitt</label>
+                            <label>Schnitt</label>
                             <h2 id="st-avg">0.00</h2>
                         </div>
                         <div class="glass-card stat-widget">
-                            <label>Beste Leistung</label>
+                            <label>Bestwert</label>
                             <h2 id="st-best">-</h2>
                         </div>
                     </div>
@@ -82,9 +79,8 @@
 
             <section id="view-det" class="view">
                 <header class="det-top-nav">
-                    <button class="btn-back" onclick="tab('dash')">← Zurück zur Übersicht</button>
+                    <button class="btn-back" onclick="tab('dash')">← Dashboard</button>
                 </header>
-
                 <div class="detail-hero">
                     <div class="hero-content">
                         <h1 id="det-name">Fachname</h1>
@@ -94,21 +90,18 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="grade-entry-section">
                     <div class="fancy-input-group">
-                        <input type="number" id="grade-in" min="0" max="15" placeholder="Punkte eintragen (0-15)" onkeydown="if(event.key==='Enter') addGrade()">
+                        <input type="number" id="grade-in" min="0" max="15" placeholder="Note eingeben">
                         <button onclick="addGrade()">Eintragen</button>
                     </div>
                 </div>
-
                 <div class="history-container">
-                    <h3>Verlauf der Noten</h3>
+                    <h3>Notenverlauf</h3>
                     <div id="history" class="grade-list"></div>
                 </div>
-
                 <div class="danger-zone">
-                    <button class="btn-danger" onclick="delSub()">Dieses Fach komplett löschen</button>
+                    <button class="btn-danger" onclick="delSub()">Fach löschen</button>
                 </div>
             </section>
         </main>
