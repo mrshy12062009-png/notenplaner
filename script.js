@@ -1,14 +1,14 @@
-const KEY = 'gf_vibrant_final';
-let appData = JSON.parse(localStorage.getItem(KEY)) || [];
+const DB_NAME = 'gf_ultra_v7';
+let appData = JSON.parse(localStorage.getItem(DB_NAME)) || [];
 
 window.onload = () => renderDash();
 
 function getTheme(avg, target) {
-    if (avg === null) return { grad: 'var(--neutral)', label: 'NO DATA' };
+    if (avg === null) return { grad: 'var(--grad-neutral)', label: 'KEINE DATEN' };
     const goal = target || 15;
-    if (avg >= goal) return { grad: 'var(--success)', label: 'PASSED' };
-    if (avg >= goal * 0.8) return { grad: 'var(--warning)', label: 'ALMOST' };
-    return { grad: 'var(--danger)', label: 'FAILED' };
+    if (avg >= goal) return { grad: 'var(--grad-success)', label: 'ZIEL ERREICHT' };
+    if (avg >= goal * 0.7) return { grad: 'var(--grad-warning)', label: 'KNAPP DRAN' };
+    return { grad: 'var(--grad-danger)', label: 'WEIT UNTER ZIEL' };
 }
 
 window.showPage = (id) => {
@@ -21,19 +21,19 @@ window.showPage = (id) => {
 window.renderDash = () => {
     const cont = document.getElementById('grid-container');
     cont.innerHTML = '';
-    let total = 0, count = 0;
+    let sum = 0, count = 0;
     appData.forEach(f => {
         const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
         const theme = getTheme(avg, f.target);
-        if(avg !== null) { total += avg; count++; }
+        if(avg !== null) { sum += avg; count++; }
         cont.innerHTML += `
             <div class="subject-card" style="background: ${theme.grad}" onclick="openDet(${f.id})">
-                <small style="font-weight:bold; text-transform:uppercase">${f.name}</small>
+                <span style="text-transform:uppercase; font-weight:800; font-size:14px; opacity:0.8">${f.name}</span>
                 <h1>${avg !== null ? avg.toFixed(1) : '-'}</h1>
-                <small>Ziel: ${f.target || 15}</small>
+                <span style="font-weight:bold; font-size:12px">ZIEL: ${f.target || 15}</span>
             </div>`;
     });
-    document.getElementById('dash-total').innerText = count > 0 ? (total/count).toFixed(1) : '-';
+    document.getElementById('dash-total').innerText = count > 0 ? (sum/count).toFixed(2) : '-';
 };
 
 window.renderGoals = () => {
@@ -45,12 +45,17 @@ window.renderGoals = () => {
         const percent = Math.min((avg / target) * 100, 100);
         const theme = getTheme(avg, target);
         cont.innerHTML += `
-            <div class="goal-card">
-                <div style="width:120px"><b>${f.name}</b></div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width:${percent}%; background:${theme.grad}"></div>
+            <div class="huge-goal-card">
+                <div class="goal-info-top">
+                    <div>
+                        <div class="goal-name">${f.name}</div>
+                        <div style="color: #94a3b8">Aktuell: ${avg.toFixed(1)} / Ziel: ${target}</div>
+                    </div>
+                    <div style="font-size: 32px; font-weight: 900; color: white">${Math.round(percent)}%</div>
                 </div>
-                <div style="width:60px; text-align:right"><b>${avg.toFixed(1)}</b></div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: ${percent}%; background: ${theme.grad}"></div>
+                </div>
             </div>`;
     });
 };
@@ -68,17 +73,18 @@ window.openDet = (id) => {
     document.getElementById('det-status-badge').innerText = theme.label;
     document.getElementById('f-target-input').value = f.target || 15;
     
-    document.getElementById('notes-list').innerHTML = f.notes.map((n, i) => `
-        <div class="goal-card">
-            <span>Note: <b>${n}</b></span>
-            <button onclick="deleteNote(${i})" style="color:red; background:none; border:none; cursor:pointer">Löschen</button>
+    const list = document.getElementById('notes-list');
+    list.innerHTML = f.notes.map((n, i) => `
+        <div class="huge-goal-card" style="padding: 20px; margin-bottom: 10px; flex-direction: row; justify-content: space-between; align-items: center;">
+            <span style="font-size: 20px">Note: <b>${n}</b></span>
+            <button onclick="deleteNote(${i})" style="background:none; border:none; color:#ff4757; font-weight:bold; cursor:pointer">LÖSCHEN</button>
         </div>`).reverse().join('');
 };
 
 window.addFach = () => {
-    const name = document.getElementById('f-name').value;
-    if(!name) return;
-    appData.push({ id: Date.now(), name, notes: [], target: 15 });
+    const n = document.getElementById('f-name').value;
+    if(!n) return;
+    appData.push({ id: Date.now(), name: n, notes: [], target: 15 });
     document.getElementById('f-name').value = '';
     save(); renderDash();
 };
@@ -90,9 +96,9 @@ window.saveFachTarget = () => {
 };
 
 window.addNote = () => {
-    const val = parseFloat(document.getElementById('n-val').value);
-    if(isNaN(val)) return;
-    appData.find(x => x.id === window.curId).notes.push(val);
+    const v = parseFloat(document.getElementById('n-val').value);
+    if(isNaN(v)) return;
+    appData.find(x => x.id === window.curId).notes.push(v);
     document.getElementById('n-val').value = '';
     save(); openDet(window.curId);
 };
@@ -104,5 +110,4 @@ window.deleteNote = (i) => {
 };
 
 window.deleteFach = () => { if(confirm("Löschen?")) { appData = appData.filter(x => x.id !== window.curId); save(); showPage('list'); } };
-function save() { localStorage.setItem(KEY, JSON.stringify(appData)); }
-window.resetAll = () => { localStorage.clear(); location.reload(); };
+function save() { localStorage.setItem(DB_NAME, JSON.stringify(appData)); }

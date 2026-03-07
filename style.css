@@ -1,56 +1,55 @@
 :root {
-    --bg: #080a0f;
-    --side: #11141d;
-    --card: #1a1f2b;
+    --bg: #05070a;
+    --side: #0d1117;
     --accent: #6366f1;
-    --success: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-    --warning: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
-    --danger: linear-gradient(135deg, #f83600 0%, #f9d423 100%);
-    --neutral: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+    --grad-success: linear-gradient(135deg, #00b09b, #96c93d);
+    --grad-warning: linear-gradient(135deg, #f12711, #f5af19);
+    --grad-danger: linear-gradient(135deg, #8e0e00, #1f1c18);
+    --grad-neutral: linear-gradient(135deg, #232526, #414345);
 }
 
-body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; }
 
 /* Sidebar */
-.sidebar { width: 260px; background: var(--side); padding: 30px; }
-.logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; color: white; }
+.sidebar { width: 250px; background: var(--side); padding: 30px; border-right: 1px solid #1e293b; }
+.logo { font-size: 28px; font-weight: 900; margin-bottom: 50px; letter-spacing: -1px; }
 .logo span { color: var(--accent); }
-.nav-btn { width: 100%; padding: 15px; margin: 8px 0; border: none; background: transparent; color: #64748b; text-align: left; cursor: pointer; border-radius: 12px; font-weight: 600; }
-.nav-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
+.nav-btn { width: 100%; padding: 16px; margin: 10px 0; border: none; background: transparent; color: #94a3b8; text-align: left; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 16px; }
+.nav-btn.active { background: var(--accent); color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4); }
 
-/* Dashboard Vibrant (Bild 2) */
-.glass-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.total-stat { background: var(--accent); padding: 10px 25px; border-radius: 20px; text-align: center; }
-.total-stat span { font-size: 24px; font-weight: 800; display: block; }
+/* Dashboard (Bild 2) - Extreme Color */
+.header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.global-avg-display { background: var(--accent); padding: 10px 25px; border-radius: 20px; text-align: center; }
+.global-avg-display div { font-size: 24px; font-weight: 900; }
 
-.vibrant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.vibrant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
 .subject-card { 
-    padding: 30px; border-radius: 25px; cursor: pointer; transition: 0.3s; 
-    display: flex; flex-direction: column; align-items: center; text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    height: 180px; border-radius: 30px; display: flex; flex-direction: column; 
+    justify-content: center; align-items: center; cursor: pointer; transition: 0.4s;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: none;
 }
-.subject-card h1 { font-size: 48px; margin: 10px 0; font-weight: 900; }
+.subject-card:hover { transform: scale(1.05) rotate(1deg); }
+.subject-card h1 { font-size: 56px; margin: 0; font-weight: 900; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-/* Ziele Vibrant (Bild 1) */
-.goals-vibrant-stack { display: flex; flex-direction: column; gap: 15px; }
-.goal-card { 
-    background: var(--card); padding: 20px; border-radius: 20px; 
-    display: flex; align-items: center; justify-content: space-between;
+/* Ziele (Bild 1) - Gross & Bunt */
+.huge-goals-stack { display: flex; flex-direction: column; gap: 25px; margin-top: 20px; }
+.huge-goal-card { 
+    background: #161b22; padding: 40px; border-radius: 35px; 
+    display: flex; flex-direction: column; gap: 20px;
     border: 1px solid rgba(255,255,255,0.05);
 }
-.progress-container { flex: 1; height: 12px; background: #000; margin: 0 20px; border-radius: 10px; overflow: hidden; }
-.progress-bar { height: 100%; transition: 0.5s; }
+.goal-info-top { display: flex; justify-content: space-between; align-items: flex-end; }
+.goal-name { font-size: 28px; font-weight: 800; }
+.progress-track { height: 25px; background: #000; border-radius: 50px; overflow: hidden; border: 2px solid #222; }
+.progress-fill { height: 100%; transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
 
-/* Detail Hero (Bild 3) */
-.hero-card { padding: 50px; border-radius: 30px; text-align: center; margin-bottom: 30px; position: relative; }
-.hero-circle { 
-    width: 100px; height: 100px; background: white; color: black; border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; margin: 20px auto;
-}
+/* Detail (Bild 3) */
+.mega-hero { padding: 60px; border-radius: 40px; text-align: center; margin-bottom: 30px; }
+.mega-avg { font-size: 80px; font-weight: 900; }
+.status-chip { background: rgba(0,0,0,0.3); padding: 8px 20px; border-radius: 50px; display: inline-block; font-weight: bold; }
 
-/* UI */
-.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.input-card { background: var(--card); padding: 25px; border-radius: 20px; }
-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; background: #000; color: white; }
-button.btn-vibe { background: white; color: black; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
-.btn-delete { background: none; border: 1px solid #ef4444; color: #ef4444; padding: 15px; width: 100%; border-radius: 15px; margin-top: 20px; cursor: pointer; }
+.detail-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.glass-card { background: #111; padding: 30px; border-radius: 30px; border: 1px solid #222; }
+input { width: 100%; padding: 18px; margin: 15px 0; border-radius: 15px; border: none; background: #000; color: white; font-size: 18px; }
+.btn-action { background: white; color: black; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: 800; cursor: pointer; }
+.btn-del { color: #ff4757; background: none; border: 1px solid #ff4757; padding: 15px; width: 100%; border-radius: 15px; margin-top: 20px; cursor: pointer; }
