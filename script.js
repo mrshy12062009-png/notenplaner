@@ -1,4 +1,5 @@
 // GradeFlow v14.3 - Full Logic Fix
+alert("Script v14.3 wurde geladen!");
 const STORAGE_KEY = 'gradeflow_v14_data';
 const CONFIG_KEY = 'gradeflow_v14_config';
 
