@@ -4,9 +4,7 @@
     --card: #21262d;
     --accent: #5865f2;
     --text: #f0f6fc;
-    --green: #238636;
-    --yellow: #d29922;
-    --red: #f85149;
+    --border: #30363d;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,109 +12,68 @@
 body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     display: flex;
     height: 100vh;
+    overflow: hidden;
 }
 
+/* Sidebar */
 .sidebar {
     width: 260px;
     background: var(--sidebar);
-    padding: 30px;
-    border-right: 1px solid #30363d;
+    padding: 25px;
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
 }
 
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 40px;
-    letter-spacing: 2px;
-}
-
+.logo { font-size: 22px; font-weight: 800; margin-bottom: 30px; }
 .logo span { color: var(--accent); }
 
 .nav-btn {
     width: 100%;
     padding: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     background: transparent;
-    border: 1px solid #30363d;
+    border: 1px solid var(--border);
     color: #8b949e;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: left;
-    transition: 0.3s;
+    transition: 0.2s;
 }
 
-.nav-btn.active, .nav-btn:hover {
+.nav-btn.active {
     background: var(--accent);
     color: white;
+    border-color: var(--accent);
 }
 
-.settings { margin-top: auto; padding-top: 20px; font-size: 12px; }
-.settings select { background: var(--card); color: white; border: 1px solid #30363d; padding: 5px; width: 100%; }
+.settings { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
+.settings select { width: 100%; padding: 8px; background: var(--card); color: white; border-radius: 4px; border: 1px solid var(--border); margin-top: 10px; }
 
+/* Content Area */
 .content { flex: 1; padding: 40px; overflow-y: auto; }
 
-.page { display: none; animation: fadeIn 0.3s; }
-.page.active { display: block; }
+.page { display: none; } /* Versteckt alle Seiten */
+.page.active { display: block; } /* Zeigt nur die aktive Seite */
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+/* Dashboard Grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; text-align: center; }
 
-.input-group { display: flex; gap: 10px; margin-bottom: 30px; }
+/* Details & Noten */
+.banner { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--accent); padding: 20px; border-radius: 12px; }
+.back-btn { background: none; border: none; color: white; cursor: pointer; margin-bottom: 15px; font-size: 16px; }
+.input-group { display: flex; gap: 10px; margin: 20px 0; }
+.note-item { background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
 
-input {
-    background: var(--card);
-    border: 1px solid #30363d;
-    color: white;
-    padding: 10px;
-    border-radius: 6px;
-    outline: none;
-}
+/* Kalender Layout */
+.calendar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+.date-card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
 
-.add-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.card {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #30363d;
-    cursor: pointer;
-    text-align: center;
-}
-
-.banner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--card);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.note-item {
-    background: #30363d;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 4px;
-}
-
-.grade-good { color: var(--green); }
-.grade-mid { color: var(--yellow); }
-.grade-bad { color: var(--red); }
+/* Farben */
+.grade-good { color: #238636; }
+.grade-mid { color: #d29922; }
+.grade-bad { color: #f85149; }

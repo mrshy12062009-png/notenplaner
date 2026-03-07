@@ -13,12 +13,15 @@
         <button class="nav-btn" id="btn-calendar" onclick="showPage('calendar')">KALENDER</button>
         
         <div class="settings">
-            <label for="bundesland">Bundesland:</label>
+            <label>Bundesland:</label>
             <select id="bundesland" onchange="saveBundesland()">
                 <option value="BE">Berlin</option>
                 <option value="BY">Bayern</option>
+                <option value="BW">Baden-Württemberg</option>
+                <option value="HE">Hessen</option>
                 <option value="NW">NRW</option>
-                </select>
+                <option value="SN">Sachsen</option>
+            </select>
         </div>
     </nav>
 
@@ -26,21 +29,21 @@
         <section id="page-list" class="page active">
             <h1>MEINE FÄCHER</h1>
             <div class="input-group">
-                <input type="text" id="f-in" placeholder="Fach hinzufügen (z.B. Mathe)...">
+                <input type="text" id="f-in" placeholder="Fach hinzufügen...">
                 <button class="add-btn" onclick="addFach()">OK</button>
             </div>
             <div id="grid" class="grid"></div>
         </section>
         
         <section id="page-detail" class="page">
-            <button class="back" onclick="showPage('list')">← Zurück</button>
+            <button class="back-btn" onclick="showPage('list')">← Zurück</button>
             <div class="banner">
                 <h2 id="d-title">-</h2>
                 <div id="d-avg">-</div>
             </div>
             
-            <div class="goal-section">
-                <label>Mein Ziel: </label>
+            <div class="goal-card">
+                <h3>Zielsetzung</h3>
                 <input type="number" id="goal-in" min="0" max="15" onchange="updateGoal()">
                 <p id="goal-status"></p>
             </div>
@@ -53,9 +56,10 @@
         </section>
 
         <section id="page-calendar" class="page">
-            <h1>SCHULKALENDER</h1>
-            <div id="calendar-info">Wähle dein Bundesland, um Ferientermine zu sehen.</div>
-            <div id="dates-grid"></div>
+            <h1>SCHULKALENDER 2026</h1>
+            <p>Ferien & Termine für dein Bundesland:</p>
+            <div id="calendar-info" class="calendar-grid">
+                </div>
         </section>
     </main>
 
