@@ -1,20 +1,21 @@
-const KEY = 'GF_MODERN_V1';
-let data = JSON.parse(localStorage.getItem(KEY)) || [];
+const DB_KEY = 'GF_MODERN_STRICT';
+let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 let active = null;
 
-function save() { localStorage.setItem(KEY, JSON.stringify(data)); }
+function save() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
 
 function getStatus(avg, target) {
     if (avg === null) return { g: 'var(--grad-none)', t: 'KEINE DATEN' };
-    const goal = target || 15;
-    if (avg >= goal) return { g: 'var(--grad-good)', t: 'GUT' };
-    if (avg >= goal * 0.7) return { g: 'var(--grad-okay)', t: 'OKAY' };
-    return { g: 'var(--grad-bad)', t: 'SCHLECHT' };
+    return avg >= (target || 15) 
+        ? { g: 'var(--grad-good)', t: 'GUT' } 
+        : { g: 'var(--grad-bad)', t: 'SCHLECHT' };
 }
 
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
+    if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add('active');
     if(id === 'list') renderDash();
     if(id === 'goals') renderGoals();
 }
@@ -43,22 +44,21 @@ function renderGoals() {
     const list = document.getElementById('goals-list');
     list.innerHTML = '';
     data.forEach(f => {
-        const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : 0;
-        const target = f.target || 15;
-        const perc = Math.min((avg / target) * 100, 100);
-        const s = getStatus(avg, target);
-
         list.innerHTML += `
-            <div class="goal-card">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <h2 style="margin:0">${f.name}</h2>
-                    <span style="font-weight:900; font-size:25px">${Math.round(perc)}%</span>
-                </div>
-                <div class="bar-bg">
-                    <div class="bar-fill" style="width:${perc}%; background:${s.g}"></div>
+            <div class="goal-edit-card">
+                <span style="font-weight:900; font-size:18px;">${f.name}</span>
+                <div>
+                    <span style="font-size:12px; opacity:0.6; margin-right:10px;">Ziel-Punkte:</span>
+                    <input type="number" value="${f.target || 15}" onchange="updateTarget(${f.id}, this.value)">
                 </div>
             </div>`;
     });
+}
+
+function updateTarget(id, val) {
+    const f = data.find(x => x.id === id);
+    f.target = parseFloat(val) || 0;
+    save();
 }
 
 function openDet(id) {
@@ -71,13 +71,12 @@ function openDet(id) {
     document.getElementById('det-title').innerText = active.name;
     document.getElementById('det-score').innerText = avg !== null ? avg.toFixed(1) : '-';
     document.getElementById('det-status').innerText = s.t;
-    document.getElementById('target-in').value = active.target || 15;
 
     const hist = document.getElementById('note-history');
     hist.innerHTML = active.notes.map((n, i) => `
-        <div class="glass" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:15px">
+        <div class="glass" style="display:flex; justify-content:space-between; margin-bottom:8px; padding:12px">
             <b>Note: ${n}</b>
-            <button onclick="delNote(${i})" style="color:red; background:none; border:none; cursor:pointer">X</button>
+            <button onclick="delNote(${i})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold">X</button>
         </div>`).reverse().join('');
 }
 
@@ -87,11 +86,6 @@ function addFach() {
     data.push({ id: Date.now(), name: n, notes: [], target: 15 });
     document.getElementById('name-in').value = '';
     save(); renderDash();
-}
-
-function setTarget() {
-    active.target = parseFloat(document.getElementById('target-in').value) || 15;
-    save(); openDet(active.id);
 }
 
 function addNote() {
@@ -108,7 +102,7 @@ function delNote(i) {
 }
 
 function delFach() {
-    if(confirm("Löschen?")) { data = data.filter(x => x.id !== active.id); save(); showPage('list'); }
+    if(confirm("Fach löschen?")) { data = data.filter(x => x.id !== active.id); save(); showPage('list'); }
 }
 
 function factoryReset() {
