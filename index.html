@@ -2,16 +2,16 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Pro</title>
+    <title>GradeFlow Cyber Edition</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="modal-overlay" class="modal-hide">
         <div class="modal-box">
-            <h2 id="modal-msg">Bist du sicher?</h2>
+            <h2 id="modal-msg">-</h2>
             <div class="modal-choices">
-                <button class="m-btn confirm" id="m-confirm">Ja, löschen</button>
+                <button class="m-btn confirm" id="m-confirm">Löschen</button>
                 <button class="m-btn cancel" onclick="closeM()">Abbrechen</button>
             </div>
         </div>
@@ -20,9 +20,9 @@
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-item active" id="tab-list" onclick="tab('list')">🏠 Dashboard</button>
-        <button class="nav-item" id="tab-goals" onclick="tab('goals')">🎯 Meine Ziele</button>
+        <button class="nav-item" id="tab-goals" onclick="tab('goals')">🎯 Ziele</button>
         <div class="spacer"></div>
-        <button class="reset-link" onclick="askReset()">Daten zurücksetzen</button>
+        <button class="reset-link" onclick="askReset()">System Reset</button>
     </nav>
 
     <main class="main-view">
@@ -31,16 +31,19 @@
                 <h1>Dashboard</h1>
                 <div class="total-badge" id="total-avg">0.0</div>
             </div>
-            <div class="input-row">
+            <div class="add-bar">
                 <input type="text" id="add-name" placeholder="Neues Fach... (Enter)" onkeydown="if(event.key==='Enter') addSubject()">
-                <button class="add-btn" onclick="addSubject()">+</button>
+                <button onclick="addSubject()">+</button>
             </div>
             <div id="grid" class="dash-grid"></div>
         </section>
 
         <section id="view-goals" class="view">
-            <h1>🎯 Meine Ziele</h1>
-            <div id="goals-area" class="goals-list"></div>
+            <div class="goal-header">
+                <h1>🎯 Wunsch-Ziele</h1>
+                <p>Setze deine persönlichen Benchmarks für jedes Fach.</p>
+            </div>
+            <div id="goals-area" class="goals-grid"></div>
         </section>
 
         <section id="view-det" class="view">
@@ -50,15 +53,15 @@
                 <div class="big-num" id="det-num">0.0</div>
                 <div class="status-tag" id="det-txt">-</div>
             </div>
-            <div class="card-input">
-                <h3>Note eintragen (0-15)</h3>
+            <div class="glass-input">
+                <h3>Note hinzufügen</h3>
                 <div class="input-group">
-                    <input type="number" id="add-note" placeholder="Punkte..." onkeydown="if(event.key==='Enter') addGrade()">
+                    <input type="number" id="add-note" min="0" max="15" placeholder="0-15..." onkeydown="if(event.key==='Enter') addGrade()">
                     <button class="save-btn" onclick="addGrade()">Hinzufügen</button>
                 </div>
             </div>
             <div id="history"></div>
-            <button class="del-subject-btn" onclick="askDelSubject()">Fach komplett entfernen</button>
+            <button class="del-subject-btn" onclick="askDelSubject()">Fach löschen</button>
         </section>
     </main>
     <script src="script.js"></script>

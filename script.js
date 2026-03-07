@@ -1,17 +1,25 @@
-let appData = JSON.parse(localStorage.getItem('GF_PRO_STABLE_V6')) || [];
-let currentSubjectId = null;
-let modalCallback = null;
+let data = JSON.parse(localStorage.getItem('GF_CYBER_V7')) || [];
+let activeId = null;
+let mCb = null;
 
-const save = () => localStorage.setItem('GF_PRO_STABLE_V6', JSON.stringify(appData));
+const save = () => localStorage.setItem('GF_CYBER_V7', JSON.stringify(data));
 
-// WEBSITE POPUP LOGIK (Kein Chrome mehr)
-function openM(msg, callback) {
+// POPUP LOGIK
+function openM(msg, cb) {
     document.getElementById('modal-msg').innerText = msg;
     document.getElementById('modal-overlay').classList.remove('modal-hide');
-    modalCallback = callback;
+    mCb = cb;
 }
 function closeM() { document.getElementById('modal-overlay').classList.add('modal-hide'); }
-document.getElementById('m-confirm').onclick = () => { if(modalCallback) modalCallback(); closeM(); };
+document.getElementById('m-confirm').onclick = () => { if(mCb) mCb(); closeM(); };
+
+// FARB LOGIK (0-15 Punkte)
+function getColor(val) {
+    if (val === null) return { c: '#222', t: 'Keine Daten' };
+    if (val >= 13) return { c: 'var(--c-good)', t: 'Exzellent' };
+    if (val >= 8) return { c: 'var(--c-mid)', t: 'Befriedigend' };
+    return { c: 'var(--c-bad)', t: 'Ungenügend' };
+}
 
 function tab(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -22,78 +30,75 @@ function tab(id) {
     if(id === 'goals') renderGoals();
 }
 
-function getStat(avg, target) {
-    if (avg === null) return { g: 'var(--card)', t: 'KEINE DATEN' };
-    return avg >= (target || 10) ? { g: 'var(--blue)', t: 'IM ZIEL' } : { g: 'var(--red)', t: 'DRUNTER' };
-}
-
 function renderDash() {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
-    let totalAvg = 0, count = 0;
+    let sum = 0, count = 0;
 
-    appData.forEach(s => {
+    data.forEach(s => {
         const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-        const stat = getStat(avg, s.target);
-        if(avg !== null) { totalAvg += avg; count++; }
+        const color = getColor(avg);
+        if(avg !== null) { sum += avg; count++; }
         const fill = avg !== null ? Math.min((avg / 15) * 100, 100) : 0;
 
         grid.innerHTML += `
             <div class="subject-card" onclick="openDet(${s.id})">
-                <span class="name-label">${s.name}</span>
-                <h2 style="color: ${avg !== null ? '#fff' : '#222'}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <div class="prog-bar">
-                    <div class="prog-fill" style="width: ${fill}%; background: ${stat.g}"></div>
+                <span class="label">${s.name}</span>
+                <h2 style="color: ${color.c}; text-shadow: 0 0 20px ${color.c}44">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <div class="prog-bg">
+                    <div class="prog-bar" style="width: ${fill}%; background: ${color.c}; box-shadow: 0 0 15px ${color.c}aa"></div>
                 </div>
             </div>`;
     });
-    document.getElementById('total-avg').innerText = count > 0 ? (totalAvg/count).toFixed(2) : '0.0';
+    document.getElementById('total-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
 }
 
 function addSubject() {
-    const input = document.getElementById('add-name');
-    if(!input.value.trim()) return;
-    appData.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
-    input.value = ''; save(); renderDash();
+    const i = document.getElementById('add-name');
+    if(!i.value.trim()) return;
+    data.push({ id: Date.now(), name: i.value, notes: [], target: 10 });
+    i.value = ''; save(); renderDash();
 }
 
 function openDet(id) {
-    currentSubjectId = id;
-    const s = appData.find(x => x.id === id);
+    activeId = id;
+    const s = data.find(x => x.id === id);
     tab('det');
     const avg = s.notes.length ? s.notes.reduce((a,b)=>a+b,0)/s.notes.length : null;
-    const stat = getStat(avg, s.target);
+    const color = getColor(avg);
 
-    document.getElementById('det-bg').style.background = stat.g;
+    document.getElementById('det-bg').style.background = `linear-gradient(180deg, ${color.c}22 0%, #000 100%)`;
+    document.getElementById('det-bg').style.borderBottom = `2px solid ${color.c}`;
     document.getElementById('det-name').innerText = s.name;
     document.getElementById('det-num').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-txt').innerText = stat.t;
+    document.getElementById('det-num').style.color = color.c;
+    document.getElementById('det-txt').innerText = color.t;
 
     const hist = document.getElementById('history');
     hist.innerHTML = s.notes.map((n, i) => `
-        <div class="card-input" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:15px">
-            <b>${n} Punkte</b>
-            <button onclick="delGrade(${i})" style="color:#f43f5e; background:none; border:none; cursor:pointer; font-weight:bold">Löschen</button>
+        <div class="glass-input" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:20px">
+            <b style="color:${getColor(n).c}">${n} Punkte</b>
+            <button onclick="delGrade(${i})" style="color:#ff4444; background:none; border:none; cursor:pointer; font-weight:bold">ENTFERNEN</button>
         </div>`).reverse().join('');
 }
 
 function addGrade() {
-    const input = document.getElementById('add-note');
-    const val = Math.min(Math.max(parseFloat(input.value), 0), 15);
-    if(isNaN(val)) return;
-    appData.find(x => x.id === currentSubjectId).notes.push(val);
-    input.value = ''; save(); openDet(currentSubjectId);
+    const i = document.getElementById('add-note');
+    const v = Math.min(Math.max(parseFloat(i.value), 0), 15);
+    if(isNaN(v)) return;
+    data.find(x => x.id === activeId).notes.push(v);
+    i.value = ''; save(); openDet(activeId);
 }
 
 function delGrade(i) {
-    const s = appData.find(x => x.id === currentSubjectId);
+    const s = data.find(x => x.id === activeId);
     s.notes.splice(s.notes.length - 1 - i, 1);
-    save(); openDet(currentSubjectId);
+    save(); openDet(activeId);
 }
 
 function askDelSubject() {
-    openM("Dieses Fach wirklich löschen?", () => {
-        appData = appData.filter(x => x.id !== currentSubjectId);
+    openM("Fach wirklich löschen?", () => {
+        data = data.filter(x => x.id !== activeId);
         save(); tab('list');
     });
 }
@@ -101,22 +106,25 @@ function askDelSubject() {
 function renderGoals() {
     const area = document.getElementById('goals-area');
     area.innerHTML = '';
-    appData.forEach(s => {
+    data.forEach(s => {
         area.innerHTML += `
             <div class="goal-item">
-                <span style="font-weight:900; font-size:18px">${s.name}</span>
-                <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
+                <span>${s.name}</span>
+                <div class="goal-input-box">
+                    <span>ZIEL:</span>
+                    <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
+                </div>
             </div>`;
     });
 }
 
 function updateGoal(id, val) {
-    appData.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
+    data.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
     save();
 }
 
 function askReset() {
-    openM("Wirklich alle Daten löschen?", () => {
+    openM("Gesamtes System löschen?", () => {
         localStorage.clear();
         location.reload();
     });
