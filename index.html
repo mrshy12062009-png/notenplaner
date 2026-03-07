@@ -18,7 +18,6 @@
                 <option value="BE">Berlin</option>
                 <option value="BY">Bayern</option>
                 <option value="NW">NRW</option>
-                <option value="HE">Hessen</option>
             </select>
         </div>
     </nav>
@@ -40,17 +39,17 @@
                 <div id="d-avg">-</div>
             </div>
             <div class="input-group">
-                <input type="number" id="n-in" placeholder="Punkte (0-15)">
-                <button class="add-btn" onclick="addNote()">OK</button>
+                <input type="number" id="n-in" placeholder="Note (0-15)">
+                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
             </div>
             <div id="n-list"></div>
         </section>
 
         <section id="page-calendar" class="page">
             <div class="cal-nav">
-                <button class="add-btn" onclick="changeMonth(-1)"> Zurück </button>
-                <h2 id="month-name">Monat Jahr</h2>
-                <button class="add-btn" onclick="changeMonth(1)"> Vor </button>
+                <button class="nav-btn-small" onclick="changeMonth(-1)">◀</button>
+                <h2 id="month-name">März 2026</h2>
+                <button class="nav-btn-small" onclick="changeMonth(1)">▶</button>
             </div>
             <div class="calendar-wrapper">
                 <div class="weekdays">

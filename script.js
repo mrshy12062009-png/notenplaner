@@ -1,21 +1,22 @@
 let db = JSON.parse(localStorage.getItem('gf_data')) || [];
 let currentFachId = null;
-let viewDate = new Date(); // Das Datum, das der Kalender gerade anzeigt
+let viewDate = new Date(); // Aktuell angezeigter Monat
 
 window.onload = () => {
     renderGrid();
     initCalendar();
 };
 
-// --- NAVIGATION ---
+// --- SEITENWECHSEL ---
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
     document.getElementById('page-' + pageId).classList.add('active');
     document.getElementById('btn-' + pageId)?.classList.add('active');
 }
 
-// --- FÄCHER (Korrektur: Event Delegation) ---
+// --- FÄCHER-FIX ---
 function addFach() {
     const input = document.getElementById('f-in');
     if(!input.value) return;
@@ -32,9 +33,9 @@ function renderGrid() {
         const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '--';
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px;">${avg}</p>`;
-        // Direkter Event-Listener löst das Problem mit dem Öffnen
-        card.addEventListener('click', () => openDetail(f.id));
+        // Der Fix: Wir setzen den Klick-Event direkt auf das Element
+        card.onclick = function() { openDetail(f.id); };
+        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:28px; margin-top:10px;">${avg}</p>`;
         container.appendChild(card);
     });
 }
@@ -47,7 +48,7 @@ function openDetail(id) {
     showPage('detail');
 }
 
-// --- KALENDER LOGIK ---
+// --- KALENDER NAVIGATION ---
 function changeMonth(offset) {
     viewDate.setMonth(viewDate.getMonth() + offset);
     initCalendar();
@@ -65,22 +66,22 @@ async function initCalendar() {
     const grid = document.getElementById('calendar-grid');
     grid.innerHTML = '';
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const shift = (firstDay === 0 ? 6 : firstDay - 1);
+    // Wochentag des ersten Tages finden (Mo=0, So=6)
+    let firstDay = new Date(year, month, 1).getDay();
+    let shift = (firstDay === 0 ? 6 : firstDay - 1);
 
-    // Platzhalter für vorherigen Monat
+    // Leere Felder für den Monatsanfang
     for(let i=0; i < shift; i++) {
         grid.innerHTML += `<div class="day" style="opacity:0;"></div>`;
     }
 
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // Ferien/Feiertage laden (Beispiel-Events für 2026)
-    const holidays = {
-        "2026-01-01": "Neujahr",
-        "2026-04-03": "Karfreitag",
-        "2026-05-01": "Tag der Arbeit",
-        "2026-05-14": "Himmelfahrt"
+
+    // Hier kannst du MSA-Termine fest eintragen
+    const specialDates = {
+        "2026-05-12": "MSA Mathe",
+        "2026-05-19": "MSA Deutsch",
+        "2026-01-01": "Neujahr"
     };
 
     for(let d=1; d <= daysInMonth; d++) {
@@ -91,19 +92,16 @@ async function initCalendar() {
         if (currentDate < today) classes.push('past');
         if (currentDate.getTime() === today.getTime()) classes.push('today');
 
-        let content = holidays[dateStr] ? `<span class="event-tag">${holidays[dateStr]}</span>` : '';
-        
-        // MSA/BBR Beispiel-Termine hinzufügen
-        if(dateStr === "2026-05-12") content += `<span class="event-tag" style="background:#f85149">MSA Mathe</span>`;
+        let content = specialDates[dateStr] ? `<span class="event-tag">${specialDates[dateStr]}</span>` : '';
 
         grid.innerHTML += `<div class="${classes.join(' ')}"><strong>${d}</strong>${content}</div>`;
     }
 }
 
+// --- SONSTIGES ---
 function save() { localStorage.setItem('gf_data', JSON.stringify(db)); }
 function changeBundesland() { initCalendar(); }
 
-// --- NOTEN ---
 function addNote() {
     const val = parseInt(document.getElementById('n-in').value);
     if(isNaN(val)) return;
@@ -115,6 +113,7 @@ function addNote() {
 
 function renderNotes() {
     const fach = db.find(f => f.id === currentFachId);
-    document.getElementById('d-avg').innerText = `Schnitt: ${(fach.notes.reduce((a,b)=>a+b,0)/fach.notes.length || 0).toFixed(1)}`;
-    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div class="note-item">${n} Punkte</div>`).reverse().join('');
+    const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/fach.notes.length).toFixed(1) : '0.0';
+    document.getElementById('d-avg').innerText = `Schnitt: ${avg}`;
+    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div style="background:#161b22; padding:10px; margin-top:5px; border-radius:5px;">${n} Punkte</div>`).reverse().join('');
 }
