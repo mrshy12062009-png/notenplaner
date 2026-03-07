@@ -3,109 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow OS | Professional</title>
+    <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-shell">
+    <div class="app-container">
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon"></div>
-                <span>Grade<b>Flow</b></span>
-            </div>
-            <nav class="sidebar-nav">
-                <button onclick="tab('dash')" id="t-dash" class="nav-item active">
-                    <span class="icon">🏠</span> Dashboard
-                </button>
-                <button onclick="tab('stats')" id="t-stats" class="nav-item">
-                    <span class="icon">📊</span> Statistiken
-                </button>
+            <div class="logo">Grade<span>Flow</span></div>
+            <nav>
+                <button onclick="tab('dash')" id="btn-dash" class="nav-btn active">Dashboard</button>
+                <button onclick="tab('stats')" id="btn-stats" class="nav-btn">Analyse</button>
             </nav>
-            <div class="sidebar-footer">
-                <button class="btn-ghost" onclick="fullReset()">System Reset</button>
+            <div class="sidebar-bottom">
+                <button class="reset-trigger" onclick="confirmReset()">System Reset</button>
             </div>
         </aside>
 
-        <main class="main-stage">
+        <main class="content">
             <section id="view-dash" class="view active">
-                <header class="section-header">
-                    <div class="title-group">
-                        <h1>Dashboard</h1>
-                        <p>Deine Übersicht über alle Fächer.</p>
+                <div class="header">
+                    <h1>Übersicht</h1>
+                    <div class="quick-add">
+                        <input type="text" id="sub-in" placeholder="Fach hinzufügen...">
+                        <button onclick="addSub()">+</button>
                     </div>
-                    <div class="header-action">
-                        <div class="fancy-input-group">
-                            <input type="text" id="sub-in" placeholder="Neues Fach...">
-                            <button onclick="addSub()">Hinzufügen</button>
-                        </div>
-                    </div>
-                </header>
-                <div id="dash-grid" class="bento-grid"></div>
+                </div>
+                <div id="dash-grid" class="grid"></div>
             </section>
 
             <section id="view-stats" class="view">
-                <header class="section-header">
-                    <div class="title-group">
-                        <h1>Analyse</h1>
-                        <p>Visualisierung deiner gesamten Leistung.</p>
+                <h1>Analyse</h1>
+                <div class="stats-container">
+                    <div class="chart-card">
+                        <h3>Punkteverteilung</h3>
+                        <div id="bar-chart" class="bars"></div>
                     </div>
-                </header>
-                <div class="analytics-layout">
-                    <div class="glass-card chart-main">
-                        <div class="card-header">
-                            <h3>Punkteverteilung</h3>
-                            <span class="badge">0 - 15 Punkte</span>
+                    <div class="info-cards">
+                        <div class="mini-card">
+                            <span>Schnitt</span>
+                            <h2 id="total-avg">0.0</h2>
                         </div>
-                        <div class="chart-viewport">
-                            <div id="bar-chart" class="chart-bars"></div>
-                            <div class="chart-labels">
-                                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="analytics-sidebar">
-                        <div class="glass-card stat-widget">
-                            <label>Schnitt</label>
-                            <h2 id="st-avg">0.00</h2>
-                        </div>
-                        <div class="glass-card stat-widget">
-                            <label>Bestwert</label>
-                            <h2 id="st-best">-</h2>
+                        <div class="mini-card">
+                            <span>Bestleistung</span>
+                            <h2 id="best-grade">-</h2>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="view-det" class="view">
-                <header class="det-top-nav">
-                    <button class="btn-back" onclick="tab('dash')">← Dashboard</button>
-                </header>
-                <div class="detail-hero">
-                    <div class="hero-content">
-                        <h1 id="det-name">Fachname</h1>
-                        <div class="avg-display">
-                            <span id="det-avg">0.0</span>
-                            <small>Schnitt</small>
-                        </div>
-                    </div>
+                <button class="back-btn" onclick="tab('dash')">← Zurück</button>
+                <div class="subject-hero">
+                    <h2 id="det-title">Mathe</h2>
+                    <div class="big-avg" id="det-avg">0.0</div>
                 </div>
-                <div class="grade-entry-section">
-                    <div class="fancy-input-group">
-                        <input type="number" id="grade-in" min="0" max="15" placeholder="Note eingeben">
-                        <button onclick="addGrade()">Eintragen</button>
-                    </div>
+                <div class="add-grade-zone">
+                    <input type="number" id="grade-in" placeholder="0-15 Pkt" min="0" max="15">
+                    <button onclick="addGrade()">Eintragen</button>
                 </div>
-                <div class="history-container">
-                    <h3>Notenverlauf</h3>
-                    <div id="history" class="grade-list"></div>
-                </div>
-                <div class="danger-zone">
-                    <button class="btn-danger" onclick="delSub()">Fach löschen</button>
-                </div>
+                <div id="grade-history" class="history-list"></div>
+                <button class="delete-subject" onclick="delSub()">Dieses Fach komplett löschen</button>
             </section>
         </main>
     </div>
+
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <h2>System-Reset?</h2>
+            <p>Alle Daten werden unwiderruflich gelöscht.</p>
+            <div class="modal-btns">
+                <button class="confirm" onclick="executeReset()">Ja, löschen</button>
+                <button class="cancel" onclick="closeReset()">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
