@@ -2,63 +2,57 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Ultra</title>
+    <title>GradeFlow Modern</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
         <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Ziele</button>
-        <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Reset</button>
+        <button class="nav-btn" onclick="factoryReset()">⚙️ Reset</button>
     </nav>
 
-    <main class="main-content">
+    <main class="content">
         <section id="page-list" class="page active">
-            <div class="header-flex">
+            <div class="header">
                 <h1>Dashboard</h1>
-                <div class="total-badge">Schnitt: <span id="dash-total">-</span></div>
+                <div class="main-avg" id="main-avg">-</div>
             </div>
-            <div class="add-container">
-                <input type="text" id="f-name-in" placeholder="Fach hinzufügen...">
+            <div class="add-bar">
+                <input type="text" id="name-in" placeholder="Neues Fach...">
                 <button onclick="addFach()">Hinzufügen</button>
             </div>
-            <div id="grid-container" class="ultra-grid"></div>
+            <div id="dash-grid" class="modern-grid"></div>
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Deine Fach-Ziele</h1>
-            <div id="goals-list" class="huge-goals-stack"></div>
+            <h1>🎯 Deine Fortschritte</h1>
+            <div id="goals-list" class="goals-container"></div>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← ZURÜCK</button>
-            <div class="mega-hero" id="det-header">
+            <button class="back-link" onclick="showPage('list')">← Dashboard</button>
+            <div class="hero-card" id="det-hero">
                 <h1 id="det-title">-</h1>
-                <div class="hero-circle" id="det-avg">-</div>
-                <div id="det-status-label" class="status-pill">-</div>
+                <div class="hero-score" id="det-score">-</div>
+                <div class="status-pill" id="det-status">-</div>
             </div>
-            <div class="detail-inputs">
-                <div class="glass-card">
-                    <h3>Punkte-Ziel (Unendlich)</h3>
-                    <input type="number" id="f-target-input">
-                    <button class="btn-save" onclick="saveTarget()">Ziel Speichern</button>
+            <div class="input-grid">
+                <div class="glass">
+                    <h3>Dein Ziel</h3>
+                    <input type="number" id="target-in">
+                    <button class="btn-primary" onclick="setTarget()">Speichern</button>
                 </div>
-                <div class="glass-card">
-                    <h3>Note hinzufügen</h3>
-                    <input type="number" id="n-val-input">
-                    <button class="btn-save" onclick="addNote()">Speichern</button>
+                <div class="glass">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="note-in">
+                    <button class="btn-primary" onclick="addNote()">Hinzufügen</button>
                 </div>
             </div>
-            <div id="notes-list" class="history-list"></div>
-            <button onclick="deleteFach()" class="btn-del-outline">Fach löschen</button>
-        </section>
-
-        <section id="page-settings" class="page">
-            <h1>Einstellungen</h1>
-            <button class="btn-del-outline" onclick="factoryReset()">⚠️ ALLE DATEN LÖSCHEN</button>
+            <div id="note-history"></div>
+            <button class="btn-danger" onclick="delFach()">Fach löschen</button>
         </section>
     </main>
     <script src="script.js"></script>
