@@ -29,35 +29,41 @@
         <section id="page-list" class="page active">
             <h1>MEINE FÄCHER</h1>
             <div class="input-group">
-                <input type="text" id="f-in" placeholder="Fach hinzufügen...">
-                <button class="add-btn" onclick="addFach()">OK</button>
+                <input type="text" id="f-in" placeholder="Neues Fach...">
+                <button class="add-btn" onclick="addFach()">HINZUFÜGEN</button>
             </div>
             <div id="grid" class="grid"></div>
         </section>
         
         <section id="page-detail" class="page">
-            <button class="back-btn" onclick="showPage('list')">← Zurück</button>
+            <button class="back-btn" onclick="showPage('list')">← Dashboard</button>
             <div class="banner">
-                <h2 id="d-title">-</h2>
-                <div id="d-avg">-</div>
+                <h2 id="d-title">Fachname</h2>
+                <div id="d-avg">Schnitt: --</div>
             </div>
             
-            <div class="goal-card">
-                <h3>Zielsetzung</h3>
-                <input type="number" id="goal-in" min="0" max="15" onchange="updateGoal()">
-                <p id="goal-status"></p>
+            <div class="detail-grid">
+                <div class="card-ui">
+                    <h3>Ziel setzen</h3>
+                    <input type="number" id="goal-in" min="0" max="15" onchange="updateGoal()">
+                    <p id="goal-status" style="margin-top:10px;"></p>
+                </div>
+
+                <div class="card-ui">
+                    <h3>Note eintragen</h3>
+                    <div class="input-group">
+                        <input type="number" id="n-in" placeholder="Punkte (0-15)">
+                        <button class="add-btn" onclick="addNote()">OK</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="input-group">
-                <input type="number" id="n-in" placeholder="Note (0-15)">
-                <button class="add-btn" onclick="addNote()">SPEICHERN</button>
-            </div>
+            <h3>Notenverlauf</h3>
             <div id="n-list"></div>
         </section>
 
         <section id="page-calendar" class="page">
             <h1>SCHULKALENDER 2026</h1>
-            <p>Ferien & Termine für dein Bundesland:</p>
             <div id="calendar-info" class="calendar-grid">
                 </div>
         </section>
