@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow v16 Pro</title>
+    <title>GradeFlow Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,7 +12,6 @@
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
         <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Meine Ziele</button>
-        <button class="nav-btn" id="btn-stats" onclick="showPage('stats')">📈 Statistiken</button>
         <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
     </nav>
 
@@ -29,49 +28,29 @@
         <section id="page-goals" class="page">
             <h1>Meine Ziele</h1>
             <div class="input-card">
-                <h3>Ziel-Schnitt festlegen</h3>
-                <p style="color: #94a3b8; font-size: 14px;">Ab diesem Wert werden Noten als "Gut" (Grün) markiert.</p>
-                <input type="number" id="goal-input" step="0.1" onchange="updateGoal(this.value)">
-                <div id="goal-preview" style="margin-top: 20px;"></div>
+                <label>Dein Zielwert (z.B. 11 oder 2.0)</label>
+                <input type="number" id="goal-input" step="0.1">
+                <button class="btn-accent" onclick="updateGoal()">Ziel speichern</button>
             </div>
             <div class="input-card">
                 <h3>Farblegende</h3>
-                <div class="status-legend">
-                    <div class="legend-item"><span class="dot bg-success"></span> <span>Ziel erreicht (Gut)</span></div>
-                    <div class="legend-item"><span class="dot bg-warning"></span> <span>Knapp darunter (Mittel)</span></div>
-                    <div class="legend-item"><span class="dot bg-danger"></span> <span>Handlungsbedarf (Schlecht)</span></div>
+                <div style="display:flex; gap:15px; flex-direction:column">
+                    <div><span style="color:var(--success)">●</span> Grün: Ziel erreicht</div>
+                    <div><span style="color:var(--warning)">●</span> Gelb: Knapp darunter</div>
+                    <div><span style="color:var(--danger)">●</span> Rot: Handlungsbedarf</div>
                 </div>
             </div>
-        </section>
-
-        <section id="page-stats" class="page">
-            <h1>Statistiken</h1>
-            <div class="stats-hero">
-                <div><h2 id="total-avg">-</h2><p>Gesamtschnitt</p></div>
-                <div><h2 id="total-count">0</h2><p>Noten gesamt</p></div>
-            </div>
-            <div class="input-card"><canvas id="myChart"></canvas></div>
         </section>
 
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
             <div class="input-card">
-                <label>Dein Name</label>
-                <input type="text" id="set-name" oninput="updateName(this.value)">
-                <label>Notensystem</label>
-                <select id="set-system" onchange="updateSystem(this.value)">
-                    <option value="points">Punkte (0-15)</option>
-                    <option value="grades">Noten (1-6)</option>
-                </select>
-            </div>
-            <div class="input-card">
                 <label>App-Design Farbe</label>
-                <div class="color-picker">
+                <div class="color-picker" style="margin-top:10px">
                     <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
-                    <div class="color-dot" style="background:#00d2ff" onclick="changeTheme('#00d2ff')"></div>
                     <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
-                    <div class="color-dot" style="background:#ff4757" onclick="changeTheme('#ff4757')"></div>
                     <div class="color-dot" style="background:#2ed573" onclick="changeTheme('#2ed573')"></div>
+                    <div class="color-dot" style="background:#ff4757" onclick="changeTheme('#ff4757')"></div>
                 </div>
             </div>
             <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
@@ -79,14 +58,21 @@
 
         <section id="page-detail" class="page">
             <button onclick="showPage('list')" class="btn-back">← Zurück</button>
-            <h1 id="det-title">-</h1>
-            <div id="notes-list"></div>
+            <div class="detail-header" id="det-header">
+                <h1 id="det-title" style="margin:0">Fach</h1>
+                <h2 id="det-avg" style="margin:0; font-size:40px">15.0</h2>
+            </div>
+            
             <div class="input-card">
-                <input type="number" id="n-val" placeholder="Note eingeben...">
+                <h3>Note hinzufügen</h3>
+                <input type="number" id="n-val" placeholder="Wert...">
                 <button class="btn-accent" onclick="addNote()">Speichern</button>
             </div>
+            <div id="notes-list"></div>
+            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
         </section>
     </main>
+
     <script src="script.js"></script>
 </body>
 </html>
