@@ -1,44 +1,35 @@
 :root { 
     --bg: #0b0e14; --side: #151926; --card: #1c2230; --accent: #5865f2; 
     --text: #fff; --danger: #ff4757; --success: #2ed573; --warning: #ffa502;
-    --gray: #94a3b8;
 }
-
-body { background: var(--bg); color: var(--text); margin: 0; display: flex; font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
-
-/* Navigation */
+body { background: var(--bg); color: var(--text); margin: 0; display: flex; font-family: sans-serif; height: 100vh; overflow: hidden; }
 .sidebar { width: 240px; background: var(--side); padding: 25px; border-right: 1px solid #252a3d; }
-.logo { font-size: 24px; font-weight: 800; margin-bottom: 40px; }
-.logo span { color: var(--accent); }
-.nav-btn { width: 100%; padding: 14px; margin: 5px 0; border: none; background: none; color: var(--gray); text-align: left; cursor: pointer; border-radius: 12px; transition: 0.2s; }
+.nav-btn { width: 100%; padding: 12px; margin: 5px 0; border: none; background: none; color: #94a3b8; text-align: left; cursor: pointer; border-radius: 10px; }
 .nav-btn.active { background: var(--accent); color: #fff; }
-
-/* Main Content */
 .main-content { flex: 1; padding: 40px; overflow-y: auto; }
 .page { display: none; }
 .active { display: block; }
 
-/* Dashboard Cards */
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-.subject-card { background: var(--card); padding: 25px; border-radius: 20px; cursor: pointer; border-left: 6px solid #444; transition: 0.3s; }
-.subject-card:hover { transform: translateY(-5px); }
+.header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.total-badge { background: var(--card); padding: 10px 20px; border-radius: 12px; font-weight: bold; border: 1px solid var(--accent); }
 
-/* Colors */
-.text-success { color: var(--success); }
-.text-danger { color: var(--danger); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+.subject-card { background: var(--card); padding: 20px; border-radius: 15px; cursor: pointer; border-left: 6px solid #444; }
 
-/* Detail Hero */
-.detail-hero { padding: 40px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; transition: 0.5s; background: var(--card); }
-.hero-avg { background: #fff; color: #000; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; }
-.status-pill { background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; display: inline-block; font-weight: bold; }
+/* Status-Farben für Backgrounds */
+.bg-success { background-color: var(--success) !important; color: white; }
+.bg-warning { background-color: var(--warning) !important; color: white; }
+.bg-danger { background-color: var(--danger) !important; color: white; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger { color: var(--danger) !important; }
 
-/* UI */
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.detail-hero { padding: 40px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--card); transition: 0.3s; }
+.hero-avg { background: #fff; color: #000; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+.status-pill { background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 8px; display: inline-block; }
+
 .input-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
 input { width: 100%; padding: 12px; margin: 10px 0; background: #080a12; border: 1px solid #2d344d; color: #fff; border-radius: 10px; box-sizing: border-box; }
 .btn-accent { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
-.btn-secondary { background: #2d344d; color: #fff; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; }
 .btn-danger { background: var(--danger); color: #fff; border: none; padding: 10px; border-radius: 10px; cursor: pointer; }
 .btn-link-danger { color: var(--danger); background: none; border: none; cursor: pointer; margin-top: 20px; text-decoration: underline; }
-
-.history-item { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }

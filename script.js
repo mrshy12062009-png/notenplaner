@@ -1,17 +1,14 @@
-const S_KEY = 'gf_pro_v5_final';
+const S_KEY = 'gradeflow_final_stable';
 let appData = JSON.parse(localStorage.getItem(S_KEY)) || [];
 
-window.onload = () => {
-    renderDash();
-};
+window.onload = () => { renderDash(); };
 
-// Berechnet Statusfarbe basierend auf Fach-Ziel
 function getStatus(avg, target) {
-    if (avg === null) return { color: '#444', label: 'KEINE NOTEN', class: '' };
-    const goal = target || 15; // Standard 15
-    if (avg >= goal) return { color: 'var(--success)', label: 'ZIEL ERREICHT', class: 'bg-success' };
-    if (avg >= goal - 2) return { color: 'var(--warning)', label: 'KNAPP UNTER ZIEL', class: 'bg-warning' };
-    return { color: 'var(--danger)', label: 'UNTER ZIEL', class: 'bg-danger' };
+    if (avg === null || avg === undefined) return { color: 'neutral', class: '', label: 'Keine Noten' };
+    const goal = target || 15;
+    if (avg >= goal) return { color: 'success', class: 'bg-success', label: 'ZIEL ERREICHT' };
+    if (avg >= goal - 2) return { color: 'warning', class: 'bg-warning', label: 'FAST DA' };
+    return { color: 'danger', class: 'bg-danger', label: 'UNTER ZIEL' };
 }
 
 window.showPage = (id) => {
@@ -19,39 +16,42 @@ window.showPage = (id) => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
     document.getElementById('btn-' + id)?.classList.add('active');
-    
     if(id === 'list') renderDash();
     if(id === 'goals') renderGoals();
 };
 
 window.renderDash = () => {
-    const container = document.getElementById('grid-container');
-    container.innerHTML = '';
+    const cont = document.getElementById('grid-container');
+    cont.innerHTML = '';
+    let totalSum = 0, count = 0;
+
     appData.forEach(f => {
         const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
         const status = getStatus(avg, f.target);
-        container.innerHTML += `
-            <div class="subject-card" style="border-left-color: ${status.color}" onclick="openDet(${f.id})">
-                <small style="color: var(--gray)">${f.name}</small>
-                <h2 style="color: ${status.color}; margin: 10px 0;">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <div style="font-size: 11px; opacity: 0.8">Ziel: ${f.target || 15}</div>
+        if(avg !== null) { totalSum += avg; count++; }
+
+        cont.innerHTML += `
+            <div class="subject-card" style="border-left-color: var(--${status.color})" onclick="openDet(${f.id})">
+                <small>${f.name}</small>
+                <h2 class="text-${status.color}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <small>Ziel: ${f.target || 15}</small>
             </div>`;
     });
+    const totalAvg = count > 0 ? (totalSum / count).toFixed(2) : '-';
+    document.getElementById('dash-total').innerText = totalAvg;
 };
 
 window.renderGoals = () => {
-    const list = document.getElementById('goals-list');
-    list.innerHTML = '';
+    const cont = document.getElementById('goals-list');
+    cont.innerHTML = '';
     appData.forEach(f => {
         const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
         const target = f.target || 15;
-        const reached = avg >= target;
-        list.innerHTML += `
-            <div class="history-item">
+        const status = getStatus(avg, target);
+        cont.innerHTML += `
+            <div class="input-card" style="display:flex; justify-content:space-between; align-items:center">
                 <div><b>${f.name}</b><br><small>Ziel: ${target}</small></div>
-                <div class="${reached ? 'text-success' : 'text-danger'}" style="font-weight:bold">
-                    ${avg !== null ? avg.toFixed(1) : '-'} ${reached ? '✅' : '❌'}
-                </div>
+                <div class="text-${status.color}" style="font-weight:bold">${avg !== null ? avg.toFixed(1) : '-'}</div>
             </div>`;
     });
 };
@@ -60,35 +60,30 @@ window.openDet = (id) => {
     window.curId = id;
     showPage('detail');
     const f = appData.find(x => x.id === id);
-    document.getElementById('f-target-input').value = f.target || 15;
-    updateDetailUI();
-};
-
-function updateDetailUI() {
-    const f = appData.find(x => x.id === window.curId);
     const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
     const status = getStatus(avg, f.target);
-    
+
+    const header = document.getElementById('det-header');
+    header.className = `detail-hero ${status.class}`;
+    if(!status.class) header.style.background = 'var(--card)';
+
     document.getElementById('det-title').innerText = f.name;
     document.getElementById('det-avg').innerText = avg !== null ? avg.toFixed(1) : '-';
     document.getElementById('det-status-badge').innerText = status.label;
-    
-    const header = document.getElementById('det-header');
-    header.style.backgroundColor = status.color;
+    document.getElementById('f-target-input').value = f.target || 15;
 
     document.getElementById('notes-list').innerHTML = f.notes.map((n, i) => `
-        <div class="history-item">
+        <div class="input-card" style="display:flex; justify-content:space-between; margin-bottom:10px">
             <span>Note: <b>${n}</b></span>
-            <button class="btn-danger" onclick="deleteNote(${i})" style="padding: 5px 10px">X</button>
+            <button class="btn-danger" onclick="deleteNote(${i})">X</button>
         </div>`).reverse().join('');
-}
+};
 
 window.saveFachTarget = () => {
     const val = parseFloat(document.getElementById('f-target-input').value);
     const f = appData.find(x => x.id === window.curId);
-    f.target = isNaN(val) ? 15 : val;
-    save();
-    updateDetailUI();
+    f.target = (val >= 0 && val <= 15) ? val : 15;
+    save(); openDet(f.id);
 };
 
 window.addFach = () => {
@@ -101,26 +96,18 @@ window.addFach = () => {
 
 window.addNote = () => {
     const val = parseFloat(document.getElementById('n-val').value);
-    if(isNaN(val)) return;
+    if(isNaN(val) || val < 0 || val > 15) return;
     appData.find(x => x.id === window.curId).notes.push(val);
     document.getElementById('n-val').value = '';
-    save(); updateDetailUI();
+    save(); openDet(window.curId);
 };
 
 window.deleteNote = (i) => {
     const f = appData.find(x => x.id === window.curId);
     f.notes.splice(f.notes.length - 1 - i, 1);
-    save(); updateDetailUI();
+    save(); openDet(window.curId);
 };
 
-window.deleteFach = () => {
-    if(confirm("Löschen?")) {
-        appData = appData.filter(x => x.id !== window.curId);
-        save(); showPage('list');
-    }
-};
-
-window.exportData = () => { prompt("Dein Backup-Code (kopieren):", btoa(JSON.stringify(appData))); };
-window.importData = () => { const c = prompt("Backup-Code einfügen:"); if(c) { appData = JSON.parse(atob(c)); save(); location.reload(); } };
-window.resetAll = () => { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } };
+window.deleteFach = () => { if(confirm("Löschen?")) { appData = appData.filter(x => x.id !== window.curId); save(); showPage('list'); } };
 function save() { localStorage.setItem(S_KEY, JSON.stringify(appData)); }
+window.resetAll = () => { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } };

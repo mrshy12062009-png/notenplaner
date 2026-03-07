@@ -10,47 +10,43 @@
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
-        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Ziele-Check</button>
+        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Alle Ziele</button>
         <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
     </nav>
 
     <main class="main-content">
         <section id="page-list" class="page active">
-            <h1>Dashboard</h1>
+            <div class="header-flex">
+                <h1>Dashboard</h1>
+                <div class="total-badge" id="global-avg-box">
+                    Gesamtschnitt: <span id="dash-total">-</span>
+                </div>
+            </div>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach (z.B. Mathe)...">
-                <button class="btn-accent" onclick="addFach()">Fach hinzufügen</button>
+                <input type="text" id="f-name" placeholder="Neues Fach...">
+                <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Deine Ziele pro Fach</h1>
-            <p style="color: #94a3b8; margin-bottom: 20px;">Hier siehst du, ob du dein individuell gesetztes Ziel erreicht hast.</p>
+            <h1>🎯 Deine Fach-Ziele</h1>
             <div id="goals-list" class="goals-list"></div>
         </section>
 
         <section id="page-settings" class="page">
             <h1>⚙️ Einstellungen</h1>
             <div class="input-card">
-                <h3>Datensicherung</h3>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="btn-secondary" onclick="exportData()">Exportieren</button>
-                    <button class="btn-secondary" onclick="importData()">Importieren</button>
-                </div>
-            </div>
-            <div class="input-card" style="border: 1px solid var(--danger);">
-                <h3>Gefahrenzone</h3>
                 <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
             </div>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-secondary">← Zurück</button>
+            <button onclick="showPage('list')" class="btn-back">← Zurück</button>
             
             <div class="detail-hero" id="det-header">
-                <div class="hero-info">
-                    <h1 id="det-title" style="margin:0">Fach</h1>
+                <div class="hero-text">
+                    <h1 id="det-title">Fach</h1>
                     <div id="det-status-badge" class="status-pill">Status</div>
                 </div>
                 <div class="hero-avg" id="det-avg">-</div>
@@ -58,23 +54,22 @@
 
             <div class="detail-grid">
                 <div class="input-card">
-                    <h3>Note hinzufügen</h3>
-                    <input type="number" id="n-val" placeholder="Punkte (0-15)">
-                    <button class="btn-accent" onclick="addNote()">Speichern</button>
+                    <h3>Ziel für dieses Fach</h3>
+                    <input type="number" id="f-target-input" min="0" max="15" placeholder="Ziel (z.B. 15)">
+                    <button class="btn-accent" onclick="saveFachTarget()">Ziel speichern</button>
                 </div>
                 <div class="input-card">
-                    <h3>Individuelles Fach-Ziel</h3>
-                    <input type="number" id="f-target-input" placeholder="Ziel (z.B. 13)">
-                    <button class="btn-secondary" onclick="saveFachTarget()">Ziel speichern</button>
+                    <h3>Note (0-15)</h3>
+                    <input type="number" id="n-val" min="0" max="15" placeholder="Punkte...">
+                    <button class="btn-accent" onclick="addNote()">Speichern</button>
                 </div>
             </div>
 
-            <h3>Notenverlauf</h3>
-            <div id="notes-list" class="history-list"></div>
-            <button onclick="deleteFach()" class="btn-link-danger">Dieses Fach löschen</button>
+            <h3>Verlauf</h3>
+            <div id="notes-list"></div>
+            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
         </section>
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>
