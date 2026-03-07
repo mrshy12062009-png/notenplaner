@@ -967,29 +967,48 @@ body.density-compact {
     }
 
     .sidebar {
-        border-bottom-left-radius: var(--radius-lg);
-        border-bottom-right-radius: var(--radius-lg);
-        padding: var(--space-3) var(--space-3) var(--space-4);
-        gap: var(--space-3);
+        border-bottom-left-radius: 18px;
+        border-bottom-right-radius: 18px;
+        padding: 0.7rem 0.9rem 0.9rem;
+        gap: 0.55rem;
         position: static;
         height: auto;
+        min-height: 0;
         overflow: visible;
         box-shadow: 0 16px 30px rgba(5, 10, 18, 0.24);
+    }
+
+    .brand-kicker {
+        font-size: 0.62rem;
+    }
+
+    .brand h1 {
+        font-size: 2rem;
     }
 
     .sidebar-toggle {
         display: inline-flex;
         justify-content: center;
         align-items: center;
+        min-height: 32px;
+        padding: 0.25rem 0.55rem;
+        font-size: 0.9rem;
     }
 
     .nav {
         display: none;
         grid-template-columns: 1fr 1fr;
+        padding: 0.25rem;
+        gap: 0.35rem;
     }
 
     body.sidebar-expanded .nav {
         display: grid;
+    }
+
+    .nav-btn {
+        min-height: 34px;
+        padding: 0.45rem 0.5rem;
     }
 }
 

@@ -104,6 +104,9 @@ export function initApp() {
         settingShowEventLabels: document.getElementById("setting-show-event-labels"),
         settingsReset: document.getElementById("settings-reset"),
         settingsFeedback: document.getElementById("settings-feedback"),
+        dataExport: document.getElementById("data-export"),
+        dataImport: document.getElementById("data-import"),
+        dataImportFile: document.getElementById("data-import-file"),
 
         statsGrid: document.getElementById("stats-grid"),
         chartSubjectAvg: document.getElementById("chart-subject-avg"),
@@ -259,6 +262,9 @@ export function initApp() {
             renderEventList();
             setFeedback(els.settingsFeedback, "Einstellungen zurückgesetzt.");
         });
+        els.dataExport.addEventListener("click", exportData);
+        els.dataImport.addEventListener("click", () => els.dataImportFile.click());
+        els.dataImportFile.addEventListener("change", importData);
 
         els.goalForm.addEventListener("submit", onGoalSubmit);
         els.goalList.addEventListener("click", (event) => {
@@ -1151,6 +1157,62 @@ export function initApp() {
 
     function persistGoals(goals) {
         localStorage.setItem("gf_goals", JSON.stringify(goals));
+    }
+
+    function exportData() {
+        const payload = {
+            exportedAt: new Date().toISOString(),
+            subjectsStore: state.subjectsStore,
+            eventsStore: state.eventsStore,
+            settings: state.settings,
+            goals: state.goals
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `notenplaner-export-${toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate())}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setFeedback(els.settingsFeedback, "Export erstellt.");
+    }
+
+    function importData(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(String(reader.result || "{}"));
+                if (parsed.subjectsStore && typeof parsed.subjectsStore === "object") {
+                    state.subjectsStore = parsed.subjectsStore;
+                    localStorage.setItem("gf_data", JSON.stringify(state.subjectsStore));
+                }
+                if (parsed.eventsStore && typeof parsed.eventsStore === "object") {
+                    state.eventsStore = parsed.eventsStore;
+                    localStorage.setItem("gf_events", JSON.stringify(state.eventsStore));
+                }
+                if (parsed.settings && typeof parsed.settings === "object") {
+                    state.settings = persistSettings(parsed.settings);
+                }
+                if (Array.isArray(parsed.goals)) {
+                    state.goals = parsed.goals;
+                    persistGoals(state.goals);
+                }
+
+                applyThemeSettings();
+                hydrateSettingsForm();
+                renderAll();
+                setFeedback(els.settingsFeedback, "Import erfolgreich.");
+            } catch (_) {
+                setFeedback(els.settingsFeedback, "Import fehlgeschlagen: ungültige Datei.", true);
+            } finally {
+                els.dataImportFile.value = "";
+            }
+        };
+        reader.readAsText(file);
     }
 
     function setFeedback(target, message, isError = false) {
