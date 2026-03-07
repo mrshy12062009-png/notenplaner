@@ -18,12 +18,10 @@
         <section id="page-list" class="page active">
             <div class="header-area">
                 <h1>Dashboard</h1>
-                <div class="total-status-card" id="global-analysis-dash">
-                    Gesamtschnitt: <span id="dash-total">-</span>
-                </div>
+                <div class="total-status-card">Schnitt: <span id="dash-total">-</span></div>
             </div>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach hinzufügen...">
+                <input type="text" id="f-name" placeholder="Neues Fach...">
                 <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
@@ -32,11 +30,9 @@
         <section id="page-goals" class="page">
             <h1>🎯 Meine Ziele</h1>
             <div class="input-card">
-                <label>Globales Gesamtziel</label>
+                <label>Dein Wunsch-Ziel (z.B. 15 Punkte)</label>
                 <input type="number" id="goal-input" step="0.1" oninput="updateGlobalGoal(this.value)">
-                <p id="total-goal-feedback" style="margin-top:10px; font-weight:bold;"></p>
             </div>
-            <h3>Fächer-Analyse <small>(Klicken für Fach-Ziel)</small></h3>
             <div id="goals-list" class="goals-list"></div>
         </section>
 
@@ -51,43 +47,20 @@
             <button onclick="showPage('list')" class="btn-back">← Zurück</button>
             <div class="detail-hero" id="det-header">
                 <div class="hero-content">
-                    <h1 id="det-title" style="margin:0">Fachname</h1>
-                    <div id="det-status-badge" class="status-pill">Status</div>
+                    <h1 id="det-title">Fach</h1>
+                    <div id="det-status-badge" class="status-pill">-</div>
                 </div>
-                <div class="hero-avg">
-                    <span id="det-avg">-</span>
-                </div>
+                <div class="hero-avg"><span id="det-avg">-</span></div>
             </div>
-
-            <div class="detail-grid">
-                <div class="input-card">
-                    <h3>Note eintragen</h3>
-                    <input type="number" id="n-val" placeholder="Punkte...">
-                    <button class="btn-accent" onclick="addNote()">Speichern</button>
-                </div>
-                <div class="input-card">
-                    <h3>Analyse</h3>
-                    <div id="det-analysis-text">-</div>
-                </div>
+            <div class="input-card">
+                <input type="number" id="n-val" placeholder="Punkte...">
+                <button class="btn-accent" onclick="addNote()">Speichern</button>
             </div>
-            
-            <h3>Notenverlauf</h3>
-            <div id="notes-list" class="notes-history"></div>
-            <button onclick="deleteFach()" class="btn-link-danger">🗑️ Fach löschen</button>
+            <h3>Verlauf</h3>
+            <div id="notes-list"></div>
+            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
         </section>
     </main>
-
-    <div id="goal-modal" class="modal" onclick="if(event.target == this) closeModal()">
-        <div class="modal-content">
-            <h3 id="modal-title">Ziel setzen</h3>
-            <input type="number" id="modal-goal-input" placeholder="Ziel für dieses Fach...">
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn-accent" onclick="saveSubjectGoal()">Speichern</button>
-                <button class="btn-danger" onclick="closeModal()">Abbrechen</button>
-            </div>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
