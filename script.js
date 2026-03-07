@@ -1,15 +1,14 @@
-// Daten-Speicher (Noten & Fächer)
 let db = JSON.parse(localStorage.getItem('gf_data')) || [];
 let viewDate = new Date(); 
 let currentFachId = null;
 
-// MSA Termine 2026
+// MSA Termine 2026 (Korrigiert)
 const defaultEvents = {
     "2026-04-21": "MSA Deutsch",
     "2026-04-29": "MSA Mathe",
-    "2026-05-05": "MSA Englisch (Schriftlich)",
-    "2026-03-09": "Start: Englisch Mündlich",
-    "2026-01-12": "Start: Präsentationsprüfung"
+    "2026-05-05": "MSA Englisch",
+    "2026-03-09": "Englisch Mündlich",
+    "2026-01-12": "Präsentationsprüfung"
 };
 let userEvents = JSON.parse(localStorage.getItem('gf_events')) || defaultEvents;
 
@@ -22,18 +21,7 @@ function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if(pageId === 'list') document.getElementById('btn-list').classList.add('active');
-    if(pageId === 'calendar') document.getElementById('btn-calendar').classList.add('active');
-}
-
-// --- FÄCHER-LOGIK ---
-function addFach() {
-    const input = document.getElementById('f-in');
-    if(!input.value.trim()) return;
-    db.push({ id: Date.now(), name: input.value, notes: [] });
-    input.value = '';
-    save();
-    renderGrid();
+    document.getElementById('btn-' + (pageId === 'detail' ? 'list' : pageId)).classList.add('active');
 }
 
 function renderGrid() {
@@ -43,8 +31,8 @@ function renderGrid() {
         const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '--';
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => openDetail(f.id); // Hier wird die Reaktion repariert
-        card.innerHTML = `<h3>${f.name}</h3><p class="grade-text">${avg}</p>`;
+        card.onclick = () => openDetail(f.id); // Reaktiviert das Klicken
+        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; font-weight:bold; color:var(--accent);">${avg}</p>`;
         g.appendChild(card);
     });
 }
@@ -57,7 +45,6 @@ function openDetail(id) {
     showPage('detail');
 }
 
-// --- KALENDER-LOGIK ---
 function initCalendar() {
     const month = viewDate.getMonth();
     const year = viewDate.getFullYear();
@@ -93,18 +80,26 @@ function addUserEvent() {
     }
 }
 
+function addFach() {
+    const input = document.getElementById('f-in');
+    if(!input.value.trim()) return;
+    db.push({ id: Date.now(), name: input.value, notes: [] });
+    input.value = '';
+    save();
+    renderGrid();
+}
+
 function addNote() {
     const val = parseInt(document.getElementById('n-in').value);
     if(isNaN(val)) return;
     db.find(f => f.id === currentFachId).notes.push(val);
-    save();
-    renderNotes();
-    renderGrid();
+    save(); renderNotes(); renderGrid();
 }
 
 function renderNotes() {
     const fach = db.find(f => f.id === currentFachId);
-    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div class="note-item">${n} Punkte</div>`).join('');
+    document.getElementById('d-avg').innerText = `Schnitt: ${fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/fach.notes.length).toFixed(1) : '0.0'}`;
+    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div style="background:var(--sidebar); padding:10px; border-radius:5px; margin-top:5px; border:1px solid var(--border);">${n} Punkte</div>`).reverse().join('');
 }
 
 function save() { localStorage.setItem('gf_data', JSON.stringify(db)); }
