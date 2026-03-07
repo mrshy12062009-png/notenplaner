@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeFlow Desktop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="logo">Grade<span>Flow</span></div>
+        <div class="nav-links">
+            <button class="nav-btn active" id="btn-list" onclick="showPage('list')">Dashboard</button>
+            <button class="nav-btn" id="btn-stats" onclick="showPage('stats')">Statistiken</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section id="page-list" class="page active">
+            <div class="page-header">
+                <h1>Fächer Übersicht</h1>
+                <div class="input-bar">
+                    <input type="text" id="f-name" placeholder="Name des Fachs...">
+                    <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
+                </div>
+            </div>
+            <div id="grid-container" class="dashboard-grid"></div>
+        </section>
+
+        <section id="page-detail" class="page">
+            <button class="btn-link" onclick="showPage('list')">← Zurück zur Übersicht</button>
+            <div id="hero-banner" class="subject-hero">
+                <div class="hero-info">
+                    <h2 id="det-title">Fachname</h2>
+                    <p>Aktueller Notenschnitt</p>
+                </div>
+                <div id="det-avg" class="hero-grade">-</div>
+            </div>
+
+            <div class="detail-columns">
+                <div id="notes-history" class="history-column"></div>
+                <div class="input-card">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="n-val" placeholder="Punkte (0-15)">
+                    <button class="btn-accent full-width" onclick="addNote()">Note speichern</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-stats" class="page">
+            <h1>Statistiken & Performance</h1>
+            <div id="stats-list"></div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+:root {
+    --bg-color: #080a12;
+    --sidebar-color: #111421;
+    --card-color: #1a1f30;
+    --accent-color: #5865f2;
+    --text-color: #ffffff;
+    --dim-text: #94a3b8;
+}
+
+body {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    margin: 0;
+    display: flex;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar-color);
+    padding: 40px 20px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.logo { font-size: 28px; font-weight: 800; margin-bottom: 50px; }
+.logo span { color: var(--accent-color); }
+
+.nav-btn {
+    width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px;
+    background: none; border: none; color: var(--dim-text); text-align: left;
+    font-size: 17px; cursor: pointer; transition: 0.3s; font-weight: 600;
+}
+
+.nav-btn.active { background: var(--accent-color); color: white; }
+
+/* Seiten-Logik */
+.page { display: none !important; }
+.page.active { display: block !important; }
+
+.main-content { flex: 1; padding: 60px; overflow-y: auto; }
+
+/* Dashboard Design */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+
+.subject-card {
+    background: var(--card-color); padding: 30px; border-radius: 20px;
+    cursor: pointer; border-left: 6px solid var(--accent-color); transition: 0.3s;
+}
+.subject-card:hover { transform: translateY(-5px); background: #232a3d; }
+
+/* Hero Banner */
+.subject-hero {
+    background: linear-gradient(135deg, var(--accent-color), #080a12);
+    padding: 50px; border-radius: 30px; display: flex;
+    justify-content: space-between; align-items: center; margin-bottom: 40px;
+}
+.hero-grade { font-size: 100px; font-weight: 900; }
+
+/* Form Elemente */
+input { background: #0c0f1a; border: 1px solid #2d344d; color: white; padding: 15px; border-radius: 10px; font-size: 16px; }
+.btn-accent { background: var(--accent-color); color: white; border: none; padding: 15px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+.full-width { width: 100%; margin-top: 15px; }
