@@ -1056,6 +1056,12 @@ body.density-compact {
         grid-template-columns: 1fr;
     }
 
+    .calendar-nav h3 {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 920px) {
     .calendar-card {
         padding: 0.6rem;
     }
@@ -1080,10 +1086,6 @@ body.density-compact {
         gap: 0.18rem;
         flex-wrap: wrap;
         margin-top: 0.05rem;
-    }
-
-    .calendar-nav h3 {
-        font-size: 0.95rem;
     }
 
     .today-badge {

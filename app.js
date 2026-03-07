@@ -454,7 +454,7 @@ export function initApp() {
         const monthFormatter = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" });
         const month = state.viewDate.getMonth();
         const year = state.viewDate.getFullYear();
-        const compactCalendar = window.innerWidth <= 700;
+        const compactCalendar = window.innerWidth <= 920;
         els.monthName.textContent = monthFormatter.format(state.viewDate);
 
         const firstDay = new Date(year, month, 1).getDay();
