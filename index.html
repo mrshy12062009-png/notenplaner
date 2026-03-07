@@ -5,82 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
         <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
-        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Alle Ziele</button>
+        <button class="nav-btn" id="btn-goals" onclick="showPage('goals')">🎯 Meine Ziele</button>
         <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
     </nav>
 
     <main class="main-content">
         <section id="page-list" class="page active">
-            <div class="dashboard-header">
-                <div>
-                    <h1>Mein Dashboard</h1>
-                    <p class="subtitle">Deine Noten im Überblick</p>
-                </div>
-                <div class="global-card">
+            <div class="glass-header">
+                <h1>Dashboard</h1>
+                <div class="total-stat">
                     <small>Gesamtschnitt</small>
-                    <div id="dash-total" class="total-value">-</div>
+                    <span id="dash-total">-</span>
                 </div>
             </div>
             
-            <div class="add-fach-box">
-                <input type="text" id="f-name" placeholder="Neues Fach hinzufügen...">
-                <button onclick="addFach()" class="btn-main">Hinzufügen</button>
+            <div class="add-container">
+                <input type="text" id="f-name" placeholder="Neues Fach...">
+                <button onclick="addFach()">Hinzufügen</button>
             </div>
 
-            <div id="grid-container" class="dashboard-grid"></div>
+            <div id="grid-container" class="vibrant-grid"></div>
+        </section>
+
+        <section id="page-goals" class="page">
+            <h1>🎯 Deine Ziele</h1>
+            <div id="goals-list" class="goals-vibrant-stack"></div>
         </section>
 
         <section id="page-detail" class="page">
             <button onclick="showPage('list')" class="btn-back">← Zurück</button>
-            
-            <div class="detail-hero" id="det-header">
-                <div class="hero-left">
-                    <h1 id="det-title">Fach</h1>
-                    <div id="det-status-badge" class="badge">Keine Daten</div>
+            <div class="hero-card" id="det-header">
+                <h1 id="det-title">Fach</h1>
+                <div class="hero-circle" id="det-avg">-</div>
+                <p id="det-status-badge">Status</p>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-card">
+                    <h3>Ziel setzen</h3>
+                    <input type="number" id="f-target-input" placeholder="Dein Ziel...">
+                    <button onclick="saveFachTarget()" class="btn-vibe">Speichern</button>
                 </div>
-                <div class="hero-right">
-                    <div class="circle-avg" id="det-avg">-</div>
+                <div class="input-card">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="n-val" placeholder="Punkte...">
+                    <button onclick="addNote()" class="btn-vibe">Speichern</button>
                 </div>
             </div>
 
-            <div class="control-grid">
-                <div class="card-glass">
-                    <h3>🎯 Ziel festlegen</h3>
-                    <p class="hint">Was willst du in diesem Fach erreichen?</p>
-                    <input type="number" id="f-target-input" min="0" max="15" placeholder="Ziel (0-15)">
-                    <button class="btn-accent" onclick="saveFachTarget()">Ziel speichern</button>
-                </div>
-                <div class="card-glass">
-                    <h3>✍️ Note eintragen</h3>
-                    <p class="hint">Punkte zwischen 0 und 15</p>
-                    <input type="number" id="n-val" min="0" max="15" placeholder="Note...">
-                    <button class="btn-accent" onclick="addNote()">Speichern</button>
-                </div>
-            </div>
-
-            <div class="history-section">
-                <h3>Verlauf</h3>
-                <div id="notes-list" class="notes-stack"></div>
-                <button onclick="deleteFach()" class="btn-danger-text">🗑️ Fach löschen</button>
-            </div>
-        </section>
-
-        <section id="page-goals" class="page">
-            <h1>Deine Ziele</h1>
-            <div id="goals-list" class="goals-grid"></div>
+            <div id="notes-list" class="history-list"></div>
+            <button onclick="deleteFach()" class="btn-delete">Fach löschen</button>
         </section>
 
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
-            <div class="card-glass">
-                <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
-            </div>
+            <button class="btn-delete" onclick="resetAll()">Alles löschen</button>
         </section>
     </main>
     <script src="script.js"></script>

@@ -1,73 +1,56 @@
 :root {
-    --bg: #0f121a;
-    --side: #161b26;
-    --card: #1f2636;
+    --bg: #080a0f;
+    --side: #11141d;
+    --card: #1a1f2b;
     --accent: #6366f1;
-    --success: linear-gradient(135deg, #22c55e, #10b981);
-    --warning: linear-gradient(135deg, #f59e0b, #d97706);
-    --danger: linear-gradient(135deg, #ef4444, #dc2626);
-    --neutral: linear-gradient(135deg, #3f3f46, #18181b);
-    --text: #ffffff;
+    --success: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    --warning: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+    --danger: linear-gradient(135deg, #f83600 0%, #f9d423 100%);
+    --neutral: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
 }
 
-body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-}
+body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
 /* Sidebar */
-.sidebar { width: 260px; background: var(--side); padding: 30px; border-right: 1px solid rgba(255,255,255,0.05); }
-.logo { font-size: 26px; font-weight: 800; margin-bottom: 50px; }
-.logo span { color: #6366f1; }
-.nav-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; background: transparent; color: #94a3b8; text-align: left; cursor: pointer; border-radius: 15px; font-size: 16px; transition: 0.3s; }
-.nav-btn.active { background: var(--accent); color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+.sidebar { width: 260px; background: var(--side); padding: 30px; }
+.logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; color: white; }
+.logo span { color: var(--accent); }
+.nav-btn { width: 100%; padding: 15px; margin: 8px 0; border: none; background: transparent; color: #64748b; text-align: left; cursor: pointer; border-radius: 12px; font-weight: 600; }
+.nav-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
 
-/* Dashboard Header */
-.dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.global-card { background: var(--accent); padding: 15px 30px; border-radius: 20px; text-align: center; }
-.total-value { font-size: 28px; font-weight: 800; }
+/* Dashboard Vibrant (Bild 2) */
+.glass-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.total-stat { background: var(--accent); padding: 10px 25px; border-radius: 20px; text-align: center; }
+.total-stat span { font-size: 24px; font-weight: 800; display: block; }
 
-/* Grid & Cards */
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+.vibrant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 .subject-card { 
-    background: var(--card); 
-    padding: 25px; 
-    border-radius: 25px; 
-    cursor: pointer; 
-    transition: 0.3s;
-    border: 1px solid rgba(255,255,255,0.05);
-    position: relative;
-    overflow: hidden;
+    padding: 30px; border-radius: 25px; cursor: pointer; transition: 0.3s; 
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-.subject-card:hover { transform: translateY(-8px); border-color: var(--accent); }
+.subject-card h1 { font-size: 48px; margin: 10px 0; font-weight: 900; }
+
+/* Ziele Vibrant (Bild 1) */
+.goals-vibrant-stack { display: flex; flex-direction: column; gap: 15px; }
+.goal-card { 
+    background: var(--card); padding: 20px; border-radius: 20px; 
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.progress-container { flex: 1; height: 12px; background: #000; margin: 0 20px; border-radius: 10px; overflow: hidden; }
+.progress-bar { height: 100%; transition: 0.5s; }
 
 /* Detail Hero (Bild 3) */
-.detail-hero { 
-    padding: 50px; 
-    border-radius: 30px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 40px; 
-    background: var(--neutral); 
-    transition: 0.5s;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+.hero-card { padding: 50px; border-radius: 30px; text-align: center; margin-bottom: 30px; position: relative; }
+.hero-circle { 
+    width: 100px; height: 100px; background: white; color: black; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; margin: 20px auto;
 }
-.circle-avg { background: white; color: black; width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; }
 
-/* Controls */
-.control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.card-glass { background: var(--card); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); }
-input { width: 100%; padding: 15px; margin: 15px 0; background: #000; border: 1px solid #333; color: white; border-radius: 12px; }
-
-.btn-main, .btn-accent { background: var(--accent); border: none; padding: 15px 25px; color: white; border-radius: 12px; cursor: pointer; font-weight: 600; width: 100%; }
-.btn-danger { background: #ef4444; border: none; padding: 15px; border-radius: 12px; color: white; cursor: pointer; width: 100%; }
-
-/* Utilities */
-.status-pill { padding: 5px 15px; border-radius: 10px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 10px; }
-.hint { color: #94a3b8; font-size: 12px; margin: 0; }
+/* UI */
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.input-card { background: var(--card); padding: 25px; border-radius: 20px; }
+input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; background: #000; color: white; }
+button.btn-vibe { background: white; color: black; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
+.btn-delete { background: none; border: 1px solid #ef4444; color: #ef4444; padding: 15px; width: 100%; border-radius: 15px; margin-top: 20px; cursor: pointer; }
