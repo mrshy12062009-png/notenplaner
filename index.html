@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradeFlow Pro</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,7 +16,10 @@
 
     <main class="main-content">
         <section id="page-list" class="page active">
-            <h1>Dashboard</h1>
+            <div class="header-area">
+                <h1>Dashboard</h1>
+                <div class="total-badge">Schnitt: <span id="dash-total">-</span></div>
+            </div>
             <div class="input-card">
                 <input type="text" id="f-name" placeholder="Neues Fach...">
                 <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
@@ -26,23 +28,19 @@
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Meine Ziele</h1>
+            <h1>Meine Ziele</h1>
             <div class="input-card">
-                <label>Dein Gesamtziel</label>
+                <label>Dein Zielwert (z.B. 11 oder 2.0)</label>
                 <input type="number" id="goal-input" step="0.1" oninput="updateGoal(this.value)">
-                <div class="total-status-bar">
-                    <span>Gesamtschnitt: <b id="goal-total-val">-</b></span>
-                    <span id="goal-label-all" class="badge">Berechne...</span>
-                </div>
             </div>
-            <h3>Fächer-Analyse</h3>
-            <div id="goals-list" class="goals-container"></div>
+            <h3>Fächer-Status</h3>
+            <div id="goals-list" class="goals-list"></div>
         </section>
 
         <section id="page-settings" class="page">
-            <h1>⚙️ Einstellungen</h1>
+            <h1>Einstellungen</h1>
             <div class="input-card">
-                <label>App-Design Farbe</label>
+                <label>App-Farbe (Akzent)</label>
                 <div class="color-picker">
                     <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
                     <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
@@ -54,33 +52,17 @@
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← Zurück zum Dashboard</button>
-            
-            <div class="detail-hero" id="det-hero">
-                <div>
-                    <h1 id="det-title" style="margin:0">Fachname</h1>
-                    <p id="det-status-text" style="margin:5px 0 0 0; opacity:0.8">Status: -</p>
-                </div>
-                <div class="avg-circle" id="det-avg">-</div>
+            <button onclick="showPage('list')" class="btn-back">← Zurück</button>
+            <div class="detail-header" id="det-header">
+                <h1 id="det-title">Fach</h1>
+                <div class="big-avg" id="det-avg">-</div>
             </div>
-
-            <div class="detail-grid">
-                <div class="input-card">
-                    <h3>Neue Note</h3>
-                    <input type="number" id="n-val" placeholder="Punkte/Note...">
-                    <button class="btn-accent" onclick="addNote()">Note Speichern</button>
-                </div>
-
-                <div class="input-card">
-                    <h3>Analyse</h3>
-                    <div id="det-analysis-text">Gib Noten ein, um eine Analyse zu sehen.</div>
-                </div>
+            <div class="input-card">
+                <input type="number" id="n-val" placeholder="Note eingeben...">
+                <button class="btn-accent" onclick="addNote()">Speichern</button>
             </div>
-
-            <h3>Notenverlauf</h3>
-            <div id="notes-list" class="notes-history"></div>
-            
-            <button onclick="deleteFach()" class="btn-link-danger">🗑️ Fach komplett löschen</button>
+            <div id="notes-list"></div>
+            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
         </section>
     </main>
     <script src="script.js"></script>
