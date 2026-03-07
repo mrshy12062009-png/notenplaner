@@ -3,157 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow v15 ULTRA</title>
+    <title>GradeFlow v15.1 PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --bg: #0b0e14; --side: #151926; --card: #1c2230; --accent: #5865f2; --text: #fff; }
-        body { background: var(--bg); color: var(--text); margin: 0; display: flex; font-family: sans-serif; height: 100vh; }
-        .sidebar { width: 240px; background: var(--side); padding: 20px; border-right: 1px solid #252a3d; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 30px; }
-        .nav-btn { width: 100%; padding: 12px; margin: 5px 0; border: none; background: none; color: #94a3b8; text-align: left; cursor: pointer; border-radius: 8px; font-size: 16px; }
-        .nav-btn:hover { background: #252a3d; color: #fff; }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .page { display: none; }
-        .active { display: block; }
-        .input-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #2d344d; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #080a12; border: 1px solid #2d344d; color: #fff; border-radius: 8px; box-sizing: border-box; }
-        .btn-accent { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-        .btn-accent:hover { opacity: 0.8; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .subject-card { background: var(--card); padding: 20px; border-radius: 15px; border-left: 5px solid var(--accent); cursor: pointer; transition: 0.2s; }
-        .subject-card:hover { transform: translateY(-3px); background: #232a42; }
-        .stats-hero { background: var(--accent); padding: 25px; border-radius: 15px; display: flex; justify-content: space-around; margin-bottom: 20px; text-align: center; }
-        .btn-danger { background: #ef4444; border: none; padding: 10px; color: #fff; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn" onclick="showPage('list')">🏠 Dashboard</button>
-        <button class="nav-btn" onclick="showPage('stats')">📈 Statistiken</button>
-        <button class="nav-btn" onclick="showPage('settings')">⚙️ Einstellungen</button>
+        <button class="nav-btn active" id="btn-list" onclick="showPage('list')">🏠 Dashboard</button>
+        <button class="nav-btn" id="btn-stats" onclick="showPage('stats')">📈 Statistiken</button>
+        <button class="nav-btn" id="btn-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
     </nav>
 
     <main class="main-content">
         <section id="page-list" class="page active">
-            <h1>Hallo, <span id="display-name">Schüler</span>!</h1>
+            <h1>Willkommen, <span id="display-name" style="color:var(--accent)">Schüler</span>!</h1>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach (z.B. Mathe)...">
+                <input type="text" id="f-name" placeholder="Name des Fachs...">
                 <button class="btn-accent" onclick="addFach()">Fach hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
         </section>
 
         <section id="page-stats" class="page">
-            <h1>Statistiken</h1>
+            <h1>Deine Performance</h1>
             <div class="stats-hero">
-                <div><h2 id="total-avg">-</h2><p>Gesamtschnitt</p></div>
-                <div><h2 id="total-count">0</h2><p>Noten gesamt</p></div>
+                <div><h2 id="total-avg" style="font-size: 40px; margin: 0;">-</h2><p>Gesamtschnitt</p></div>
+                <div><h2 id="total-count" style="font-size: 40px; margin: 0;">0</h2><p>Anzahl Noten</p></div>
             </div>
-            <div class="input-card"><canvas id="myChart"></canvas></div>
+            <div class="input-card"><canvas id="myChart" height="100"></canvas></div>
         </section>
 
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
             <div class="input-card">
-                <label>Dein Name</label>
-                <input type="text" id="set-name" placeholder="Name...">
-                <label>Notensystem</label>
+                <h3>Profil anpassen</h3>
+                <input type="text" id="set-name" placeholder="Dein Name...">
                 <select id="set-system">
-                    <option value="points">Oberstufe (0-15)</option>
-                    <option value="grades">Sek I (1-6)</option>
+                    <option value="points">Oberstufe (0-15 Punkte)</option>
+                    <option value="grades">Sekundarstufe (1-6 Noten)</option>
                 </select>
                 <button class="btn-accent" onclick="saveSettings()">Speichern</button>
             </div>
-            <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
+            <button onclick="resetAll()" style="background:none; border:none; color:var(--danger); cursor:pointer; width:100%; text-align:center; margin-top: 20px;">⚠️ Alle Daten unwiderruflich löschen</button>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" style="background:none; border:none; color:var(--accent); cursor:pointer; margin-bottom:10px;">← Zurück</button>
-            <h1 id="det-title">Fach</h1>
-            <div class="stats-hero"><h2 id="det-avg">-</h2></div>
+            <button onclick="showPage('list')" style="color:var(--accent); background:none; border:none; cursor:pointer; margin-bottom:20px; font-size:16px;">← Zurück zum Dashboard</button>
+            <h1 id="det-title" style="margin-bottom: 5px;">Fach</h1>
+            <div class="stats-hero" style="padding: 20px;"><h2 id="det-avg" style="font-size: 50px; margin: 0;">-</h2></div>
             <div class="input-card">
-                <input type="number" id="n-val" placeholder="Note eingeben...">
-                <button class="btn-accent" onclick="addNote()">Note hinzufügen</button>
+                <h3>Note eintragen</h3>
+                <input type="number" id="n-val" placeholder="Wert...">
+                <button class="btn-accent" onclick="addNote()">Speichern</button>
             </div>
             <div id="notes-list"></div>
+            <button onclick="deleteFach()" style="margin-top:40px; color:var(--danger); background:none; border:none; cursor:pointer;">Fach komplett löschen</button>
         </section>
     </main>
 
-    <script>
-        const S_KEY = 'gf_ultra_data';
-        const C_KEY = 'gf_ultra_conf';
-
-        let appData = JSON.parse(localStorage.getItem(S_KEY)) || [];
-        let config = JSON.parse(localStorage.getItem(C_KEY)) || { userName: 'Schüler', accentColor: '#5865f2', isPoints: true };
-
-        window.onload = () => {
-            document.getElementById('display-name').innerText = config.userName;
-            showPage('list');
-        };
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + id).classList.add('active');
-            if(id === 'list') renderDash();
-            if(id === 'stats') renderStats();
-        }
-
-        function addFach() {
-            const name = document.getElementById('f-name').value;
-            if(!name) return;
-            appData.push({ id: Date.now(), name: name, notes: [] });
-            document.getElementById('f-name').value = '';
-            save(); renderDash();
-        }
-
-        function renderDash() {
-            const cont = document.getElementById('grid-container');
-            cont.innerHTML = '';
-            appData.forEach(f => {
-                const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-                cont.innerHTML += `<div class="subject-card" onclick="openDet(${f.id})"><h3>${f.name}</h3><p>Schnitt: ${avg}</p></div>`;
-            });
-        }
-
-        function openDet(id) {
-            window.curId = id;
-            const f = appData.find(x => x.id === id);
-            document.getElementById('det-title').innerText = f.name;
-            showPage('detail');
-            renderDet();
-        }
-
-        function addNote() {
-            const val = parseFloat(document.getElementById('n-val').value);
-            if(isNaN(val)) return;
-            const f = appData.find(x => x.id === window.curId);
-            f.notes.push(val);
-            document.getElementById('n-val').value = '';
-            save(); renderDet();
-        }
-
-        function renderDet() {
-            const f = appData.find(x => x.id === window.curId);
-            document.getElementById('det-avg').innerText = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '-';
-            document.getElementById('notes-list').innerHTML = f.notes.map(n => `<div class="subject-card" style="margin-top:10px">${n}</div>`).join('');
-        }
-
-        function saveSettings() {
-            config.userName = document.getElementById('set-name').value || config.userName;
-            config.isPoints = document.getElementById('set-system').value === 'points';
-            localStorage.setItem(C_KEY, JSON.stringify(config));
-            document.getElementById('display-name').innerText = config.userName;
-            alert("Gespeichert!");
-        }
-
-        function save() { localStorage.setItem(S_KEY, JSON.stringify(appData)); }
-        function renderStats() {
-            const totalAvg = appData.length ? (appData.reduce((acc, f) => acc + (f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : 0), 0) / appData.filter(f => f.notes.length).length || 0).toFixed(1) : '-';
-            document.getElementById('total-avg').innerText = totalAvg;
-            document.getElementById('total-count').innerText = appData.reduce((a,b) => a + b.notes.length, 0);
-        }
-        function resetAll() { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
