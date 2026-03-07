@@ -123,6 +123,7 @@ export function initApp() {
     let confirmAction = null;
 
     applyThemeSettings();
+    closeConfirmModal();
     syncSidebarToggleState();
     hydrateSettingsForm();
     updateSelectedDayUI();
@@ -132,7 +133,13 @@ export function initApp() {
 
     function bindEvents() {
         els.navButtons.forEach((button) => {
-            button.addEventListener("click", () => showPage(button.dataset.page));
+            button.addEventListener("click", () => {
+                showPage(button.dataset.page);
+                if (window.innerWidth <= 920) {
+                    document.body.classList.remove("sidebar-expanded");
+                    syncSidebarToggleState();
+                }
+            });
         });
 
         els.sidebarToggle.addEventListener("click", () => {
@@ -1087,7 +1094,13 @@ export function initApp() {
     function syncSidebarToggleState() {
         const expanded = document.body.classList.contains("sidebar-expanded");
         els.sidebarToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-        els.sidebarToggle.textContent = expanded ? "Menü zuklappen" : "Menü";
+        if (window.innerWidth <= 920) {
+            els.sidebarToggle.textContent = expanded ? "Menü schließen" : "Menü öffnen";
+        } else if (window.innerWidth <= 1200) {
+            els.sidebarToggle.textContent = expanded ? "Menü zuklappen" : "Menü";
+        } else {
+            els.sidebarToggle.textContent = "Menü";
+        }
     }
 
     function openConfirmModal(message, onConfirm) {

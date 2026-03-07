@@ -683,6 +683,12 @@ button:focus-visible {
 
 .modal.hidden {
     display: none !important;
+    pointer-events: none;
+}
+
+.modal[aria-hidden="true"] {
+    display: none !important;
+    pointer-events: none;
 }
 
 .modal-backdrop {
@@ -899,8 +905,19 @@ body.density-compact {
         box-shadow: 0 16px 30px rgba(5, 10, 18, 0.24);
     }
 
+    .sidebar-toggle {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     .nav {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        display: none;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    body.sidebar-expanded .nav {
+        display: grid;
     }
 }
 
