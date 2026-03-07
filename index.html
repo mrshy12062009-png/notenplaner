@@ -26,27 +26,24 @@
         </section>
 
         <section id="page-goals" class="page">
-            <h1>Meine Ziele</h1>
+            <h1>🎯 Meine Ziele</h1>
             <div class="input-card">
-                <label>Dein Zielwert (z.B. 11 oder 2.0)</label>
-                <input type="number" id="goal-input" step="0.1">
-                <button class="btn-accent" onclick="updateGoal()">Ziel speichern</button>
-            </div>
-            <div class="input-card">
-                <h3>Farblegende</h3>
-                <div style="display:flex; gap:15px; flex-direction:column">
-                    <div><span style="color:var(--success)">●</span> Grün: Ziel erreicht</div>
-                    <div><span style="color:var(--warning)">●</span> Gelb: Knapp darunter</div>
-                    <div><span style="color:var(--danger)">●</span> Rot: Handlungsbedarf</div>
+                <label>Dein Gesamtziel</label>
+                <input type="number" id="goal-input" step="0.1" oninput="updateGoal(this.value)">
+                <div class="total-status-bar">
+                    <span>Gesamtschnitt: <b id="goal-total-val">-</b></span>
+                    <span id="goal-label-all" class="badge">Berechne...</span>
                 </div>
             </div>
+            <h3>Fächer-Analyse</h3>
+            <div id="goals-list" class="goals-container"></div>
         </section>
 
         <section id="page-settings" class="page">
-            <h1>Einstellungen</h1>
+            <h1>⚙️ Einstellungen</h1>
             <div class="input-card">
                 <label>App-Design Farbe</label>
-                <div class="color-picker" style="margin-top:10px">
+                <div class="color-picker">
                     <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
                     <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
                     <div class="color-dot" style="background:#2ed573" onclick="changeTheme('#2ed573')"></div>
@@ -57,22 +54,35 @@
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← Zurück</button>
-            <div class="detail-header" id="det-header">
-                <h1 id="det-title" style="margin:0">Fach</h1>
-                <h2 id="det-avg" style="margin:0; font-size:40px">15.0</h2>
-            </div>
+            <button onclick="showPage('list')" class="btn-back">← Zurück zum Dashboard</button>
             
-            <div class="input-card">
-                <h3>Note hinzufügen</h3>
-                <input type="number" id="n-val" placeholder="Wert...">
-                <button class="btn-accent" onclick="addNote()">Speichern</button>
+            <div class="detail-hero" id="det-hero">
+                <div>
+                    <h1 id="det-title" style="margin:0">Fachname</h1>
+                    <p id="det-status-text" style="margin:5px 0 0 0; opacity:0.8">Status: -</p>
+                </div>
+                <div class="avg-circle" id="det-avg">-</div>
             </div>
-            <div id="notes-list"></div>
-            <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
+
+            <div class="detail-grid">
+                <div class="input-card">
+                    <h3>Neue Note</h3>
+                    <input type="number" id="n-val" placeholder="Punkte/Note...">
+                    <button class="btn-accent" onclick="addNote()">Note Speichern</button>
+                </div>
+
+                <div class="input-card">
+                    <h3>Analyse</h3>
+                    <div id="det-analysis-text">Gib Noten ein, um eine Analyse zu sehen.</div>
+                </div>
+            </div>
+
+            <h3>Notenverlauf</h3>
+            <div id="notes-list" class="notes-history"></div>
+            
+            <button onclick="deleteFach()" class="btn-link-danger">🗑️ Fach komplett löschen</button>
         </section>
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>
