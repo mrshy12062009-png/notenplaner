@@ -1,5 +1,5 @@
-const S_KEY = 'gf_pro_v25';
-const C_KEY = 'gf_conf_v25';
+const S_KEY = 'gf_pro_v26';
+const C_KEY = 'gf_conf_v26';
 
 let appData = JSON.parse(localStorage.getItem(S_KEY)) || [];
 let config = JSON.parse(localStorage.getItem(C_KEY)) || { target: 11, accentColor: '#5865f2' };
@@ -13,8 +13,8 @@ function getStatus(avg, subjectGoal) {
     if (!avg) return { color: 'neutral', class: '', label: 'Keine Noten' };
     const goal = subjectGoal || config.target;
     if (avg >= goal) return { color: 'success', class: 'bg-success', label: 'Ziel erreicht' };
-    if (avg >= goal - 2) return { color: 'warning', class: 'bg-warning', label: 'Knapp darunter' };
-    return { color: 'danger', class: 'bg-danger', label: 'Handlungsbedarf' };
+    if (avg >= goal - 2) return { color: 'warning', class: 'bg-warning', label: 'Mittel' };
+    return { color: 'danger', class: 'bg-danger', label: 'Schlecht' };
 }
 
 window.showPage = (id) => {
@@ -38,19 +38,16 @@ window.renderDash = () => {
 
         cont.innerHTML += `
             <div class="subject-card" style="border-left-color: var(--${status.color})" onclick="openDet(${f.id})">
-                <small style="opacity:0.5">${f.name}</small>
-                <h2 class="text-${status.color}" style="margin:5px 0">${avg ? avg.toFixed(1) : '-'}</h2>
-                <div style="font-size:11px">Ziel: ${f.customGoal || config.target}</div>
+                <small style="opacity:0.6">${f.name}</small>
+                <h2 class="text-${status.color}">${avg ? avg.toFixed(1) : '-'}</h2>
+                <small>Ziel: ${f.customGoal || config.target}</small>
             </div>`;
     });
 
-    // Gesamtanalyse im Dashboard
     const totalAvg = count > 0 ? (totalSum / count) : 0;
     const globalStatus = getStatus(totalAvg);
-    const analysisEl = document.getElementById('global-analysis-dash');
-    
     document.getElementById('dash-total').innerText = totalAvg.toFixed(2);
-    analysisEl.className = `total-status-card text-${globalStatus.color}`;
+    document.getElementById('global-analysis-dash').className = `total-status-card text-${globalStatus.color}`;
 };
 
 window.openDet = (id) => {
@@ -61,7 +58,6 @@ window.openDet = (id) => {
     const status = getStatus(avg, f.customGoal);
     const goal = f.customGoal || config.target;
 
-    // HEADER FÄRBEN
     const header = document.getElementById('det-header');
     header.className = `detail-hero ${status.class || ''}`;
     if(!status.class) header.style.background = 'var(--card)'; else header.style.background = '';
@@ -70,18 +66,32 @@ window.openDet = (id) => {
     document.getElementById('det-avg').innerText = avg ? avg.toFixed(1) : '-';
     document.getElementById('det-status-badge').innerText = status.label;
 
-    // Analyse Text
     const diff = avg ? (avg - goal).toFixed(1) : 0;
     document.getElementById('det-analysis-text').innerHTML = avg ? 
-        `Dein Schnitt ist <b>${avg.toFixed(1)}</b>. Dein Ziel liegt bei <b>${goal}</b>. <br><br> 
-        <span class="text-${status.color}">${diff >= 0 ? '✅ Du bist ' + diff + ' über dem Ziel!' : '❌ Dir fehlen ' + Math.abs(diff) + ' zum Ziel.'}</span>` : 
-        "Noch keine Noten eingetragen.";
+        `<span class="text-${status.color}"><b>${diff >= 0 ? '✅ Ziel erreicht (+' + diff + ')' : '❌ Ziel verfehlt (' + diff + ')'}</b></span>` : 
+        "Noch keine Noten.";
 
     document.getElementById('notes-list').innerHTML = f.notes.map((n, i) => `
-        <div class="input-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <div class="input-card" style="display:flex; justify-content:space-between">
             <span>Note: <b>${n}</b></span>
-            <button class="btn-danger" onclick="deleteNote(${i})" style="padding:5px 10px">Löschen</button>
+            <button class="btn-danger" onclick="deleteNote(${i})" style="padding:5px">X</button>
         </div>`).reverse().join('');
+};
+
+window.addFach = () => {
+    const name = document.getElementById('f-name').value;
+    if(!name) return;
+    appData.push({ id: Date.now(), name: name, notes: [], customGoal: null });
+    document.getElementById('f-name').value = '';
+    save(); renderDash();
+};
+
+window.addNote = () => {
+    const val = parseFloat(document.getElementById('n-val').value);
+    if(isNaN(val)) return;
+    appData.find(x => x.id === window.curId).notes.push(val);
+    document.getElementById('n-val').value = '';
+    save(); openDet(window.curId);
 };
 
 window.renderGoals = () => {
@@ -100,29 +110,8 @@ window.renderGoals = () => {
                 <span class="text-${status.color}" style="font-weight:bold">${avg ? avg.toFixed(1) : '-'}</span>
             </div>`;
     });
-
     const totalAvg = count > 0 ? (totalSum / count) : 0;
-    const globalStatus = getStatus(totalAvg);
-    const feedback = document.getElementById('total-goal-feedback');
-    feedback.innerText = `Gesamtschnitt: ${totalAvg.toFixed(2)} (${globalStatus.label})`;
-    feedback.className = `text-${globalStatus.color}`;
-};
-
-// ... Restliche Standard-Funktionen (addFach, addNote, save, etc.)
-window.addFach = () => {
-    const name = document.getElementById('f-name').value;
-    if(!name) return;
-    appData.push({ id: Date.now(), name: name, notes: [], customGoal: null });
-    document.getElementById('f-name').value = '';
-    save(); renderDash();
-};
-
-window.addNote = () => {
-    const val = parseFloat(document.getElementById('n-val').value);
-    if(isNaN(val)) return;
-    appData.find(x => x.id === window.curId).notes.push(val);
-    document.getElementById('n-val').value = '';
-    save(); openDet(window.curId);
+    document.getElementById('total-goal-feedback').innerText = `Gesamtschnitt: ${totalAvg.toFixed(2)}`;
 };
 
 window.openGoalModal = (id) => {
@@ -147,5 +136,6 @@ window.deleteNote = (i) => {
     f.notes.splice(f.notes.length - 1 - i, 1);
     save(); openDet(window.curId);
 };
-window.deleteFach = () => { if(confirm("Löschen?")) { appData = appData.filter(x => x.id !== window.curId); save(); showPage('list'); } };
+window.deleteFach = () => { if(confirm("Fach löschen?")) { appData = appData.filter(x => x.id !== window.curId); save(); showPage('list'); } };
 function save() { localStorage.setItem(S_KEY, JSON.stringify(appData)); localStorage.setItem(C_KEY, JSON.stringify(config)); }
+window.resetAll = () => { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } };
