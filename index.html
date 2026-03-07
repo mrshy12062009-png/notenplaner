@@ -16,12 +16,9 @@
 
     <main class="main-content">
         <section id="page-list" class="page active">
-            <div class="header-area">
-                <h1>Dashboard</h1>
-                <div class="total-status-card">Schnitt: <span id="dash-total">-</span></div>
-            </div>
+            <h1>Dashboard</h1>
             <div class="input-card">
-                <input type="text" id="f-name" placeholder="Neues Fach...">
+                <input type="text" id="f-name" placeholder="Neues Fach hinzufügen...">
                 <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
@@ -30,34 +27,55 @@
         <section id="page-goals" class="page">
             <h1>🎯 Meine Ziele</h1>
             <div class="input-card">
-                <label>Dein Wunsch-Ziel (z.B. 15 Punkte)</label>
-                <input type="number" id="goal-input" step="0.1" oninput="updateGlobalGoal(this.value)">
+                <label>Dein persönliches Ziel-Level</label>
+                <input type="number" id="goal-input" step="1" oninput="updateGlobalGoal(this.value)">
+                <p class="hint">Dieses Ziel wird nur hier für den Check genutzt.</p>
             </div>
             <div id="goals-list" class="goals-list"></div>
         </section>
 
         <section id="page-settings" class="page">
             <h1>⚙️ Einstellungen</h1>
-            <div class="input-card">
-                <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
+            <div class="settings-container">
+                <div class="input-card">
+                    <h3>Datensicherung</h3>
+                    <p>Sichere deine Noten oder übertrage sie auf ein anderes Gerät.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="exportData()">📥 Backup Kopieren</button>
+                        <button class="btn-secondary" onclick="importData()">📤 Backup Einspielen</button>
+                    </div>
+                </div>
+                <div class="input-card danger-zone">
+                    <h3>Gefahrenzone</h3>
+                    <p>Dies löscht unwiderruflich alle eingetragenen Fächer und Noten.</p>
+                    <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
+                </div>
             </div>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-back">← Zurück</button>
+            <button onclick="showPage('list')" class="btn-back">← Dashboard</button>
             <div class="detail-hero" id="det-header">
                 <div class="hero-content">
-                    <h1 id="det-title">Fach</h1>
+                    <h1 id="det-title">-</h1>
                     <div id="det-status-badge" class="status-pill">-</div>
                 </div>
-                <div class="hero-avg"><span id="det-avg">-</span></div>
+                <div class="hero-avg" id="det-avg">-</div>
             </div>
-            <div class="input-card">
-                <input type="number" id="n-val" placeholder="Punkte...">
-                <button class="btn-accent" onclick="addNote()">Speichern</button>
+            
+            <div class="detail-grid">
+                <div class="input-card">
+                    <h3>Note hinzufügen</h3>
+                    <input type="number" id="n-val" placeholder="Punkte (0-15)...">
+                    <button class="btn-accent" onclick="addNote()">Speichern</button>
+                </div>
+                <div class="input-card" id="det-analysis-box">
+                    <h3>Info</h3>
+                    <p id="det-analysis-text">Wird berechnet...</p>
+                </div>
             </div>
-            <h3>Verlauf</h3>
-            <div id="notes-list"></div>
+            <h3>Notenverlauf</h3>
+            <div id="notes-list" class="history-list"></div>
             <button onclick="deleteFach()" class="btn-link-danger">Fach löschen</button>
         </section>
     </main>
