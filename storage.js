@@ -18,6 +18,7 @@ const SCHEMA_VERSION = 2;
 const DEFAULT_EVENTS_SEED = {};
 const DEFAULT_SETTINGS = {
     accent: "teal",
+    region: "ALL",
     weekend: "blue",
     radius: "soft",
     density: "comfortable",
@@ -260,6 +261,7 @@ function sanitizeSettings(input) {
     const settings = input && typeof input === "object" ? input : {};
     return {
         accent: ["teal", "blue", "green", "orange"].includes(settings.accent) ? settings.accent : DEFAULT_SETTINGS.accent,
+        region: ["ALL", "BW", "BY", "BE", "BB", "HB", "HH", "HE", "MV", "NI", "NW", "RP", "SL", "SN", "ST", "SH", "TH"].includes(settings.region) ? settings.region : DEFAULT_SETTINGS.region,
         weekend: ["blue", "mint", "rose", "gray"].includes(settings.weekend) ? settings.weekend : DEFAULT_SETTINGS.weekend,
         radius: ["soft", "sharp", "rounded"].includes(settings.radius) ? settings.radius : DEFAULT_SETTINGS.radius,
         density: ["comfortable", "compact"].includes(settings.density) ? settings.density : DEFAULT_SETTINGS.density,

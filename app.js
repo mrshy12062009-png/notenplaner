@@ -18,10 +18,12 @@ import {
     persistSettings,
     persistSubjects
 } from "./storage.js";
+import { getRegionalCalendarInfo } from "./regional-calendar.js";
 
 export function initApp() {
     const defaultSettings = {
         accent: "teal",
+        region: "ALL",
         weekend: "blue",
         radius: "soft",
         density: "comfortable",
@@ -84,6 +86,7 @@ export function initApp() {
 
         settingsForm: document.getElementById("settings-form"),
         settingAccent: document.getElementById("setting-accent"),
+        settingRegion: document.getElementById("setting-region"),
         settingWeekend: document.getElementById("setting-weekend"),
         settingRadius: document.getElementById("setting-radius"),
         settingDensity: document.getElementById("setting-density"),
@@ -232,6 +235,7 @@ export function initApp() {
     function onSettingsChange() {
         state.settings = persistSettings({
             accent: els.settingAccent.value,
+            region: els.settingRegion.value,
             weekend: els.settingWeekend.value,
             radius: els.settingRadius.value,
             density: els.settingDensity.value,
@@ -244,6 +248,7 @@ export function initApp() {
 
     function hydrateSettingsForm() {
         els.settingAccent.value = state.settings.accent;
+        els.settingRegion.value = state.settings.region;
         els.settingWeekend.value = state.settings.weekend;
         els.settingRadius.value = state.settings.radius;
         els.settingDensity.value = state.settings.density;
@@ -366,8 +371,8 @@ export function initApp() {
             if (meta.isWeekend) dayClasses.push("is-weekend");
             if (meta.isPast) dayClasses.push("is-past");
             if (meta.isToday) dayClasses.push("is-today");
-            if (meta.holidayName) dayClasses.push("is-holiday");
-            if (meta.vacationName) dayClasses.push("is-vacation");
+            if (meta.holidayNames.length) dayClasses.push("is-holiday");
+            if (meta.vacationNames.length) dayClasses.push("is-vacation");
             if (state.selectedDate === dateStr) dayClasses.push("is-selected");
 
             html += `
@@ -377,8 +382,8 @@ export function initApp() {
                         ${meta.isToday ? '<span class="today-badge">Heute</span>' : ""}
                     </div>
                     <div class="day-meta">
-                        ${meta.holidayName ? `<span class="day-pill day-pill-holiday">${escapeHtml(meta.holidayName)}</span>` : ""}
-                        ${meta.vacationName ? `<span class="day-pill day-pill-vacation">${escapeHtml(meta.vacationName)}</span>` : ""}
+                        ${meta.holidayNames.length ? `<span class="day-pill day-pill-holiday">${escapeHtml(summarizeLabel(meta.holidayNames))}</span>` : ""}
+                        ${meta.vacationNames.length ? `<span class="day-pill day-pill-vacation">${escapeHtml(summarizeLabel(meta.vacationNames))}</span>` : ""}
                     </div>
                     ${events.length ? `<span class="event-dot priority-${dominantPriority}" title="${events.length} Termin(e)"></span>` : ""}
                 </article>
@@ -748,25 +753,25 @@ export function initApp() {
         const meta = getDayMeta(dateStr);
         const special = [];
 
-        if (meta.holidayName) {
+        meta.holidayNames.forEach((name) => {
             special.push({
                 kind: "special",
                 date: dateStr,
-                text: meta.holidayName,
+                text: name,
                 typeLabel: "Feiertag",
                 priority: "high"
             });
-        }
+        });
 
-        if (meta.vacationName) {
+        meta.vacationNames.forEach((name) => {
             special.push({
                 kind: "special",
                 date: dateStr,
-                text: meta.vacationName,
+                text: name,
                 typeLabel: "Ferien",
                 priority: "medium"
             });
-        }
+        });
 
         return special;
     }
@@ -774,15 +779,16 @@ export function initApp() {
     function getDayMeta(dateStr) {
         const date = new Date(`${dateStr}T00:00:00`);
         const today = startOfDay(new Date());
+        const regional = getRegionalCalendarInfo(date, state.settings.region);
         const isWeekend = date.getDay() === 0 || date.getDay() === 6;
         const isToday = toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate()) === dateStr;
         const isPast = date < today;
-        const holidayName = getHolidayName(date);
-        const vacationName = getVacationName(date);
+        const holidayNames = regional.holidayNames;
+        const vacationNames = regional.vacationNames;
 
         const titleParts = [];
-        if (holidayName) titleParts.push(`Feiertag: ${holidayName}`);
-        if (vacationName) titleParts.push(`Ferien: ${vacationName}`);
+        if (holidayNames.length) titleParts.push(`Feiertag: ${holidayNames.join(", ")}`);
+        if (vacationNames.length) titleParts.push(`Ferien: ${vacationNames.join(", ")}`);
         if (isWeekend) titleParts.push("Wochenende");
         if (isToday) titleParts.push("Heute");
         if (isPast) titleParts.push("Vergangener Tag");
@@ -791,119 +797,20 @@ export function initApp() {
             isWeekend,
             isToday,
             isPast,
-            holidayName,
-            vacationName,
+            holidayNames,
+            vacationNames,
             title: titleParts.join(" | ") || "Kalendertag"
         };
-    }
-
-    function getHolidayName(date) {
-        const holidays = getGermanHolidayMap(date.getFullYear());
-        const key = toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
-        return holidays[key] || "";
-    }
-
-    function getVacationName(date) {
-        const iso = toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
-        const ranges = [...buildVacationRanges(date.getFullYear() - 1), ...buildVacationRanges(date.getFullYear())];
-        const range = ranges.find((entry) => iso >= entry.start && iso <= entry.end);
-        return range ? range.name : "";
-    }
-
-    function buildVacationRanges(year) {
-        const easter = calculateEasterSunday(year);
-        const winterStart = firstMondayOfMonth(year, 1);
-        const springStart = addDays(easter, -9);
-        const springEnd = addDays(easter, 1);
-        const autumnStart = firstMondayOfMonth(year, 9);
-
-        return [
-            {
-                name: "Winterferien",
-                start: dateToIso(winterStart),
-                end: dateToIso(addDays(winterStart, 6))
-            },
-            {
-                name: "Osterferien",
-                start: dateToIso(springStart),
-                end: dateToIso(springEnd)
-            },
-            {
-                name: "Sommerferien",
-                start: toIsoDate(year, 7, 15),
-                end: toIsoDate(year, 8, 26)
-            },
-            {
-                name: "Herbstferien",
-                start: dateToIso(autumnStart),
-                end: dateToIso(addDays(autumnStart, 13))
-            },
-            {
-                name: "Weihnachtsferien",
-                start: toIsoDate(year, 12, 23),
-                end: toIsoDate(year + 1, 1, 6)
-            }
-        ];
-    }
-
-    function getGermanHolidayMap(year) {
-        const easter = calculateEasterSunday(year);
-        const map = {
-            [toIsoDate(year, 1, 1)]: "Neujahr",
-            [toIsoDate(year, 3, 8)]: "Internationaler Frauentag",
-            [toIsoDate(year, 5, 1)]: "Tag der Arbeit",
-            [toIsoDate(year, 10, 3)]: "Tag der Deutschen Einheit",
-            [toIsoDate(year, 10, 31)]: "Reformationstag",
-            [toIsoDate(year, 12, 25)]: "1. Weihnachtstag",
-            [toIsoDate(year, 12, 26)]: "2. Weihnachtstag"
-        };
-
-        map[dateToIso(addDays(easter, -2))] = "Karfreitag";
-        map[dateToIso(addDays(easter, 1))] = "Ostermontag";
-        map[dateToIso(addDays(easter, 39))] = "Christi Himmelfahrt";
-        map[dateToIso(addDays(easter, 50))] = "Pfingstmontag";
-
-        return map;
-    }
-
-    function calculateEasterSunday(year) {
-        const a = year % 19;
-        const b = Math.floor(year / 100);
-        const c = year % 100;
-        const d = Math.floor(b / 4);
-        const e = b % 4;
-        const f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3);
-        const h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4);
-        const k = c % 4;
-        const l = (32 + 2 * e + 2 * i - h - k) % 7;
-        const m = Math.floor((a + 11 * h + 22 * l) / 451);
-        const month = Math.floor((h + l - 7 * m + 114) / 31);
-        const day = ((h + l - 7 * m + 114) % 31) + 1;
-        return new Date(year, month - 1, day);
-    }
-
-    function addDays(date, offset) {
-        const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        copy.setDate(copy.getDate() + offset);
-        return copy;
-    }
-
-    function firstMondayOfMonth(year, monthIndex) {
-        const date = new Date(year, monthIndex, 1);
-        const day = date.getDay();
-        const offset = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
-        date.setDate(date.getDate() + offset);
-        return date;
     }
 
     function startOfDay(date) {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
-    function dateToIso(date) {
-        return toIsoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    function summarizeLabel(entries) {
+        if (!entries.length) return "";
+        if (entries.length === 1) return entries[0];
+        return `${entries[0]} +${entries.length - 1}`;
     }
 
     function setFeedback(target, message, isError = false) {
