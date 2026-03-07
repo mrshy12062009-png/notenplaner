@@ -46,8 +46,27 @@ body {
 .day.past { opacity: 0.3; background: #0d1117; } /* Vergangenheit ausgegraut */
 .day.today { border: 2px solid var(--accent); }
 
-.event-tag { background: #238636; font-size: 10px; padding: 2px 4px; border-radius: 4px; margin-top: 4px; display: block; }
+.event-tag {
+    display: block;
+    font-size: 10px;
+    margin-top: 4px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: white;
+}
 
+.event-tag.exam {
+    background: #f85149; /* Rot für Prüfungen */
+}
+
+.event-tag.holiday {
+    background: #238636; /* Grün für Ferien/Feiertage */
+}
+
+.day.today {
+    border: 2px solid var(--accent);
+    background: rgba(88, 101, 242, 0.1);
+}
 /* Buttons & Inputs */
 .input-group { margin-bottom: 20px; display: flex; gap: 10px; }
 input { background: #0d1117; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 6px; flex: 1; }
