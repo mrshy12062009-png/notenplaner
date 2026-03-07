@@ -55,7 +55,7 @@
                         <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
                     </div>
                     <div id="calendar-grid" class="days-grid"></div>
-                    <div class="calendar-legend">
+                    <div id="calendar-legend" class="calendar-legend">
                         <span class="legend-item"><i class="legend-swatch legend-today"></i>Heute</span>
                         <span class="legend-item"><i class="legend-swatch legend-weekend"></i>Wochenende</span>
                         <span class="legend-item"><i class="legend-swatch legend-holiday"></i>Feiertag</span>
@@ -165,97 +165,139 @@
                     <p>Passe Oberfläche und Kalenderdarstellung an.</p>
                 </div>
                 <form id="settings-form" class="stack" novalidate>
-                    <div class="setting-grid">
-                        <label class="setting-item" for="setting-accent">
-                            <span>Akzentfarbe</span>
-                            <select id="setting-accent" name="setting-accent">
-                                <option value="teal">Petrol</option>
-                                <option value="blue">Blau</option>
-                                <option value="green">Grün</option>
-                                <option value="orange">Orange</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-region">
-                            <span>Bundesland</span>
-                            <select id="setting-region" name="setting-region">
-                                <option value="ALL">Alle 16</option>
-                                <option value="BW">Baden-Württemberg</option>
-                                <option value="BY">Bayern</option>
-                                <option value="BE">Berlin</option>
-                                <option value="BB">Brandenburg</option>
-                                <option value="HB">Bremen</option>
-                                <option value="HH">Hamburg</option>
-                                <option value="HE">Hessen</option>
-                                <option value="MV">Mecklenburg-Vorpommern</option>
-                                <option value="NI">Niedersachsen</option>
-                                <option value="NW">Nordrhein-Westfalen</option>
-                                <option value="RP">Rheinland-Pfalz</option>
-                                <option value="SL">Saarland</option>
-                                <option value="SN">Sachsen</option>
-                                <option value="ST">Sachsen-Anhalt</option>
-                                <option value="SH">Schleswig-Holstein</option>
-                                <option value="TH">Thüringen</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-weekend">
-                            <span>Wochenenden</span>
-                            <select id="setting-weekend" name="setting-weekend">
-                                <option value="blue">Blau</option>
-                                <option value="mint">Mint</option>
-                                <option value="rose">Rosé</option>
-                                <option value="gray">Grau</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-radius">
-                            <span>Rundungen</span>
-                            <select id="setting-radius" name="setting-radius">
-                                <option value="soft">Weich</option>
-                                <option value="sharp">Kompakt</option>
-                                <option value="rounded">Rund</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-density">
-                            <span>Dichte</span>
-                            <select id="setting-density" name="setting-density">
-                                <option value="comfortable">Komfort</option>
-                                <option value="compact">Kompakt</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-background">
-                            <span>Hintergrund</span>
-                            <select id="setting-background" name="setting-background">
-                                <option value="dynamic">Dynamisch</option>
-                                <option value="plain">Einfarbig</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-mode">
-                            <span>Modus</span>
-                            <select id="setting-mode" name="setting-mode">
-                                <option value="light">Hell</option>
-                                <option value="dark">Dark Mode</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-show-holidays">
-                            <span>Feiertage</span>
-                            <select id="setting-show-holidays" name="setting-show-holidays">
-                                <option value="on">Anzeigen</option>
-                                <option value="off">Ausblenden</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-show-vacations">
-                            <span>Ferien</span>
-                            <select id="setting-show-vacations" name="setting-show-vacations">
-                                <option value="on">Anzeigen</option>
-                                <option value="off">Ausblenden</option>
-                            </select>
-                        </label>
-                        <label class="setting-item" for="setting-show-event-labels">
-                            <span>Prüfungslabels</span>
-                            <select id="setting-show-event-labels" name="setting-show-event-labels">
-                                <option value="on">Anzeigen</option>
-                                <option value="off">Ausblenden</option>
-                            </select>
-                        </label>
+                    <div class="settings-layout">
+                        <section class="settings-section" aria-labelledby="setting-ui-heading">
+                            <h3 id="setting-ui-heading">UI & Darstellung</h3>
+                            <div class="setting-grid">
+                                <label class="setting-item" for="setting-mode">
+                                    <span>Modus</span>
+                                    <select id="setting-mode" name="setting-mode">
+                                        <option value="light">Hell</option>
+                                        <option value="dark">Dark Mode</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-accent">
+                                    <span>Akzentfarbe</span>
+                                    <select id="setting-accent" name="setting-accent">
+                                        <option value="teal">Petrol</option>
+                                        <option value="blue">Blau</option>
+                                        <option value="green">Grün</option>
+                                        <option value="orange">Orange</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-background">
+                                    <span>Hintergrund</span>
+                                    <select id="setting-background" name="setting-background">
+                                        <option value="dynamic">Dynamisch</option>
+                                        <option value="plain">Einfarbig</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-radius">
+                                    <span>Rundungen</span>
+                                    <select id="setting-radius" name="setting-radius">
+                                        <option value="soft">Weich</option>
+                                        <option value="sharp">Kompakt</option>
+                                        <option value="rounded">Rund</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-density">
+                                    <span>Dichte</span>
+                                    <select id="setting-density" name="setting-density">
+                                        <option value="comfortable">Komfort</option>
+                                        <option value="compact">Kompakt</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-font-scale">
+                                    <span>Schriftgröße</span>
+                                    <select id="setting-font-scale" name="setting-font-scale">
+                                        <option value="small">Klein</option>
+                                        <option value="normal">Normal</option>
+                                        <option value="large">Groß</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-reduced-motion">
+                                    <span>Animationen</span>
+                                    <select id="setting-reduced-motion" name="setting-reduced-motion">
+                                        <option value="off">Normal</option>
+                                        <option value="on">Reduziert</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-default-page">
+                                    <span>Startseite</span>
+                                    <select id="setting-default-page" name="setting-default-page">
+                                        <option value="list">Dashboard</option>
+                                        <option value="calendar">Kalender</option>
+                                        <option value="stats">Stats</option>
+                                        <option value="goals">Ziele</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="settings-section" aria-labelledby="setting-calendar-heading">
+                            <h3 id="setting-calendar-heading">Kalender</h3>
+                            <div class="setting-grid">
+                                <label class="setting-item" for="setting-region">
+                                    <span>Bundesland</span>
+                                    <select id="setting-region" name="setting-region">
+                                        <option value="ALL">Alle 16</option>
+                                        <option value="BW">Baden-Württemberg</option>
+                                        <option value="BY">Bayern</option>
+                                        <option value="BE">Berlin</option>
+                                        <option value="BB">Brandenburg</option>
+                                        <option value="HB">Bremen</option>
+                                        <option value="HH">Hamburg</option>
+                                        <option value="HE">Hessen</option>
+                                        <option value="MV">Mecklenburg-Vorpommern</option>
+                                        <option value="NI">Niedersachsen</option>
+                                        <option value="NW">Nordrhein-Westfalen</option>
+                                        <option value="RP">Rheinland-Pfalz</option>
+                                        <option value="SL">Saarland</option>
+                                        <option value="SN">Sachsen</option>
+                                        <option value="ST">Sachsen-Anhalt</option>
+                                        <option value="SH">Schleswig-Holstein</option>
+                                        <option value="TH">Thüringen</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-weekend">
+                                    <span>Wochenenden</span>
+                                    <select id="setting-weekend" name="setting-weekend">
+                                        <option value="blue">Blau</option>
+                                        <option value="mint">Mint</option>
+                                        <option value="rose">Rosé</option>
+                                        <option value="gray">Grau</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-show-holidays">
+                                    <span>Feiertage</span>
+                                    <select id="setting-show-holidays" name="setting-show-holidays">
+                                        <option value="on">Anzeigen</option>
+                                        <option value="off">Ausblenden</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-show-vacations">
+                                    <span>Ferien</span>
+                                    <select id="setting-show-vacations" name="setting-show-vacations">
+                                        <option value="on">Anzeigen</option>
+                                        <option value="off">Ausblenden</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-show-event-labels">
+                                    <span>Prüfungslabels</span>
+                                    <select id="setting-show-event-labels" name="setting-show-event-labels">
+                                        <option value="on">Anzeigen</option>
+                                        <option value="off">Ausblenden</option>
+                                    </select>
+                                </label>
+                                <label class="setting-item" for="setting-show-legend">
+                                    <span>Kalender-Legende</span>
+                                    <select id="setting-show-legend" name="setting-show-legend">
+                                        <option value="on">Anzeigen</option>
+                                        <option value="off">Ausblenden</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </section>
                     </div>
                     <div class="inline-form">
                         <button id="settings-reset" class="btn btn-ghost" type="button">Zurücksetzen</button>

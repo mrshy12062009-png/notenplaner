@@ -26,7 +26,11 @@ const DEFAULT_SETTINGS = {
     mode: "light",
     showHolidays: "on",
     showVacations: "on",
-    showEventLabels: "on"
+    showEventLabels: "on",
+    showLegend: "on",
+    defaultPage: "list",
+    fontScale: "normal",
+    reducedMotion: "off"
 };
 
 export function loadSubjectsStore() {
@@ -272,9 +276,13 @@ function sanitizeSettings(input) {
         density: ["comfortable", "compact"].includes(settings.density) ? settings.density : DEFAULT_SETTINGS.density,
         background: ["dynamic", "plain"].includes(settings.background) ? settings.background : DEFAULT_SETTINGS.background,
         mode: ["light", "dark"].includes(settings.mode) ? settings.mode : DEFAULT_SETTINGS.mode,
+        fontScale: ["small", "normal", "large"].includes(settings.fontScale) ? settings.fontScale : DEFAULT_SETTINGS.fontScale,
+        reducedMotion: ["on", "off"].includes(settings.reducedMotion) ? settings.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
+        defaultPage: ["list", "calendar", "stats", "goals"].includes(settings.defaultPage) ? settings.defaultPage : DEFAULT_SETTINGS.defaultPage,
         showHolidays: ["on", "off"].includes(settings.showHolidays) ? settings.showHolidays : DEFAULT_SETTINGS.showHolidays,
         showVacations: ["on", "off"].includes(settings.showVacations) ? settings.showVacations : DEFAULT_SETTINGS.showVacations,
-        showEventLabels: ["on", "off"].includes(settings.showEventLabels) ? settings.showEventLabels : DEFAULT_SETTINGS.showEventLabels
+        showEventLabels: ["on", "off"].includes(settings.showEventLabels) ? settings.showEventLabels : DEFAULT_SETTINGS.showEventLabels,
+        showLegend: ["on", "off"].includes(settings.showLegend) ? settings.showLegend : DEFAULT_SETTINGS.showLegend
     };
 }
 

@@ -31,11 +31,17 @@ export function initApp() {
         mode: "light",
         showHolidays: "on",
         showVacations: "on",
-        showEventLabels: "on"
+        showEventLabels: "on",
+        showLegend: "on",
+        defaultPage: "list",
+        fontScale: "normal",
+        reducedMotion: "off"
     };
 
+    const initialSettings = loadSettings();
+
     const state = {
-        viewPage: "list",
+        viewPage: initialSettings.defaultPage || "list",
         viewDate: new Date(),
         selectedDate: toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
         currentSubjectId: null,
@@ -46,7 +52,7 @@ export function initApp() {
         },
         subjectsStore: loadSubjectsStore(),
         eventsStore: loadEventsStore(),
-        settings: loadSettings(),
+        settings: initialSettings,
         goals: loadGoals()
     };
 
@@ -76,6 +82,7 @@ export function initApp() {
         monthPrev: document.getElementById("month-prev"),
         monthNext: document.getElementById("month-next"),
         calendarGrid: document.getElementById("calendar-grid"),
+        calendarLegend: document.getElementById("calendar-legend"),
         eventList: document.getElementById("event-list"),
         eventForm: document.getElementById("event-form"),
         eventFormTitle: document.getElementById("event-form-title"),
@@ -99,9 +106,13 @@ export function initApp() {
         settingDensity: document.getElementById("setting-density"),
         settingBackground: document.getElementById("setting-background"),
         settingMode: document.getElementById("setting-mode"),
+        settingFontScale: document.getElementById("setting-font-scale"),
+        settingReducedMotion: document.getElementById("setting-reduced-motion"),
+        settingDefaultPage: document.getElementById("setting-default-page"),
         settingShowHolidays: document.getElementById("setting-show-holidays"),
         settingShowVacations: document.getElementById("setting-show-vacations"),
         settingShowEventLabels: document.getElementById("setting-show-event-labels"),
+        settingShowLegend: document.getElementById("setting-show-legend"),
         settingsReset: document.getElementById("settings-reset"),
         settingsFeedback: document.getElementById("settings-feedback"),
         dataExport: document.getElementById("data-export"),
@@ -127,11 +138,14 @@ export function initApp() {
 
     applyThemeSettings();
     closeConfirmModal();
+    if (window.innerWidth <= 1200 && window.innerWidth > 920) {
+        document.body.classList.add("sidebar-collapsed");
+    }
     syncSidebarToggleState();
     hydrateSettingsForm();
     updateSelectedDayUI();
     bindEvents();
-    showPage("list");
+    showPage(state.settings.defaultPage || "list");
     renderAll();
 
     function bindEvents() {
@@ -146,12 +160,16 @@ export function initApp() {
         });
 
         els.sidebarToggle.addEventListener("click", () => {
-            document.body.classList.toggle("sidebar-expanded");
+            if (window.innerWidth <= 920) {
+                document.body.classList.toggle("sidebar-expanded");
+            } else {
+                document.body.classList.toggle("sidebar-collapsed");
+            }
             syncSidebarToggleState();
         });
 
         window.addEventListener("resize", () => {
-            if (window.innerWidth > 1200) {
+            if (window.innerWidth > 920) {
                 document.body.classList.remove("sidebar-expanded");
                 syncSidebarToggleState();
             }
@@ -341,9 +359,13 @@ export function initApp() {
             density: els.settingDensity.value,
             background: els.settingBackground.value,
             mode: els.settingMode.value,
+            fontScale: els.settingFontScale.value,
+            reducedMotion: els.settingReducedMotion.value,
+            defaultPage: els.settingDefaultPage.value,
             showHolidays: els.settingShowHolidays.value,
             showVacations: els.settingShowVacations.value,
-            showEventLabels: els.settingShowEventLabels.value
+            showEventLabels: els.settingShowEventLabels.value,
+            showLegend: els.settingShowLegend.value
         });
         applyThemeSettings();
         renderCalendar();
@@ -359,9 +381,13 @@ export function initApp() {
         els.settingDensity.value = state.settings.density;
         els.settingBackground.value = state.settings.background;
         els.settingMode.value = state.settings.mode;
+        els.settingFontScale.value = state.settings.fontScale;
+        els.settingReducedMotion.value = state.settings.reducedMotion;
+        els.settingDefaultPage.value = state.settings.defaultPage;
         els.settingShowHolidays.value = state.settings.showHolidays;
         els.settingShowVacations.value = state.settings.showVacations;
         els.settingShowEventLabels.value = state.settings.showEventLabels;
+        els.settingShowLegend.value = state.settings.showLegend;
     }
 
     function applyThemeSettings() {
@@ -375,9 +401,15 @@ export function initApp() {
         body.classList.toggle("density-compact", state.settings.density === "compact");
         body.classList.toggle("bg-plain", state.settings.background === "plain");
         body.classList.toggle("mode-dark", state.settings.mode === "dark");
+        body.classList.toggle("font-small", state.settings.fontScale === "small");
+        body.classList.toggle("font-large", state.settings.fontScale === "large");
+        body.classList.toggle("reduce-motion", state.settings.reducedMotion === "on");
 
         root.classList.remove("radius-soft", "radius-sharp", "radius-rounded");
         root.classList.add(`radius-${state.settings.radius}`);
+        if (els.calendarLegend) {
+            els.calendarLegend.classList.toggle("hidden", state.settings.showLegend === "off");
+        }
 
         const accentMap = {
             teal: { primary: "#127f8f", strong: "#0d6774" },
@@ -1110,14 +1142,13 @@ export function initApp() {
     }
 
     function syncSidebarToggleState() {
-        const expanded = document.body.classList.contains("sidebar-expanded");
-        els.sidebarToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        const mobileExpanded = document.body.classList.contains("sidebar-expanded");
+        const desktopCollapsed = document.body.classList.contains("sidebar-collapsed");
+        els.sidebarToggle.setAttribute("aria-expanded", mobileExpanded ? "true" : "false");
         if (window.innerWidth <= 920) {
-            els.sidebarToggle.textContent = expanded ? "Menü schließen" : "Menü öffnen";
-        } else if (window.innerWidth <= 1200) {
-            els.sidebarToggle.textContent = expanded ? "Menü zuklappen" : "Menü";
+            els.sidebarToggle.textContent = mobileExpanded ? "Menü schließen" : "Menü öffnen";
         } else {
-            els.sidebarToggle.textContent = "Menü";
+            els.sidebarToggle.textContent = desktopCollapsed ? "Sidebar öffnen" : "Sidebar zuklappen";
         }
     }
 
