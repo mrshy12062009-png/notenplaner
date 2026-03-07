@@ -1,143 +1,105 @@
-let appData = JSON.parse(localStorage.getItem('gf_final_v8')) || [];
-let userName = localStorage.getItem('gf_userName') || 'Schüler';
+let appData = JSON.parse(localStorage.getItem('gf_v9')) || [];
+let userName = localStorage.getItem('gf_user') || 'Schüler';
 let activeFachId = null;
 
-// Farben-Logik (0-15 Punkte)
-function getStatusColor(points) {
-    if (points >= 11) return '#22c55e'; // Grün
-    if (points >= 5) return '#eab308';  // Gelb
-    if (points > 0) return '#ef4444';   // Rot
-    return '#5865f2';                   // Blau (Standard)
+function getStatusColor(p) {
+    if (p >= 11) return '#22c55e';
+    if (p >= 5) return '#eab308';
+    if (p > 0) return '#ef4444';
+    return '#5865f2';
 }
 
-function showPage(pageId) {
-    // 1. Alle Seiten verstecken
+function showPage(id) {
+    // Seiten umschalten
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    // 2. Gewünschte Seite zeigen
-    document.getElementById('page-' + pageId).classList.add('active');
+    document.getElementById('page-' + id).classList.add('active');
 
-    // 3. SIDEBAR FIX: Alle Buttons resetten, dann den richtigen markieren
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    const activeBtn = document.getElementById('nav-' + pageId);
-    if (activeBtn) activeBtn.classList.add('active');
+    // Sidebar-Buttons umschalten (Der Fix!)
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('nav-' + id);
+    if(btn) btn.classList.add('active');
 
-    // 4. Daten für die Seite laden
+    if(id === 'list') renderGrid();
+    if(id === 'stats') renderStats();
     document.getElementById('user-name-display').innerText = userName;
-    if (pageId === 'list') renderGrid();
-    if (pageId === 'stats') renderStats();
 }
 
 function renderStats() {
-    let totalPoints = 0;
-    let subjectCount = 0;
-    let allNotesCount = 0;
-    const statsDetails = document.getElementById('stats-details');
-    statsDetails.innerHTML = '';
+    let totalPoints = 0, subCount = 0, noteCount = 0;
+    const container = document.getElementById('stats-details');
+    container.innerHTML = '';
 
     appData.forEach(f => {
         if(f.notes.length > 0) {
-            const avg = f.notes.reduce((a,b) => a+b, 0) / f.notes.length;
-            totalPoints += avg;
-            subjectCount++;
-            allNotesCount += f.notes.length;
-            
-            statsDetails.innerHTML += `
-                <div class="subject-card" style="border-left-color: ${getStatusColor(avg)}">
-                    <h3>${f.name}</h3>
-                    <p>Schnitt: ${avg.toFixed(2)} Punkte</p>
-                </div>`;
+            const avg = f.notes.reduce((a,b)=>a+b,0)/f.notes.length;
+            totalPoints += avg; subCount++; noteCount += f.notes.length;
+            container.innerHTML += `<div class="subject-card" style="border-left-color:${getStatusColor(avg)}"><h3>${f.name}</h3><p>Schnitt: ${avg.toFixed(2)}</p></div>`;
         }
     });
 
-    const finalAvg = subjectCount > 0 ? (totalPoints / subjectCount) : 0;
-    
-    // Stats-Zahlen im HTML füllen
-    document.getElementById('total-avg').innerText = subjectCount > 0 ? finalAvg.toFixed(1) : '-';
-    if(document.getElementById('total-count')) {
-        document.getElementById('total-count').innerText = allNotesCount;
-    }
-    // Banner-Farbe der Stats anpassen
-    const statsBanner = document.getElementById('stats-banner');
-    if(statsBanner) statsBanner.style.background = getStatusColor(finalAvg);
+    const final = subCount > 0 ? (totalPoints/subCount) : 0;
+    document.getElementById('total-avg').innerText = subCount > 0 ? final.toFixed(1) : '-';
+    document.getElementById('total-count').innerText = noteCount;
+    document.getElementById('stats-banner').style.background = getStatusColor(final);
 }
 
 function saveSettings() {
-    const inputName = document.getElementById('set-name').value;
-    if(inputName.trim() !== "") {
-        userName = inputName;
-        localStorage.setItem('gf_userName', userName);
-        alert('Name gespeichert!');
-        showPage('list'); // Zurück zum Dashboard
-    }
+    const n = document.getElementById('set-name').value;
+    if(n) { userName = n; localStorage.setItem('gf_user', n); showPage('list'); }
+}
+
+function exportData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "noten_backup.json");
+    downloadAnchorNode.click();
 }
 
 function addFach() {
-    const input = document.getElementById('f-name');
-    if (!input.value.trim()) return;
-    appData.push({ id: Date.now(), name: input.value, notes: [] });
-    input.value = '';
-    save(); renderGrid();
+    const i = document.getElementById('f-name');
+    if(!i.value) return;
+    appData.push({id: Date.now(), name: i.value, notes: []});
+    i.value = ''; save(); renderGrid();
 }
 
 function deleteFach() {
-    if(confirm('Dieses Fach wirklich löschen?')) {
-        appData = appData.filter(x => x.id !== activeFachId);
-        save(); showPage('list');
-    }
+    if(confirm('Fach löschen?')) { appData = appData.filter(x => x.id !== activeFachId); save(); showPage('list'); }
 }
 
 function renderGrid() {
-    const grid = document.getElementById('grid-container');
-    grid.innerHTML = '';
+    const g = document.getElementById('grid-container'); g.innerHTML = '';
     appData.forEach(f => {
         const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length) : 0;
-        const color = getStatusColor(avg);
-        grid.innerHTML += `
-            <div class="subject-card" onclick="openDetail(${f.id})" style="border-left-color: ${color}">
-                <h3>${f.name}</h3>
-                <div style="font-size:32px; font-weight:900; color:${color}">${f.notes.length ? avg.toFixed(1) : '-'}</div>
-            </div>`;
+        const c = getStatusColor(avg);
+        g.innerHTML += `<div class="subject-card" onclick="openDetail(${f.id})" style="border-left-color:${c}"><h3>${f.name}</h3><p style="color:${c}; font-weight:bold; font-size:24px">${f.notes.length ? avg.toFixed(1) : '-'}</p></div>`;
     });
 }
 
 function openDetail(id) {
-    activeFachId = id;
-    const f = appData.find(x => x.id === id);
+    activeFachId = id; const f = appData.find(x => x.id === id);
     document.getElementById('det-title').innerText = f.name;
-    showPage('detail');
-    renderDetail();
+    showPage('detail'); renderDetail();
 }
 
 function addNote() {
-    const val = parseFloat(document.getElementById('n-val').value);
-    if (isNaN(val) || val < 0 || val > 15) return;
-    appData.find(x => x.id === activeFachId).notes.push(val);
-    document.getElementById('n-val').value = '';
-    save(); renderDetail();
+    const v = parseFloat(document.getElementById('n-val').value);
+    if(isNaN(v) || v < 0 || v > 15) return;
+    appData.find(x => x.id === activeFachId).notes.push(v);
+    document.getElementById('n-val').value = ''; save(); renderDetail();
 }
 
 function renderDetail() {
     const f = appData.find(x => x.id === activeFachId);
     const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length) : 0;
-    const color = getStatusColor(avg);
+    const c = getStatusColor(avg);
     document.getElementById('det-avg').innerText = f.notes.length ? avg.toFixed(1) : '-';
-    document.getElementById('hero-banner').style.background = `linear-gradient(135deg, ${color}, #080a12)`;
-    
-    const list = document.getElementById('notes-history');
-    list.innerHTML = '<h3>Notenverlauf</h3>';
-    f.notes.slice().reverse().forEach(n => {
-        list.innerHTML += `<div class="subject-card" style="margin-bottom:10px; padding:15px; border-left-color:${getStatusColor(n)}">${n} Punkte</div>`;
-    });
+    document.getElementById('hero-banner').style.background = c;
+    const h = document.getElementById('notes-history'); h.innerHTML = '<h3>Verlauf</h3>';
+    f.notes.slice().reverse().forEach(n => h.innerHTML += `<div class="subject-card" style="margin-bottom:10px; border-left-color:${getStatusColor(n)}">${n} Punkte</div>`);
 }
 
-function resetAll() {
-    if(confirm('Wirklich ALLES löschen?')) {
-        localStorage.clear();
-        location.reload();
-    }
-}
+function resetAll() { if(confirm('Alles löschen?')) { localStorage.clear(); location.reload(); } }
+function save() { localStorage.setItem('gf_v9', JSON.stringify(appData)); }
 
-function save() { localStorage.setItem('gf_final_v8', JSON.stringify(appData)); }
-
-// Beim Start
 showPage('list');

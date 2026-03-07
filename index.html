@@ -3,84 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Ultimate</title>
+    <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="sidebar">
-    <div class="logo">Grade<span>Flow</span></div>
-    <button class="nav-btn" id="nav-list" onclick="showPage('list')">Dashboard</button>
-    <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">Statistiken</button>
-    <button class="nav-btn" id="nav-settings" onclick="showPage('settings')">Einstellungen</button>
-</nav>
+        <div class="logo">Grade<span>Flow</span></div>
+        <div class="nav-links">
+            <button class="nav-btn" id="nav-list" onclick="showPage('list')">🏠 Dashboard</button>
+            <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">📈 Statistiken</button>
+            <button class="nav-btn" id="nav-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
+        </div>
+    </nav>
 
     <main class="main-content">
-        <section id="page-list" class="page active">
+        <section id="page-list" class="page">
             <div class="page-header">
-                <h1>Willkommen, <span id="user-name-display">Schüler</span></h1>
+                <h1>Hallo, <span id="user-name-display">Schüler</span>! 👋</h1>
                 <div class="input-bar">
-                    <input type="text" id="f-name" placeholder="Fach hinzufügen (z.B. Mathe)...">
+                    <input type="text" id="f-name" placeholder="Neues Fach...">
                     <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
                 </div>
             </div>
             <div id="grid-container" class="dashboard-grid"></div>
         </section>
 
-        <section id="page-detail" class="page">
-            <button class="btn-link" onclick="showPage('list')">← Zurück zum Dashboard</button>
-            <div id="hero-banner" class="subject-hero">
-                <div class="hero-info">
-                    <h2 id="det-title">-</h2>
-                    <p>Punktedurchschnitt</p>
-                </div>
-                <div id="det-avg" class="hero-grade">-</div>
-            </div>
-            <div class="detail-layout">
-                <div id="notes-history" class="history-column"></div>
-                <div class="input-column">
-                    <div class="input-card">
-                        <h3>Neue Note</h3>
-                        <input type="number" id="n-val" placeholder="0-15 Punkte" min="0" max="15">
-                        <button class="btn-accent" onclick="addNote()">Note speichern</button>
-                    </div>
-                    <button class="btn-danger" style="margin-top:10px" onclick="deleteFach()">Fach löschen</button>
-                </div>
-            </div>
-        </section>
-
         <section id="page-stats" class="page">
-            <h1>Deine Performance</h1>
+            <h1>Deine Performance 📊</h1>
             <div class="stats-hero" id="stats-banner">
-                <div>
+                <div class="stat-item">
                     <h2 id="total-avg">-</h2>
-                    <p>Gesamtschnitt (Punkte)</p>
+                    <p>Gesamtschnitt</p>
                 </div>
-                <div>
+                <div class="stat-item">
                     <h2 id="total-count">0</h2>
-                    <p>Eingetragene Noten</p>
+                    <p>Noten gesamt</p>
                 </div>
             </div>
-            <h3>Fächer im Vergleich</h3>
             <div id="stats-details" class="dashboard-grid"></div>
         </section>
 
         <section id="page-settings" class="page">
-            <h1>Einstellungen</h1>
-            <div class="settings-container">
+            <h1>Einstellungen ⚙️</h1>
+            <div class="settings-grid">
                 <div class="input-card">
                     <h3>👤 Profil</h3>
-                    <label>Nutzername</label>
-                    <input type="text" id="set-name" placeholder="Dein Name...">
-                    <button class="btn-accent" onclick="saveSettings()">Speichern</button>
+                    <label>Dein Anzeigename</label>
+                    <input type="text" id="set-name" placeholder="Name eingeben...">
+                    <button class="btn-accent" onclick="saveSettings()">Namen speichern</button>
                 </div>
+
                 <div class="input-card">
-                    <h3>🎨 Design (In Kürze)</h3>
-                    <p style="color:gray">Dark Mode ist standardmäßig aktiv.</p>
+                    <h3>💾 Daten-Backup</h3>
+                    <p>Sichere deine Noten als Textdatei oder lösche alles.</p>
+                    <div class="button-row">
+                        <button class="btn-secondary" onclick="exportData()">📥 Exportieren</button>
+                        <button class="btn-danger" onclick="resetAll()">🗑️ Alles löschen</button>
+                    </div>
                 </div>
+            </div>
+        </section>
+
+        <section id="page-detail" class="page">
+            <button class="btn-link" onclick="showPage('list')">← Zurück</button>
+            <div id="hero-banner" class="subject-hero">
+                <div class="hero-info"><h2 id="det-title">-</h2><p>Punkteschnitt</p></div>
+                <div id="det-avg" class="hero-grade">-</div>
+            </div>
+            <div class="detail-layout">
+                <div id="notes-history"></div>
                 <div class="input-card">
-                    <h3>⚠️ Datenverwaltung</h3>
-                    <p>Alle Daten werden nur lokal in deinem Browser gespeichert.</p>
-                    <button class="btn-danger" onclick="resetAll()">Werkszustand (Alles löschen)</button>
+                    <h3>Note hinzufügen</h3>
+                    <input type="number" id="n-val" placeholder="0-15 Punkte">
+                    <button class="btn-accent" onclick="addNote()">Speichern</button>
+                    <button class="btn-danger-outline" onclick="deleteFach()">Fach löschen</button>
                 </div>
             </div>
         </section>
