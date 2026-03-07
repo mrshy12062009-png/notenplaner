@@ -109,8 +109,15 @@ export function initApp() {
         goalTextInput: document.getElementById("goal-text"),
         goalDateInput: document.getElementById("goal-date"),
         goalFeedback: document.getElementById("goal-feedback"),
-        goalList: document.getElementById("goal-list")
+        goalList: document.getElementById("goal-list"),
+        goalSubjects: document.getElementById("goal-subjects"),
+
+        confirmModal: document.getElementById("confirm-modal"),
+        confirmMessage: document.getElementById("confirm-message"),
+        confirmOk: document.getElementById("confirm-ok"),
+        confirmCancel: document.getElementById("confirm-cancel")
     };
+    let confirmAction = null;
 
     applyThemeSettings();
     hydrateSettingsForm();
@@ -238,6 +245,18 @@ export function initApp() {
             if (action === "toggle-goal") toggleGoal(goalId);
             if (action === "delete-goal") deleteGoal(goalId);
         });
+
+        els.confirmOk.addEventListener("click", () => {
+            const action = confirmAction;
+            closeConfirmModal();
+            if (typeof action === "function") action();
+        });
+        els.confirmCancel.addEventListener("click", closeConfirmModal);
+        els.confirmModal.addEventListener("click", (event) => {
+            if (event.target.dataset.action === "close-confirm") {
+                closeConfirmModal();
+            }
+        });
     }
 
     function renderAll() {
@@ -246,6 +265,7 @@ export function initApp() {
         renderCalendar();
         renderEventList();
         renderStats();
+        renderGoalSubjects();
         renderGoals();
     }
 
@@ -538,6 +558,27 @@ export function initApp() {
             .join("");
     }
 
+    function renderGoalSubjects() {
+        const subjects = state.subjectsStore.subjects;
+        if (!subjects.length) {
+            els.goalSubjects.innerHTML = createEmptyState("Noch keine Fächer vorhanden.");
+            return;
+        }
+
+        els.goalSubjects.innerHTML = subjects
+            .map((subject) => {
+                const avg = calculateAverage(subject.notes);
+                return `
+                    <article class="stat-card">
+                        <p class="list-meta">Fach</p>
+                        <strong>${escapeHtml(subject.name)}</strong>
+                        <p class="list-meta">Schnitt: ${avg ?? "--"} · Noten: ${subject.notes.length}</p>
+                    </article>
+                `;
+            })
+            .join("");
+    }
+
     function selectDate(dateStr) {
         if (!isIsoDate(dateStr)) return;
         state.selectedDate = dateStr;
@@ -579,6 +620,7 @@ export function initApp() {
             state.subjectsStore = persistSubjects(state.subjectsStore);
             renderSubjects();
             renderStats();
+            renderGoalSubjects();
             setFeedback(els.subjectFeedback, "Fach aktualisiert.");
             els.subjectNameInput.value = "";
             return;
@@ -592,6 +634,7 @@ export function initApp() {
         state.subjectsStore = persistSubjects(state.subjectsStore);
         renderSubjects();
         renderStats();
+        renderGoalSubjects();
         els.subjectNameInput.value = "";
         setFeedback(els.subjectFeedback, "Fach angelegt.");
     }
@@ -609,20 +652,19 @@ export function initApp() {
         const subject = state.subjectsStore.subjects.find((entry) => entry.id === subjectId);
         if (!subject) return;
 
-        if (!window.confirm(`Fach "${subject.name}" wirklich löschen?`)) {
-            return;
-        }
-
-        state.subjectsStore.subjects = state.subjectsStore.subjects.filter((entry) => entry.id !== subjectId);
-        if (state.currentSubjectId === subjectId) {
-            state.currentSubjectId = null;
-            resetNoteForm();
-        }
-        state.subjectsStore = persistSubjects(state.subjectsStore);
-        renderSubjects();
-        renderSubjectDetail();
-        renderStats();
-        setFeedback(els.subjectFeedback, "Fach gelöscht.");
+        openConfirmModal(`Fach "${subject.name}" wirklich löschen?`, () => {
+            state.subjectsStore.subjects = state.subjectsStore.subjects.filter((entry) => entry.id !== subjectId);
+            if (state.currentSubjectId === subjectId) {
+                state.currentSubjectId = null;
+                resetNoteForm();
+            }
+            state.subjectsStore = persistSubjects(state.subjectsStore);
+            renderSubjects();
+            renderSubjectDetail();
+            renderStats();
+            renderGoalSubjects();
+            setFeedback(els.subjectFeedback, "Fach gelöscht.");
+        });
     }
 
     function openSubject(subjectId) {
@@ -674,6 +716,7 @@ export function initApp() {
         renderSubjects();
         renderSubjectDetail();
         renderStats();
+        renderGoalSubjects();
     }
 
     function startEditNote(noteId) {
@@ -700,6 +743,7 @@ export function initApp() {
         renderSubjects();
         renderSubjectDetail();
         renderStats();
+        renderGoalSubjects();
         setFeedback(els.noteFeedback, "Note gelöscht.");
     }
 
@@ -934,6 +978,19 @@ export function initApp() {
         if (type === "deadline") return "Abgabe";
         if (type === "other") return "Sonstiges";
         return "Prüfung";
+    }
+
+    function openConfirmModal(message, onConfirm) {
+        confirmAction = onConfirm;
+        els.confirmMessage.textContent = message;
+        els.confirmModal.classList.remove("hidden");
+        els.confirmModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeConfirmModal() {
+        confirmAction = null;
+        els.confirmModal.classList.add("hidden");
+        els.confirmModal.setAttribute("aria-hidden", "true");
     }
 
     function loadGoals() {

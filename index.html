@@ -135,6 +135,10 @@
                     <h2 id="goals-heading">Ziele</h2>
                     <p>Plane Ziele und markiere erledigte Schritte.</p>
                 </div>
+                <div class="stack">
+                    <h3>Fächer aus dem Dashboard</h3>
+                    <div id="goal-subjects" class="subject-goals-grid"></div>
+                </div>
                 <form id="goal-form" class="stack" novalidate>
                     <div class="inline-form responsive-3">
                         <input id="goal-text" type="text" maxlength="90" placeholder="z. B. Mathe auf 12 Punkte verbessern" required>
@@ -251,6 +255,17 @@
                 </form>
             </section>
         </main>
+    </div>
+    <div id="confirm-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-backdrop" data-action="close-confirm"></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <p id="confirm-title" class="modal-title">Bestätigung</p>
+            <p id="confirm-message" class="modal-text">Soll die Aktion ausgeführt werden?</p>
+            <div class="row-actions">
+                <button id="confirm-ok" class="btn btn-primary" type="button">OK</button>
+                <button id="confirm-cancel" class="btn btn-ghost" type="button">Abbrechen</button>
+            </div>
+        </div>
     </div>
     <script type="module" src="script.js"></script>
 </body>

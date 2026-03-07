@@ -244,6 +244,12 @@ button:focus-visible {
     gap: var(--space-3);
 }
 
+.subject-goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-2);
+}
+
 .stat-card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
@@ -577,6 +583,44 @@ button:focus-visible {
 
 .hidden {
     display: none;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 17, 25, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-card {
+    position: relative;
+    width: min(520px, 92vw);
+    background: var(--bg-panel);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: var(--space-4);
+    display: grid;
+    gap: var(--space-2);
+}
+
+.modal-title {
+    font-family: "Sora", "Manrope", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-text {
+    color: var(--text-muted);
 }
 
 body.weekend-gray .day.is-weekend {
