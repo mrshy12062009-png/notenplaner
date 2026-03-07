@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Pro</title>
+    <title>GradeFlow Modern Pro</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
 </head>
@@ -22,19 +22,19 @@
                 <div class="main-avg" id="main-avg">0.0</div>
             </div>
             <div class="add-bar">
-                <input type="text" id="name-in" placeholder="Fach Name... (Enter drücken)">
-                <button onclick="addFach()">+</button>
+                <input type="text" id="name-in" placeholder="Fach Name... (Enter)">
+                <button type="button" onclick="addFach()">Hinzufügen</button>
             </div>
             <div id="dash-grid" class="modern-grid"></div>
         </section>
 
         <section id="page-goals" class="page">
-            <h1>🎯 Deine Wunsch-Ziele</h1>
+            <h1>🎯 Wunsch-Ziele</h1>
             <div id="goals-list" class="goals-container"></div>
         </section>
 
         <section id="page-detail" class="page">
-            <button class="back-link" onclick="showPage('list')">← Zurück zum Dashboard</button>
+            <button class="back-link" onclick="showPage('list')">← Zurück</button>
             <div class="hero-card" id="det-hero">
                 <h1 id="det-title">-</h1>
                 <div class="hero-score" id="det-score">0.0</div>
@@ -42,10 +42,10 @@
             </div>
             <div class="input-area">
                 <div class="glass">
-                    <h3>Note hinzufügen</h3>
+                    <h3>Note eintragen</h3>
                     <div class="flex-input">
-                        <input type="number" id="note-in" placeholder="Punkte... (Enter drücken)">
-                        <button class="btn-primary" onclick="addNote()">Hinzufügen</button>
+                        <input type="number" id="note-in" placeholder="Punkte... (Enter)">
+                        <button type="button" class="btn-primary" onclick="addNote()">OK</button>
                     </div>
                 </div>
             </div>

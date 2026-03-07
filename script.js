@@ -1,15 +1,28 @@
-const DB_KEY = 'GF_FINAL_PRO_V1';
-let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-let active = null;
+let data = JSON.parse(localStorage.getItem('GF_FINAL_STABLE')) || [];
+let activeId = null;
 
-const save = () => localStorage.setItem(DB_KEY, JSON.stringify(data));
+// Wartet bis das HTML komplett geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    renderDash();
 
-// Logik: Was ist "Gut"? (Im Dashboard fest ab 10 Punkten)
+    // Enter für Fach hinzufügen
+    document.getElementById('name-in').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addFach();
+    });
+
+    // Enter für Note hinzufügen
+    document.getElementById('note-in').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addNote();
+    });
+});
+
+function save() {
+    localStorage.setItem('GF_FINAL_STABLE', JSON.stringify(data));
+}
+
 function getStatus(avg) {
-    if (avg === null) return { g: 'var(--grad-none)', t: 'NO DATA' };
-    return avg >= 10 
-        ? { g: 'var(--grad-good)', t: 'GUT' } 
-        : { g: 'var(--grad-bad)', t: 'REVISE' };
+    if (avg === null) return { g: 'var(--grad-none)', t: 'KEINE DATEN' };
+    return avg >= 10 ? { g: 'var(--grad-good)', t: 'GUT' } : { g: 'var(--grad-bad)', t: 'MANGELHAFT' };
 }
 
 function showPage(id) {
@@ -20,10 +33,6 @@ function showPage(id) {
     if(id === 'list') renderDash();
     if(id === 'goals') renderGoals();
 }
-
-// ENTER-OPTIONEN
-document.getElementById('name-in').addEventListener('keypress', (e) => { if(e.key === 'Enter') addFach(); });
-document.getElementById('note-in').addEventListener('keypress', (e) => { if(e.key === 'Enter') addNote(); });
 
 function renderDash() {
     const grid = document.getElementById('dash-grid');
@@ -44,72 +53,79 @@ function renderDash() {
     document.getElementById('main-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
 }
 
+function openDet(id) {
+    activeId = id;
+    const f = data.find(x => x.id === id);
+    showPage('detail');
+    const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
+    const s = getStatus(avg);
+
+    document.getElementById('det-hero').style.background = s.g;
+    document.getElementById('det-title').innerText = f.name;
+    document.getElementById('det-score').innerText = avg !== null ? avg.toFixed(1) : '0.0';
+    document.getElementById('det-status').innerText = s.t;
+
+    const hist = document.getElementById('note-history');
+    hist.innerHTML = f.notes.map((n, i) => `
+        <div class="glass" style="display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px">
+            <b>Punkte: ${n}</b>
+            <button onclick="delNote(${i})" style="color:#ef4444; background:none; border:none; cursor:pointer; font-weight:bold">LÖSCHEN</button>
+        </div>`).reverse().join('');
+}
+
+function addFach() {
+    const input = document.getElementById('name-in');
+    const name = input.value.trim();
+    if(!name) return;
+    data.push({ id: Date.now(), name: name, notes: [], target: 15 });
+    input.value = '';
+    save();
+    renderDash();
+}
+
+function addNote() {
+    const input = document.getElementById('note-in');
+    const val = parseFloat(input.value);
+    if(isNaN(val)) return;
+    const f = data.find(x => x.id === activeId);
+    f.notes.push(val);
+    input.value = '';
+    save();
+    openDet(activeId);
+}
+
+function delNote(i) {
+    const f = data.find(x => x.id === activeId);
+    f.notes.splice(f.notes.length - 1 - i, 1);
+    save();
+    openDet(activeId);
+}
+
+function delFach() {
+    if(confirm("Löschen?")) {
+        data = data.filter(x => x.id !== activeId);
+        save();
+        showPage('list');
+    }
+}
+
 function renderGoals() {
     const list = document.getElementById('goals-list');
     list.innerHTML = '';
     data.forEach(f => {
         list.innerHTML += `
             <div class="goal-edit-card">
-                <span style="font-weight:900; font-size:20px;">${f.name}</span>
-                <div>
-                    <span style="font-size:12px; opacity:0.5; margin-right:15px;">DEIN ZIEL</span>
-                    <input type="number" value="${f.target || 15}" onchange="updateTarget(${f.id}, this.value)">
-                </div>
+                <span style="font-weight:bold">${f.name}</span>
+                <input type="number" value="${f.target}" onchange="updateGoal(${f.id}, this.value)">
             </div>`;
     });
 }
 
-function updateTarget(id, val) {
-    data.find(x => x.id === id).target = parseFloat(val) || 0;
+function updateGoal(id, val) {
+    data.find(x => x.id === id).target = val;
     save();
 }
 
-function openDet(id) {
-    active = data.find(x => x.id === id);
-    showPage('detail');
-    const avg = active.notes.length ? active.notes.reduce((a,b)=>a+b,0)/active.notes.length : null;
-    const s = getStatus(avg);
-
-    document.getElementById('det-hero').style.background = s.g;
-    document.getElementById('det-title').innerText = active.name;
-    document.getElementById('det-score').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-status').innerText = s.t;
-
-    const hist = document.getElementById('note-history');
-    hist.innerHTML = active.notes.map((n, i) => `
-        <div class="glass" style="display:flex; justify-content:space-between; margin-bottom:12px; padding:20px; border-radius:20px;">
-            <b style="font-size:18px;">Punkte: ${n}</b>
-            <button onclick="delNote(${i})" style="color:#f43f5e; background:none; border:none; cursor:pointer; font-weight:900;">LÖSCHEN</button>
-        </div>`).reverse().join('');
-}
-
-function addFach() {
-    const n = document.getElementById('name-in').value;
-    if(!n) return;
-    data.push({ id: Date.now(), name: n, notes: [], target: 15 });
-    document.getElementById('name-in').value = '';
-    save(); renderDash();
-}
-
-function addNote() {
-    const v = parseFloat(document.getElementById('note-in').value);
-    if(isNaN(v)) return;
-    active.notes.push(v);
-    document.getElementById('note-in').value = '';
-    save(); openDet(active.id);
-}
-
-function delNote(i) {
-    active.notes.splice(active.notes.length - 1 - i, 1);
-    save(); openDet(active.id);
-}
-
-function delFach() {
-    if(confirm("Dieses Fach wirklich löschen?")) { data = data.filter(x => x.id !== active.id); save(); showPage('list'); }
-}
-
 function factoryReset() {
-    if(confirm("WIRKLICH ALLES LÖSCHEN?")) { localStorage.clear(); location.reload(); }
+    if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); }
 }
-
-renderDash();
