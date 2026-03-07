@@ -1,9 +1,16 @@
-// Daten-Speicher
 let db = JSON.parse(localStorage.getItem('gf_data')) || [];
-let viewDate = new Date(); // Das aktuell angezeigte Datum im Kalender
+let viewDate = new Date(); 
 let currentFachId = null;
 
-// Beim Start ausführen
+// Neu: Speicher für Kalender-Termine (wird auch im LocalStorage gespeichert)
+let customEvents = JSON.parse(localStorage.getItem('gf_events')) || {
+    "2026-04-21": "MSA Deutsch",
+    "2026-04-29": "MSA Mathe",
+    "2026-05-05": "MSA Englisch (Schriftlich)",
+    "2026-03-09": "Start: Englisch Mündlich",
+    "2026-01-12": "Start: Präsentationsprüfung"
+};
+
 window.onload = () => {
     renderGrid();
     initCalendar();
@@ -14,12 +21,12 @@ function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
     
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.querySelector(`button[onclick*="'${pageId}'"]`);
     if(activeBtn) activeBtn.classList.add('active');
 }
 
-// --- FÄCHER-LOGIK (Fix für das Öffnen) ---
+// --- FÄCHER LOGIK (Dein Fix) ---
 function addFach() {
     const input = document.getElementById('f-in');
     if(!input.value.trim()) return;
@@ -33,14 +40,12 @@ function renderGrid() {
     const g = document.getElementById('grid');
     if(!g) return;
     g.innerHTML = '';
-    
     db.forEach(f => {
         const avg = f.notes.length ? (f.notes.reduce((a,b)=>a+b,0)/f.notes.length).toFixed(1) : '--';
         const card = document.createElement('div');
         card.className = 'card';
-        // Der entscheidende Fix: EventListener statt einfacher onclick-String
         card.addEventListener('click', () => openDetail(f.id));
-        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; color:var(--accent); font-weight:bold;">${avg}</p>`;
+        card.innerHTML = `<h3>${f.name}</h3><p style="font-size:24px; font-weight:bold; color:var(--accent);">${avg}</p>`;
         g.appendChild(card);
     });
 }
@@ -54,7 +59,7 @@ function openDetail(id) {
     showPage('detail');
 }
 
-// --- KALENDER-LOGIK ---
+// --- KALENDER LOGIK ---
 function changeMonth(offset) {
     viewDate.setMonth(viewDate.getMonth() + offset);
     initCalendar();
@@ -66,29 +71,17 @@ function initCalendar() {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-    document.getElementById('month-name').innerText = `${monthNames[month]} ${year}`;
+    document.getElementById('month-name').innerText = 
+        new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(viewDate);
 
     const grid = document.getElementById('calendar-grid');
     if(!grid) return;
     grid.innerHTML = '';
 
-    // Termine & Ferien 2026 (Fest im Code, damit immer verfügbar)
-    const events = {
-        "2026-01-19": "Start: Präsentationsprüfung",
-        "2026-01-30": "Ende: Präsentationsprüfung",
-        "2026-03-23": "MSA Englisch Mündlich",
-        "2026-05-12": "MSA Mathe",
-        "2026-05-19": "MSA Deutsch",
-        "2026-05-21": "MSA Englisch Schriftlich",
-        "2026-03-30": "Osterferien", "2026-04-10": "Osterferien Ende",
-        "2026-07-09": "Sommerferien Beginn"
-    };
-
     let firstDay = new Date(year, month, 1).getDay();
     let shift = (firstDay === 0 ? 6 : firstDay - 1); 
 
-    for(let i=0; i < shift; i++) grid.innerHTML += `<div class="day past" style="opacity:0;"></div>`;
+    for(let i=0; i < shift; i++) grid.innerHTML += `<div class="day" style="opacity:0;"></div>`;
 
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -100,17 +93,26 @@ function initCalendar() {
         if (curr < today) classes.push('past');
         if (curr.getTime() === today.getTime()) classes.push('today');
 
-        let content = events[dateStr] ? `<span class="event-tag">${events[dateStr]}</span>` : '';
+        // Nutzt die customEvents (entweder Standard 2026 oder deine eigenen)
+        let content = customEvents[dateStr] ? `<span class="event-tag">${customEvents[dateStr]}</span>` : '';
         grid.innerHTML += `<div class="${classes.join(' ')}"><strong>${d}</strong>${content}</div>`;
     }
 }
 
-// --- NOTEN & SPEICHERN ---
+// --- FUNKTION: TERMINE AKTUALISIEREN ---
+// Diese Funktion könntest du über die Konsole oder einen Button aufrufen
+function addCustomEvent(date, text) {
+    customEvents[date] = text;
+    localStorage.setItem('gf_events', JSON.stringify(customEvents));
+    initCalendar();
+}
+
+function save() { localStorage.setItem('gf_data', JSON.stringify(db)); }
+
 function addNote() {
     const val = parseInt(document.getElementById('n-in').value);
     if(isNaN(val)) return;
-    const fach = db.find(f => f.id === currentFachId);
-    fach.notes.push(val);
+    db.find(f => f.id === currentFachId).notes.push(val);
     document.getElementById('n-in').value = '';
     save();
     renderNotes();
@@ -120,7 +122,5 @@ function renderNotes() {
     const fach = db.find(f => f.id === currentFachId);
     const avg = fach.notes.length ? (fach.notes.reduce((a,b)=>a+b,0)/fach.notes.length).toFixed(1) : '0.0';
     document.getElementById('d-avg').innerText = `Schnitt: ${avg}`;
-    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div style="background:#161b22; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #30363d;">${n} Punkte</div>`).reverse().join('');
+    document.getElementById('n-list').innerHTML = fach.notes.map(n => `<div class="note-item">${n} Punkte</div>`).reverse().join('');
 }
-
-function save() { localStorage.setItem('gf_data', JSON.stringify(db)); }
