@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Pro</title>
+    <title>GradeFlow Ultimate</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="sidebar">
         <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-btn active" onclick="showPage('list')">Dashboard</button>
-        <button class="nav-btn" onclick="showPage('stats')">Statistiken</button>
-        <button class="nav-btn" onclick="showPage('settings')">Einstellungen</button>
+        <button class="nav-btn active" id="nav-list" onclick="showPage('list')">📊 Dashboard</button>
+        <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">📈 Statistiken</button>
+        <button class="nav-btn" id="nav-settings" onclick="showPage('settings')">⚙️ Einstellungen</button>
     </nav>
 
     <main class="main-content">
         <section id="page-list" class="page active">
             <div class="page-header">
-                <h1>Hallo, <span id="user-name-display">Schüler</span>!</h1>
+                <h1>Willkommen, <span id="user-name-display">Schüler</span></h1>
                 <div class="input-bar">
-                    <input type="text" id="f-name" placeholder="Neues Fach...">
+                    <input type="text" id="f-name" placeholder="Fach hinzufügen (z.B. Mathe)...">
                     <button class="btn-accent" onclick="addFach()">Hinzufügen</button>
                 </div>
             </div>
@@ -27,11 +27,11 @@
         </section>
 
         <section id="page-detail" class="page">
-            <button class="btn-link" onclick="showPage('list')">← Zurück</button>
+            <button class="btn-link" onclick="showPage('list')">← Zurück zum Dashboard</button>
             <div id="hero-banner" class="subject-hero">
                 <div class="hero-info">
-                    <h2 id="det-title">Fachname</h2>
-                    <p>Aktueller Schnitt</p>
+                    <h2 id="det-title">-</h2>
+                    <p>Punktedurchschnitt</p>
                 </div>
                 <div id="det-avg" class="hero-grade">-</div>
             </div>
@@ -39,41 +39,48 @@
                 <div id="notes-history" class="history-column"></div>
                 <div class="input-column">
                     <div class="input-card">
-                        <h3>Note eintragen</h3>
+                        <h3>Neue Note</h3>
                         <input type="number" id="n-val" placeholder="0-15 Punkte" min="0" max="15">
-                        <button class="btn-accent" onclick="addNote()">Speichern</button>
+                        <button class="btn-accent" onclick="addNote()">Note speichern</button>
                     </div>
-                    <button class="btn-danger full-width" style="margin-top:20px" onclick="deleteFach()">Fach löschen</button>
+                    <button class="btn-danger" style="margin-top:10px" onclick="deleteFach()">Fach löschen</button>
                 </div>
             </div>
         </section>
 
         <section id="page-stats" class="page">
-            <h1>Statistiken</h1>
-            <div class="stats-container">
-                <div class="subject-hero" id="stats-banner" style="background: var(--accent)">
-                    <div class="hero-info">
-                        <h2>Gesamtdurchschnitt</h2>
-                        <p>Über alle Fächer hinweg</p>
-                    </div>
-                    <div id="total-avg" class="hero-grade">-</div>
+            <h1>Deine Performance</h1>
+            <div class="stats-hero" id="stats-banner">
+                <div>
+                    <h2 id="total-avg">-</h2>
+                    <p>Gesamtschnitt (Punkte)</p>
                 </div>
-                <div id="stats-details" class="dashboard-grid"></div>
+                <div>
+                    <h2 id="total-count">0</h2>
+                    <p>Eingetragene Noten</p>
+                </div>
             </div>
+            <h3>Fächer im Vergleich</h3>
+            <div id="stats-details" class="dashboard-grid"></div>
         </section>
 
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
-            <div class="settings-grid">
+            <div class="settings-container">
                 <div class="input-card">
-                    <h3>Profil</h3>
-                    <label>Dein Name</label>
+                    <h3>👤 Profil</h3>
+                    <label>Nutzername</label>
                     <input type="text" id="set-name" placeholder="Dein Name...">
-                    <button class="btn-accent" onclick="saveSettings()">Namen speichern</button>
+                    <button class="btn-accent" onclick="saveSettings()">Speichern</button>
                 </div>
                 <div class="input-card">
-                    <h3>Daten verwalten</h3>
-                    <button class="btn-danger" onclick="resetAll()">Alle Daten löschen</button>
+                    <h3>🎨 Design (In Kürze)</h3>
+                    <p style="color:gray">Dark Mode ist standardmäßig aktiv.</p>
+                </div>
+                <div class="input-card">
+                    <h3>⚠️ Datenverwaltung</h3>
+                    <p>Alle Daten werden nur lokal in deinem Browser gespeichert.</p>
+                    <button class="btn-danger" onclick="resetAll()">Werkszustand (Alles löschen)</button>
                 </div>
             </div>
         </section>
