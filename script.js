@@ -1,59 +1,41 @@
-const S_KEY = 'gradeflow_final_stable';
-let appData = JSON.parse(localStorage.getItem(S_KEY)) || [];
+const DB_KEY = 'gf_ultimate_v6';
+let appData = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 
 window.onload = () => { renderDash(); };
 
-function getStatus(avg, target) {
-    if (avg === null || avg === undefined) return { color: 'neutral', class: '', label: 'Keine Noten' };
+function getStatusInfo(avg, target) {
+    if (avg === null) return { gradient: 'var(--neutral)', label: 'Keine Noten', colorName: 'gray' };
     const goal = target || 15;
-    if (avg >= goal) return { color: 'success', class: 'bg-success', label: 'ZIEL ERREICHT' };
-    if (avg >= goal - 2) return { color: 'warning', class: 'bg-warning', label: 'FAST DA' };
-    return { color: 'danger', class: 'bg-danger', label: 'UNTER ZIEL' };
+    if (avg >= goal) return { gradient: 'var(--success)', label: 'ZIEL ERREICHT', colorName: 'success' };
+    if (avg >= goal - 2) return { gradient: 'var(--warning)', label: 'KNAPP DRAN', colorName: 'warning' };
+    return { gradient: 'var(--danger)', label: 'WEIT UNTER ZIEL', colorName: 'danger' };
 }
 
 window.showPage = (id) => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
-    document.getElementById('btn-' + id)?.classList.add('active');
     if(id === 'list') renderDash();
-    if(id === 'goals') renderGoals();
 };
 
 window.renderDash = () => {
-    const cont = document.getElementById('grid-container');
-    cont.innerHTML = '';
+    const container = document.getElementById('grid-container');
+    container.innerHTML = '';
     let totalSum = 0, count = 0;
 
     appData.forEach(f => {
         const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
-        const status = getStatus(avg, f.target);
+        const status = getStatusInfo(avg, f.target);
         if(avg !== null) { totalSum += avg; count++; }
 
-        cont.innerHTML += `
-            <div class="subject-card" style="border-left-color: var(--${status.color})" onclick="openDet(${f.id})">
-                <small>${f.name}</small>
-                <h2 class="text-${status.color}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <small>Ziel: ${f.target || 15}</small>
+        container.innerHTML += `
+            <div class="subject-card" onclick="openDet(${f.id})">
+                <div style="background: ${status.gradient}; height: 5px; width: 100%; position: absolute; top: 0; left: 0;"></div>
+                <h3 style="margin-bottom: 5px;">${f.name}</h3>
+                <h1 style="margin: 10px 0; font-size: 42px;">${avg !== null ? avg.toFixed(1) : '-'}</h1>
+                <div class="status-pill" style="background: ${status.gradient}">Ziel: ${f.target || 15}</div>
             </div>`;
     });
-    const totalAvg = count > 0 ? (totalSum / count).toFixed(2) : '-';
-    document.getElementById('dash-total').innerText = totalAvg;
-};
-
-window.renderGoals = () => {
-    const cont = document.getElementById('goals-list');
-    cont.innerHTML = '';
-    appData.forEach(f => {
-        const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
-        const target = f.target || 15;
-        const status = getStatus(avg, target);
-        cont.innerHTML += `
-            <div class="input-card" style="display:flex; justify-content:space-between; align-items:center">
-                <div><b>${f.name}</b><br><small>Ziel: ${target}</small></div>
-                <div class="text-${status.color}" style="font-weight:bold">${avg !== null ? avg.toFixed(1) : '-'}</div>
-            </div>`;
-    });
+    document.getElementById('dash-total').innerText = count > 0 ? (totalSum / count).toFixed(1) : '-';
 };
 
 window.openDet = (id) => {
@@ -61,30 +43,26 @@ window.openDet = (id) => {
     showPage('detail');
     const f = appData.find(x => x.id === id);
     const avg = f.notes.length ? f.notes.reduce((a,b)=>a+b,0)/f.notes.length : null;
-    const status = getStatus(avg, f.target);
+    const status = getStatusInfo(avg, f.target);
 
     const header = document.getElementById('det-header');
-    header.className = `detail-hero ${status.class}`;
-    if(!status.class) header.style.background = 'var(--card)';
-
+    header.style.background = status.gradient;
     document.getElementById('det-title').innerText = f.name;
     document.getElementById('det-avg').innerText = avg !== null ? avg.toFixed(1) : '-';
     document.getElementById('det-status-badge').innerText = status.label;
     document.getElementById('f-target-input').value = f.target || 15;
 
-    document.getElementById('notes-list').innerHTML = f.notes.map((n, i) => `
-        <div class="input-card" style="display:flex; justify-content:space-between; margin-bottom:10px">
-            <span>Note: <b>${n}</b></span>
-            <button class="btn-danger" onclick="deleteNote(${i})">X</button>
-        </div>`).reverse().join('');
+    renderNotes(f);
 };
 
-window.saveFachTarget = () => {
-    const val = parseFloat(document.getElementById('f-target-input').value);
-    const f = appData.find(x => x.id === window.curId);
-    f.target = (val >= 0 && val <= 15) ? val : 15;
-    save(); openDet(f.id);
-};
+function renderNotes(f) {
+    const list = document.getElementById('notes-list');
+    list.innerHTML = f.notes.map((n, i) => `
+        <div class="card-glass" style="display:flex; justify-content:space-between; margin-bottom:10px; padding: 15px;">
+            <span>Note: <strong>${n}</strong></span>
+            <button onclick="deleteNote(${i})" style="background:none; border:none; color:#ef4444; cursor:pointer;">Löschen</button>
+        </div>`).reverse().join('');
+}
 
 window.addFach = () => {
     const name = document.getElementById('f-name').value;
@@ -92,6 +70,13 @@ window.addFach = () => {
     appData.push({ id: Date.now(), name, notes: [], target: 15 });
     document.getElementById('f-name').value = '';
     save(); renderDash();
+};
+
+window.saveFachTarget = () => {
+    const val = parseFloat(document.getElementById('f-target-input').value);
+    const f = appData.find(x => x.id === window.curId);
+    f.target = (val >= 0 && val <= 15) ? val : 15;
+    save(); openDet(f.id);
 };
 
 window.addNote = () => {
@@ -108,6 +93,12 @@ window.deleteNote = (i) => {
     save(); openDet(window.curId);
 };
 
-window.deleteFach = () => { if(confirm("Löschen?")) { appData = appData.filter(x => x.id !== window.curId); save(); showPage('list'); } };
-function save() { localStorage.setItem(S_KEY, JSON.stringify(appData)); }
-window.resetAll = () => { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } };
+window.deleteFach = () => {
+    if(confirm("Fach wirklich löschen?")) {
+        appData = appData.filter(x => x.id !== window.curId);
+        save(); showPage('list');
+    }
+};
+
+function save() { localStorage.setItem(DB_KEY, JSON.stringify(appData)); }
+window.resetAll = () => { localStorage.clear(); location.reload(); };
