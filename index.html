@@ -2,14 +2,15 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>GradeFlow Cyber Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeFlow Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="modal-overlay" class="modal-hide">
         <div class="modal-box">
-            <h2 id="modal-msg">-</h2>
+            <h2 id="modal-msg">Bist du sicher?</h2>
             <div class="modal-choices">
                 <button class="m-btn confirm" id="m-confirm">Löschen</button>
                 <button class="m-btn cancel" onclick="closeM()">Abbrechen</button>
@@ -17,53 +18,69 @@
         </div>
     </div>
 
-    <nav class="sidebar">
-        <div class="logo">Grade<span>Flow</span></div>
-        <button class="nav-item active" id="tab-list" onclick="tab('list')">🏠 Dashboard</button>
-        <button class="nav-item" id="tab-goals" onclick="tab('goals')">🎯 Ziele</button>
-        <div class="spacer"></div>
-        <button class="reset-link" onclick="askReset()">System Reset</button>
-    </nav>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">Grade<span>Flow</span></div>
+            <button class="nav-item active" id="tab-list" onclick="tab('list')">🏠 Dashboard</button>
+            <button class="nav-item" id="tab-goals" onclick="tab('goals')">🎯 Wunsch-Ziele</button>
+            <div class="spacer"></div>
+            <button class="reset-link" onclick="askReset()">Daten zurücksetzen</button>
+        </nav>
 
-    <main class="main-view">
-        <section id="view-list" class="view active">
-            <div class="top-row">
-                <h1>Dashboard</h1>
-                <div class="total-badge" id="total-avg">0.0</div>
-            </div>
-            <div class="add-bar">
-                <input type="text" id="add-name" placeholder="Neues Fach... (Enter)" onkeydown="if(event.key==='Enter') addSubject()">
-                <button onclick="addSubject()">+</button>
-            </div>
-            <div id="grid" class="dash-grid"></div>
-        </section>
-
-        <section id="view-goals" class="view">
-            <div class="goal-header">
-                <h1>🎯 Wunsch-Ziele</h1>
-                <p>Setze deine persönlichen Benchmarks für jedes Fach.</p>
-            </div>
-            <div id="goals-area" class="goals-grid"></div>
-        </section>
-
-        <section id="view-det" class="view">
-            <button class="back-btn" onclick="tab('list')">← Dashboard</button>
-            <div class="header-card" id="det-bg">
-                <h1 id="det-name">-</h1>
-                <div class="big-num" id="det-num">0.0</div>
-                <div class="status-tag" id="det-txt">-</div>
-            </div>
-            <div class="glass-input">
-                <h3>Note hinzufügen</h3>
-                <div class="input-group">
-                    <input type="number" id="add-note" min="0" max="15" placeholder="0-15..." onkeydown="if(event.key==='Enter') addGrade()">
-                    <button class="save-btn" onclick="addGrade()">Hinzufügen</button>
+        <main class="content">
+            <section id="view-list" class="view active">
+                <div class="header-row">
+                    <h1>Dashboard</h1>
+                    <div class="total-avg-box">
+                        <small>Gesamtschnitt</small>
+                        <div id="total-avg">0.00</div>
+                    </div>
                 </div>
-            </div>
-            <div id="history"></div>
-            <button class="del-subject-btn" onclick="askDelSubject()">Fach löschen</button>
-        </section>
-    </main>
+                <div class="add-box">
+                    <input type="text" id="add-name" placeholder="Neues Fach hinzufügen..." onkeydown="if(event.key==='Enter') addSubject()">
+                    <button onclick="addSubject()">+</button>
+                </div>
+                <div id="grid" class="dash-grid"></div>
+            </section>
+
+            <section id="view-goals" class="view">
+                <div class="header-row">
+                    <h1>🎯 Deine Ziele</h1>
+                </div>
+                <div id="goals-area" class="goals-list"></div>
+            </section>
+
+            <section id="view-det" class="view">
+                <button class="back-link" onclick="tab('list')">← Zurück</button>
+                <div class="subject-header" id="det-header">
+                    <h1 id="det-name">-</h1>
+                    <div class="big-score" id="det-num">0.0</div>
+                    <div class="status-pill" id="det-txt">-</div>
+                </div>
+
+                <div class="action-grid">
+                    <div class="glass-card">
+                        <h3>Note eintragen</h3>
+                        <div class="input-row">
+                            <input type="number" id="add-note" min="0" max="15" placeholder="0-15 Pkt">
+                            <button onclick="addGrade()">OK</button>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3>Ziel anpassen</h3>
+                        <div class="input-row">
+                            <input type="number" id="edit-target" min="0" max="15">
+                            <button onclick="updateTarget()">💾</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-label">Verlauf</div>
+                <div id="history" class="history-list"></div>
+                <button class="danger-zone" onclick="askDelSubject()">Fach komplett löschen</button>
+            </section>
+        </main>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
