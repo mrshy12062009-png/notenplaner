@@ -1,127 +1,109 @@
-let appData = JSON.parse(localStorage.getItem('GF_PRO_V14')) || [];
-let activeSubjectId = null;
-let modalAction = null;
+let data = JSON.parse(localStorage.getItem('GF_V15')) || [];
+let activeId = null;
+let mCb = null;
 
-const commit = () => localStorage.setItem('GF_PRO_V14', JSON.stringify(appData));
+const save = () => localStorage.setItem('GF_V15', JSON.stringify(data));
 
-function getTone(avg) {
-    if (avg === null) return { g: 'var(--card)', c: '#222', t: 'Keine Daten' };
-    if (avg >= 13) return { g: 'var(--good)', c: '#22c55e', t: 'Herausragend' };
-    if (avg >= 8) return { g: 'var(--mid)', c: '#eab308', t: 'Befriedigend' };
-    return { g: 'var(--bad)', c: '#ef4444', t: 'Handlungsbedarf' };
+function getStyle(avg) {
+    if (avg === null) return { g: '#111', c: '#444', t: 'Keine Noten' };
+    if (avg >= 13) return { g: 'var(--grad-good)', c: '#00f2fe', t: 'Sehr Gut' };
+    if (avg >= 8) return { g: 'var(--grad-mid)', c: '#f9d423', t: 'Befriedigend' };
+    return { g: 'var(--grad-bad)', c: '#f85032', t: 'Ungenügend' };
 }
 
-function view(id) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+function show(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('view-' + id).classList.add('active');
     if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add('active');
-    if(id === 'dash') renderDashboard();
+    if(id === 'dash') renderDash();
     if(id === 'goals') renderGoals();
 }
 
-function renderDashboard() {
-    const grid = document.getElementById('subject-grid');
+function renderDash() {
+    const grid = document.getElementById('dash-grid');
     grid.innerHTML = '';
-    let totalSum = 0, count = 0;
+    let sum = 0, count = 0;
 
-    appData.forEach(s => {
+    data.forEach(s => {
         const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-        const tone = getTone(avg);
-        if(avg !== null) { totalSum += avg; count++; }
+        const style = getStyle(avg);
+        if(avg !== null) { sum += avg; count++; }
 
         grid.innerHTML += `
-            <div class="subject-card" onclick="openSubject(${s.id})">
-                <div style="font-size:11px; font-weight:800; color:#444; text-transform:uppercase">${s.name}</div>
-                <h2 style="color: ${avg !== null ? tone.c : '#1a1a1a'}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
-                <div style="font-size:12px; font-weight:800; color:${tone.c}">${tone.t}</div>
+            <div class="card" onclick="openSub(${s.id})">
+                <small style="color:#666; font-weight:800; text-transform:uppercase">${s.name}</small>
+                <h2 style="color:${style.c}">${avg !== null ? avg.toFixed(1) : '-'}</h2>
+                <div style="font-size:12px; font-weight:800; color:${style.c}">${style.t}</div>
             </div>`;
     });
-    document.getElementById('total-avg').innerText = count > 0 ? (totalSum/count).toFixed(2) : '0.0';
+    document.getElementById('total-avg').innerText = count > 0 ? (sum/count).toFixed(2) : '0.0';
 }
 
-function addSubject() {
-    const input = document.getElementById('subject-in');
-    if(!input.value.trim()) return;
-    appData.push({ id: Date.now(), name: input.value, notes: [], target: 10 });
-    input.value = ''; commit(); renderDashboard();
+function addSub() {
+    const i = document.getElementById('add-sub-input');
+    if(!i.value.trim()) return;
+    data.push({ id: Date.now(), name: i.value, notes: [], target: 10 });
+    i.value = ''; save(); renderDash();
 }
 
-function openSubject(id) {
-    activeSubjectId = id;
-    const s = appData.find(x => x.id === id);
-    view('det');
+function openSub(id) {
+    activeId = id;
+    const s = data.find(x => x.id === id);
+    show('det');
     const avg = s.notes.length ? (s.notes.reduce((a,b)=>a+b,0)/s.notes.length) : null;
-    const tone = getTone(avg);
+    const style = getStyle(avg);
 
-    const hero = document.getElementById('det-card');
-    hero.style.background = tone.g;
-    document.getElementById('det-name').innerText = s.name;
-    document.getElementById('det-num').innerText = avg !== null ? avg.toFixed(1) : '0.0';
-    document.getElementById('det-status').innerText = tone.t;
+    document.getElementById('det-hero').style.background = style.g;
+    document.getElementById('det-title').innerText = s.name;
+    document.getElementById('det-avg').innerText = avg !== null ? avg.toFixed(1) : '0.0';
+    document.getElementById('det-tag').innerText = style.t;
 
-    const hist = document.getElementById('history');
+    const hist = document.getElementById('grade-history');
     hist.innerHTML = s.notes.map((n, i) => `
-        <div class="history-row" style="border-left-color: ${getTone(n).c}">
-            <span style="font-weight:800; font-size:18px">${n} Punkte</span>
-            <button onclick="deleteGrade(${i})" style="background:none; border:none; color:#333; cursor:pointer; font-weight:800">Löschen</button>
+        <div class="hist-item">
+            <b style="color:${getStyle(n).c}; font-size:20px">${n} Pkt</b>
+            <button onclick="delGrade(${i})" style="background:none; border:none; color:#444; cursor:pointer">Löschen</button>
         </div>`).reverse().join('');
 }
 
 function addGrade() {
-    const input = document.getElementById('grade-in');
-    const val = parseFloat(input.value);
-    if(isNaN(val) || val < 0 || val > 15) return;
-    appData.find(x => x.id === activeSubjectId).notes.push(val);
-    input.value = ''; commit(); openSubject(activeSubjectId);
+    const i = document.getElementById('add-grade-input');
+    const v = parseFloat(i.value);
+    if(isNaN(v) || v < 0 || v > 15) return;
+    data.find(x => x.id === activeId).notes.push(v);
+    i.value = ''; save(); openSub(activeId);
 }
 
-function deleteGrade(idx) {
-    const s = appData.find(x => x.id === activeSubjectId);
+function delGrade(idx) {
+    const s = data.find(x => x.id === activeId);
     s.notes.splice(s.notes.length - 1 - idx, 1);
-    commit(); openSubject(activeSubjectId);
+    save(); openSub(activeId);
 }
 
 function renderGoals() {
-    const list = document.getElementById('goals-list');
-    list.innerHTML = '';
-    appData.forEach(s => {
-        list.innerHTML += `
-            <div class="goal-item">
-                <span style="font-weight:800; font-size:20px">${s.name}</span>
-                <div style="display:flex; align-items:center; gap:15px">
-                    <span style="color:#444; font-size:11px; font-weight:800">ZIEL-PUNKTE</span>
-                    <input type="number" min="0" max="15" value="${s.target}" onchange="updateGoal(${s.id}, this.value)">
-                </div>
-            </div>`;
-    });
+    const area = document.getElementById('goals-list');
+    area.innerHTML = data.map(s => `
+        <div class="hist-item" style="padding:25px; border-radius:25px">
+            <span style="font-weight:800; font-size:18px">${s.name}</span>
+            <input type="number" value="${s.target}" onchange="updGoal(${s.id}, this.value)" style="width:70px; background:#000; border:1px solid #222; color:#fff; padding:10px; border-radius:10px; text-align:center">
+        </div>`).join('');
 }
 
-function updateGoal(id, val) {
-    appData.find(x => x.id === id).target = Math.min(Math.max(parseFloat(val), 0), 15);
-    commit();
+function updGoal(id, v) {
+    data.find(x => x.id === id).target = v;
+    save();
 }
 
-function deleteSubjectTrigger() {
-    showModal("Dieses Fach wirklich löschen?", () => {
-        appData = appData.filter(x => x.id !== activeSubjectId);
-        commit(); view('dash');
-    });
-}
+function fullReset() { openM("ALLES LÖSCHEN?", () => { localStorage.clear(); location.reload(); }); }
+function delSubTrigger() { openM("Fach löschen?", () => { data = data.filter(x => x.id !== activeId); save(); show('dash'); }); }
 
-function fullReset() {
-    showModal("KOMPLETTER RESET?", () => {
-        localStorage.clear();
-        location.reload();
-    });
+function openM(m, cb) { 
+    document.getElementById('modal-msg').innerText = m; 
+    document.getElementById('modal-overlay').classList.remove('hidden'); 
+    mCb = cb; 
 }
+function closeM() { document.getElementById('modal-overlay').classList.add('hidden'); }
+document.getElementById('modal-confirm').onclick = () => { if(mCb) mCb(); closeM(); };
 
-function showModal(msg, action) {
-    document.getElementById('modal-title').innerText = msg;
-    document.getElementById('modal-overlay').classList.remove('hidden');
-    modalAction = action;
-}
-function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-document.getElementById('modal-confirm').onclick = () => { if(modalAction) modalAction(); closeModal(); };
-
-renderDashboard();
+renderDash();
