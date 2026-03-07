@@ -26,10 +26,10 @@
         </section>
 
         <section id="page-stats" class="page">
-            <h1>Statistiken</h1>
-            <div class="stats-hero" id="stats-banner">
-                <div><h2 id="total-avg">-</h2><p>Schnitt</p></div>
-                <div><h2 id="total-count">0</h2><p>Noten</p></div>
+            <h1>Performance-Analyse</h1>
+            <div class="stats-hero">
+                <div><h2 id="total-avg">-</h2><p>Gesamtschnitt</p></div>
+                <div><h2 id="total-count">0</h2><p>Noten gesamt</p></div>
             </div>
             <div class="input-card">
                 <canvas id="myChart"></canvas>
@@ -39,16 +39,16 @@
         <section id="page-settings" class="page">
             <h1>Einstellungen</h1>
             <div class="input-card">
-                <h3>Profil</h3>
+                <h3>Profil & System</h3>
                 <input type="text" id="set-name" placeholder="Dein Name...">
-                <select id="set-system" class="custom-select">
-                    <option value="points">0-15 Punkte (Oberstufe)</option>
-                    <option value="grades">1-6 Noten (Sek I)</option>
+                <select id="set-system">
+                    <option value="points">Oberstufe (0-15 Punkte)</option>
+                    <option value="grades">Sek I (1-6 Noten)</option>
                 </select>
-                <button class="btn-accent" onclick="saveSettings()">Speichern</button>
+                <button class="btn-accent" onclick="saveSettings()">Änderungen speichern</button>
             </div>
             <div class="input-card">
-                <h3>Design</h3>
+                <h3>Design-Farbe</h3>
                 <div class="color-picker">
                     <div class="color-dot" style="background:#5865f2" onclick="changeTheme('#5865f2')"></div>
                     <div class="color-dot" style="background:#a855f7" onclick="changeTheme('#a855f7')"></div>
@@ -56,25 +56,26 @@
                     <div class="color-dot" style="background:#f97316" onclick="changeTheme('#f97316')"></div>
                 </div>
             </div>
-            <button class="btn-danger" onclick="resetAll()">⚠️ Alles löschen</button>
+            <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
         </section>
 
         <section id="page-detail" class="page">
-            <button onclick="showPage('list')" class="btn-link">← Zurück</button>
-            <div class="subject-hero" id="hero-bg">
+            <button onclick="showPage('list')" class="btn-link">← Zurück zum Dashboard</button>
+            <div class="subject-hero">
                 <h1 id="det-title">Fach</h1>
                 <div id="det-avg" class="hero-grade">-</div>
             </div>
-            <div class="detail-layout" style="display: flex; gap: 20px;">
+            <div style="display: flex; gap: 20px;">
                 <div id="notes-list" style="flex: 1;"></div>
                 <div class="input-card" style="width: 300px;">
-                    <h3>Note eintragen</h3>
-                    <input type="number" id="n-val" placeholder="Wert...">
+                    <h3>Neue Note</h3>
+                    <input type="number" id="n-val" placeholder="Punkte/Note...">
                     <button class="btn-accent" onclick="addNote()">Speichern</button>
                 </div>
             </div>
         </section>
     </main>
+
     <script src="script.js"></script>
 </body>
 </html>
