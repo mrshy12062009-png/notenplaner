@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeFlow Pro</title>
+    <title>GradeFlow Pro v21</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -30,39 +30,31 @@
         <section id="page-goals" class="page">
             <h1>🎯 Meine Ziele</h1>
             <div class="input-card">
-                <label>Globales Gesamtziel</label>
-                <input type="number" id="goal-input" step="0.1" oninput="updateGoal(this.value)">
-                <small style="opacity:0.6">Gilt für alle Fächer ohne eigenes Ziel.</small>
+                <label>Globales Ziel (Standard)</label>
+                <input type="number" id="goal-input" step="0.1" oninput="updateGlobalGoal(this.value)">
             </div>
-            <h3>Fächer-Analyse <small>(Klicken für eigenes Ziel)</small></h3>
+            <h3>Fächer-Analyse <small>(Klicken für Fach-Ziel)</small></h3>
             <div id="goals-list" class="goals-list"></div>
-        </section>
-
-        <section id="page-settings" class="page">
-            <h1>⚙️ Einstellungen</h1>
-            <div class="input-card">
-                <button class="btn-danger" onclick="resetAll()">⚠️ Alle Daten löschen</button>
-            </div>
         </section>
 
         <section id="page-detail" class="page">
             <button onclick="showPage('list')" class="btn-back">← Zurück</button>
             <div class="detail-header" id="det-header">
                 <div>
-                    <h1 id="det-title">Fach</h1>
+                    <h1 id="det-title" style="margin:0">Fach</h1>
                     <span id="det-status-label" class="badge-white">Status</span>
                 </div>
                 <div class="big-avg" id="det-avg">-</div>
             </div>
             <div class="detail-grid">
                 <div class="input-card">
-                    <h3>Note hinzufügen</h3>
-                    <input type="number" id="n-val" placeholder="Wert...">
+                    <h3>Note eintragen</h3>
+                    <input type="number" id="n-val" placeholder="Punkte...">
                     <button class="btn-accent" onclick="addNote()">Speichern</button>
                 </div>
-                <div class="input-card" id="det-analysis-box">
+                <div class="input-card">
                     <h3>Analyse</h3>
-                    <div id="det-analysis-text">-</div>
+                    <div id="det-analysis-text">Warte auf Daten...</div>
                 </div>
             </div>
             <div id="notes-list"></div>
@@ -70,13 +62,13 @@
         </section>
     </main>
 
-    <div id="goal-modal" class="modal">
+    <div id="goal-modal" class="modal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
-            <h3 id="modal-title">Ziel für Fach</h3>
-            <input type="number" id="modal-goal-input" placeholder="Eigenes Ziel (z.B. 13)">
-            <div style="display:flex; gap:10px;">
+            <h3 id="modal-title">Ziel setzen</h3>
+            <input type="number" id="modal-goal-input" placeholder="Eigenes Ziel...">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn-accent" onclick="saveSubjectGoal()">Speichern</button>
-                <button class="btn-danger" onclick="closeModal()">Abbrechen</button>
+                <button class="btn-danger" onclick="closeModal()">Abbruch</button>
             </div>
         </div>
     </div>
