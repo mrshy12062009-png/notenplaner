@@ -372,11 +372,13 @@ button:focus-visible {
 }
 
 .day-pill {
-    display: inline-block;
+    display: inline-flex;
+    max-width: 100%;
     width: fit-content;
     font-size: 0.62rem;
     border-radius: 999px;
     padding: 0.14rem 0.42rem;
+    line-height: 1.25;
 }
 
 .day-pill-holiday {
@@ -445,24 +447,6 @@ button:focus-visible {
 .day.is-selected {
     border: 2px solid var(--primary-strong);
     box-shadow: 0 0 0 2px rgba(13, 103, 116, 0.2);
-}
-
-.event-dot {
-    width: 100%;
-    height: 6px;
-    border-radius: 999px;
-}
-
-.priority-high {
-    background: var(--danger);
-}
-
-.priority-medium {
-    background: var(--warning);
-}
-
-.priority-low {
-    background: var(--success);
 }
 
 .list {
@@ -617,6 +601,82 @@ body.mode-dark select {
 
 body.mode-dark .day {
     background: #1b2a36;
+}
+
+body.mode-dark .day.empty {
+    background: transparent;
+    border-color: transparent;
+}
+
+body.mode-dark .day.is-past {
+    background: #14212c;
+    border-color: #273747;
+}
+
+body.mode-dark.weekend-blue .day.is-weekend {
+    background: #1c2f47;
+    border-color: #355173;
+}
+
+body.mode-dark.weekend-blue .day.is-weekend .day-number {
+    color: #9ec3ff;
+}
+
+body.mode-dark.weekend-mint .day.is-weekend {
+    background: #163235;
+    border-color: #2f6166;
+}
+
+body.mode-dark.weekend-mint .day.is-weekend .day-number {
+    color: #9ee7d7;
+}
+
+body.mode-dark.weekend-rose .day.is-weekend {
+    background: #382533;
+    border-color: #68455f;
+}
+
+body.mode-dark.weekend-rose .day.is-weekend .day-number {
+    color: #ffc2dd;
+}
+
+body.mode-dark.weekend-gray .day.is-weekend {
+    background: #212d37;
+    border-color: #364552;
+}
+
+body.mode-dark.weekend-gray .day.is-weekend .day-number {
+    color: #b7c7d4;
+}
+
+body.mode-dark .day-pill-holiday {
+    color: #ffd7d2;
+    background: #5a2b2b;
+}
+
+body.mode-dark .day-pill-vacation {
+    color: #c8e8ff;
+    background: #1f4157;
+}
+
+body.mode-dark .day-pill-event {
+    color: #ffe8bf;
+    background: #6a4f1a;
+}
+
+body.mode-dark .day-pill-event.event-type-test {
+    color: #d9efff;
+    background: #1f4e6e;
+}
+
+body.mode-dark .day-pill-event.event-type-deadline {
+    color: #d9f7cc;
+    background: #2b5b28;
+}
+
+body.mode-dark .day-pill-event.event-type-other {
+    color: #f3daf6;
+    background: #5f3566;
 }
 
 body.mode-dark .selected-day-chip {
