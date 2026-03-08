@@ -147,7 +147,8 @@ export function initApp() {
         studyMinutesInput: document.getElementById("study-minutes"),
         studyFeedback: document.getElementById("study-feedback"),
         studyList: document.getElementById("study-list"),
-        quizTopic: document.getElementById("quiz-topic"),
+        quizSubject: document.getElementById("quiz-subject"),
+        quizTopicFocus: document.getElementById("quiz-topic-focus"),
         quizLevel: document.getElementById("quiz-level"),
         quizStyle: document.getElementById("quiz-style"),
         quizQuestion: document.getElementById("quiz-question"),
@@ -227,6 +228,8 @@ export function initApp() {
         oralSlideStop: document.getElementById("oral-slide-stop"),
         oralSlideNext: document.getElementById("oral-slide-next"),
         oralSlideStatus: document.getElementById("oral-slide-status"),
+        oralSlidePreview: document.getElementById("oral-slide-preview"),
+        oralSlidePreviewHint: document.getElementById("oral-slide-preview-hint"),
         oralPronunciationRecord: document.getElementById("oral-pronunciation-record"),
         oralPronunciationStop: document.getElementById("oral-pronunciation-stop"),
         oralPronunciationText: document.getElementById("oral-pronunciation-text"),
@@ -258,6 +261,7 @@ export function initApp() {
     let draftsTimer = null;
     let focusTimer = null;
     let oralSlideTimer = null;
+    let oralPreviewUrl = "";
     let oralRecognition = null;
     let languageRecognition = null;
     let focusLockActive = false;
@@ -456,9 +460,10 @@ export function initApp() {
         els.studyForm.addEventListener("submit", onStudySubmit);
         els.studySubjectInput.addEventListener("input", saveDraftsThrottled);
         els.studyMinutesInput.addEventListener("input", saveDraftsThrottled);
-        els.quizTopic.addEventListener("change", () => {
+        els.quizSubject.addEventListener("change", () => {
             generateNewQuizTask();
         });
+        els.quizTopicFocus.addEventListener("input", saveDraftsThrottled);
         els.quizLevel.addEventListener("change", () => {
             generateNewQuizTask();
         });
@@ -485,13 +490,15 @@ export function initApp() {
                 evaluateCalculator();
             }
         });
-        els.examCalcEval.addEventListener("click", () => evaluateCalculatorFor(els.examCalcInput, els.examCalcResult));
-        els.examCalcInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
-            }
-        });
+        if (els.examCalcEval && els.examCalcInput && els.examCalcResult) {
+            els.examCalcEval.addEventListener("click", () => evaluateCalculatorFor(els.examCalcInput, els.examCalcResult));
+            els.examCalcInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
+                }
+            });
+        }
         els.calcKeys.forEach((button) => {
             button.addEventListener("click", () => onCalcKeyPress(button));
         });
@@ -502,13 +509,15 @@ export function initApp() {
                 lookupDudenWord();
             }
         });
-        els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink));
-        els.examDudenInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink);
-            }
-        });
+        if (els.examDudenLookup && els.examDudenInput && els.examDudenResult && els.examDudenLink) {
+            els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink));
+            els.examDudenInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink);
+                }
+            });
+        }
         els.studyList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
@@ -566,7 +575,7 @@ export function initApp() {
             state.examPrep = persistExamPrep(state.examPrep);
             renderOralCoach();
         });
-        els.oralTopic.addEventListener("input", saveDraftsThrottled);
+        els.oralTopic.addEventListener("change", saveDraftsThrottled);
         els.oralGenerate.addEventListener("click", generateOralSession);
         els.oralNextQuestion.addEventListener("click", nextTeacherQuestion);
         els.oralSlideStart.addEventListener("click", startOralSlides);
@@ -617,6 +626,7 @@ export function initApp() {
 
     function renderAll() {
         renderSubjects();
+        renderQuizSubjectOptions();
         renderSubjectDetail();
         renderCalendar();
         renderEventList();
@@ -752,6 +762,7 @@ export function initApp() {
                 `;
             })
             .join("");
+        renderQuizSubjectOptions();
     }
 
     function renderSubjectDetail() {
@@ -1141,10 +1152,11 @@ export function initApp() {
     }
 
     function generateNewQuizTask(clearFeedback = true) {
-        const topic = els.quizTopic.value || "mix";
+        const subjectKey = els.quizSubject.value || "mix";
+        const topicFocus = normalizeText(els.quizTopicFocus.value);
         const level = Number.parseInt(els.quizLevel.value, 10) || 3;
         const style = els.quizStyle.value || "coach";
-        const currentTask = createQuizTask(topic, level, style);
+        const currentTask = createQuizTask(subjectKey, level, style, topicFocus);
         state.studyHelper.quiz = state.studyHelper.quiz || { currentTask: null, stats: { correct: 0, wrong: 0, streak: 0, points: 0 } };
         state.studyHelper.quiz.currentTask = currentTask;
         state.studyHelper = persistStudyHelper(state.studyHelper);
@@ -1229,12 +1241,65 @@ export function initApp() {
         els.quizAskAnswer.innerHTML = `<p>Gute Frage. Starte mit: Problem verstehen -> bekannten Wert markieren -> Zielgröße lösen. Aufgabe aktuell: <strong>${escapeHtml(task.question)}</strong>.</p>`;
     }
 
-    function createQuizTask(topic, level = 3, style = "coach") {
-        const resolved = topic === "mix" ? ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)] : topic;
-        if (resolved === "algebra") return createAlgebraQuizTask(level, style);
-        if (resolved === "de") return createGermanQuizTask(level, style);
-        if (resolved === "en") return createEnglishQuizTask(level, style);
-        return createMathQuizTask(level, style);
+    function createQuizTask(subjectKey, level = 3, style = "coach", topicFocus = "") {
+        const resolved = resolveQuizDomain(subjectKey);
+        let task;
+        if (resolved === "algebra") task = createAlgebraQuizTask(level, style);
+        else if (resolved === "de") task = createGermanQuizTask(level, style);
+        else if (resolved === "en") task = createEnglishQuizTask(level, style);
+        else task = createMathQuizTask(level, style);
+        if (topicFocus) {
+            task = {
+                ...task,
+                lesson: `${task.lesson} Themenbereich: ${topicFocus}.`,
+                question: `${task.question} (Themenbereich: ${topicFocus})`,
+                hint: `${task.hint} Achte dabei auf den Themenbereich "${topicFocus}".`
+            };
+        }
+        return task;
+    }
+
+    function resolveQuizDomain(subjectKey) {
+        if (subjectKey === "mix") return ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)];
+        if (["algebra", "math", "de", "en"].includes(subjectKey)) return subjectKey;
+        if (subjectKey.startsWith("subject:")) {
+            const subjectName = subjectKey.slice("subject:".length);
+            const inferred = inferDomainFromSubjectName(subjectName);
+            return inferred || "math";
+        }
+        return "math";
+    }
+
+    function inferDomainFromSubjectName(subjectName) {
+        const lower = normalizeText(subjectName).toLowerCase();
+        if (!lower) return "";
+        if (lower.includes("deutsch") || lower.includes("sprache") || lower.includes("literatur")) return "de";
+        if (lower.includes("englisch") || lower.includes("english")) return "en";
+        if (lower.includes("algebra")) return "algebra";
+        if (lower.includes("mathe") || lower.includes("math") || lower.includes("physik") || lower.includes("chemie")) return "math";
+        return "";
+    }
+
+    function renderQuizSubjectOptions() {
+        if (!els.quizSubject) return;
+        const current = els.quizSubject.value || "mix";
+        const base = [
+            { value: "mix", label: "Alle Fächer (Mix)" },
+            { value: "algebra", label: "Algebra" },
+            { value: "math", label: "Mathe" },
+            { value: "de", label: "Deutsch" },
+            { value: "en", label: "Englisch" }
+        ];
+        const fromDashboard = state.subjectsStore.subjects.map((subject) => ({
+            value: `subject:${subject.name}`,
+            label: `Fach: ${subject.name}`
+        }));
+        const options = [...base, ...fromDashboard];
+        els.quizSubject.innerHTML = options
+            .map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`)
+            .join("");
+        const exists = options.some((option) => option.value === current);
+        els.quizSubject.value = exists ? current : "mix";
     }
 
     function createAlgebraQuizTask(level = 3, style = "coach") {
@@ -1453,12 +1518,12 @@ export function initApp() {
         if (key === "clear") {
             target.value = "";
             if (targetId === "calc-input") els.calcResult.textContent = "";
-            if (targetId === "exam-calc-input") els.examCalcResult.textContent = "";
+            if (targetId === "exam-calc-input" && els.examCalcResult) els.examCalcResult.textContent = "";
             return;
         }
         if (key === "eval") {
             if (targetId === "calc-input") evaluateCalculatorFor(els.calcInput, els.calcResult);
-            if (targetId === "exam-calc-input") evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
+            if (targetId === "exam-calc-input" && els.examCalcInput && els.examCalcResult) evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
             return;
         }
         target.value += key;
@@ -1747,7 +1812,24 @@ export function initApp() {
             `;
         }
         if (els.oralPronunciationFeedback && !els.oralPronunciationFeedback.textContent.trim()) {
-            els.oralPronunciationFeedback.innerHTML = "<p>Sprich einen Text ein oder füge Text ein und starte die Analyse.</p>";
+            els.oralPronunciationFeedback.innerHTML = "<p>Starte die Aufnahme, sprich frei und analysiere danach.</p>";
+        }
+        if (els.oralSlidePreview && els.oralSlidePreviewHint) {
+            if (oralPreviewUrl) {
+                els.oralSlidePreview.src = oralPreviewUrl;
+                els.oralSlidePreview.classList.remove("hidden");
+                els.oralSlidePreviewHint.textContent = "Vorschau aktiv. Nutze den Folienmodus parallel.";
+            } else {
+                els.oralSlidePreview.removeAttribute("src");
+                els.oralSlidePreview.classList.add("hidden");
+                if (slideState.fileName && /\.(ppt|pptx)$/i.test(slideState.fileName)) {
+                    els.oralSlidePreviewHint.textContent = "PPT/PPTX kann lokal nicht direkt gerendert werden. Exportiere als PDF für Live-Vorschau.";
+                } else if (slideState.fileName) {
+                    els.oralSlidePreviewHint.textContent = "Datei geladen. Für Vorschau bitte PDF verwenden.";
+                } else {
+                    els.oralSlidePreviewHint.textContent = "Lade eine PDF hoch, um die Folien direkt in der App zu sehen.";
+                }
+            }
         }
         const remaining = Math.max(0, Number.parseInt(state.studyHelper.focusRemainingSec, 10) || 0);
         const timeText = formatDuration(remaining);
@@ -1758,8 +1840,8 @@ export function initApp() {
 
     function generateOralSession() {
         const track = ["MSA", "BBR", "eBBR"].includes(els.oralTrack.value) ? els.oralTrack.value : "MSA";
-        const language = els.oralLanguage.value === "de" ? "de" : "en";
-        const topic = normalizeText(els.oralTopic.value) || (language === "en" ? "My school project" : "Mein Schulprojekt");
+        const language = els.oralLanguage.value === "presentation" ? "presentation" : "en";
+        const topic = normalizeText(els.oralTopic.value) || (language === "presentation" ? "Meine Präsentation" : "My school project");
         const level = [1, 2, 3, 4, 5].includes(Number.parseInt(els.examTutorLevel?.value, 10)) ? Number.parseInt(els.examTutorLevel.value, 10) : 3;
         const scenario = buildOralScenario({ track, language, topic, level });
         state.examPrep.oral.track = track;
@@ -1775,20 +1857,18 @@ export function initApp() {
     }
 
     function buildOralScenario({ track, language, topic, level }) {
-        if (language === "de") {
+        if (language === "presentation") {
             const prompts = [
-                `[${
-                    track
-                }] Deutsch mündlich (Level ${level}): Erkläre das Thema "${topic}" in 2-3 Minuten. Struktur: kurze Einleitung -> Hauptaussage mit Beleg -> Gegenargument -> klares Fazit.`,
-                `[${track}] Deutsch mündlich (Level ${level}): Gib eine begründete Stellungnahme zu "${topic}". Nutze mindestens ein Beispiel aus Schule/Alltag und schließe mit einer klaren Position.`,
-                `[${track}] Deutsch mündlich (Level ${level}): Analysiere kurz einen möglichen Textbezug zu "${topic}" (Aussage, Wirkung, Absicht) und leite ein Fazit ab.`
+                `[${track}] Präsentationsprüfung (Level ${level}): Stelle "${topic}" in 2-3 Minuten vor. Struktur: Einstieg -> Kernpunkte -> Beispiel/Daten -> Fazit.`,
+                `[${track}] Präsentationsprüfung (Level ${level}): Erkläre "${topic}" mit klarer Gliederung und nenne mindestens einen praktischen Nutzen.`,
+                `[${track}] Präsentationsprüfung (Level ${level}): Präsentiere "${topic}" adressatengerecht und beende mit einer überzeugenden Schlussaussage.`
             ];
             return {
                 track,
                 language,
                 topic,
                 prompt: prompts[rand(0, prompts.length - 1)],
-                rubric: ["Struktur", "Begründung", "Beispiel", "Fazit", "Sprachklarheit"]
+                rubric: ["Aufbau", "Fachinhalt", "Beispiel/Daten", "Vortragsweise", "Schluss"]
             };
         }
         const prompts = [
@@ -1807,12 +1887,12 @@ export function initApp() {
 
     function createTeacherQuestions(scenario) {
         const { topic, language, rubric } = scenario;
-        if (language === "de") {
+        if (language === "presentation") {
             return [
-                `Was ist deine Kernthese zu "${topic}" in einem Satz?`,
-                "Mit welchem Beispiel kannst du deine Aussage belegen?",
-                "Welches Gegenargument ist stark und wie entkräftest du es?",
-                "Warum ist dein Fazit überzeugend?",
+                `Wie lautet deine Kernbotschaft zu "${topic}" in einem Satz?`,
+                "Welche 2 Kernpunkte willst du unbedingt zeigen?",
+                "Welches Beispiel oder welche Zahl macht deine Aussage stark?",
+                "Wie leitest du zu einem klaren Schluss über?",
                 `Mini-Bewertung: Prüfe selbst ${rubric.join(", ")} (je 0-2 Punkte).`
             ];
         }
@@ -1843,6 +1923,13 @@ export function initApp() {
     function onOralFileChange() {
         const file = els.oralPresentationFile.files && els.oralPresentationFile.files[0];
         state.examPrep.oral.slides.fileName = file ? file.name : "";
+        if (oralPreviewUrl) {
+            URL.revokeObjectURL(oralPreviewUrl);
+            oralPreviewUrl = "";
+        }
+        if (file && file.type === "application/pdf") {
+            oralPreviewUrl = URL.createObjectURL(file);
+        }
         state.examPrep = persistExamPrep(state.examPrep);
         renderOralCoach();
     }
@@ -1868,7 +1955,7 @@ export function initApp() {
                     buildOralScenario({
                         track: state.examPrep.oral.track || "MSA",
                         language: state.examPrep.oral.language || "en",
-                        topic: state.examPrep.oral.topic || (state.examPrep.oral.language === "de" ? "dein Thema" : "your topic"),
+                        topic: state.examPrep.oral.topic || (state.examPrep.oral.language === "presentation" ? "dein Präsentationsthema" : "your topic"),
                         level: 3
                     })
                 );
@@ -1919,7 +2006,7 @@ export function initApp() {
             try { oralRecognition.stop(); } catch (_) { }
         }
         oralRecognition = new SpeechRecognition();
-        oralRecognition.lang = state.examPrep.oral?.language === "de" ? "de-DE" : "en-US";
+        oralRecognition.lang = state.examPrep.oral?.language === "presentation" ? "de-DE" : "en-US";
         oralRecognition.interimResults = true;
         oralRecognition.continuous = true;
         oralRecognition.onresult = (event) => {
@@ -1953,18 +2040,17 @@ export function initApp() {
         const words = lower.split(/\s+/).filter(Boolean);
         const sentenceCount = Math.max(1, text.split(/[.!?]+/).filter((part) => normalizeText(part)).length);
         const avgWords = Math.round(words.length / sentenceCount);
-        const isGerman = state.examPrep.oral?.language === "de";
-        const fillerCount = isGerman
+        const isPresentation = state.examPrep.oral?.language === "presentation";
+        const fillerCount = isPresentation
             ? (lower.match(/\b(äh|ähm|sozusagen|halt|irgendwie)\b/g) || []).length
             : (lower.match(/\b(um|uh|like|you know)\b/g) || []).length;
         const tips = [];
         if (avgWords < 7) tips.push("Nutze längere Sätze (8-14 Wörter), damit deine Begründung klarer wirkt.");
         if (fillerCount > 2) tips.push("Reduziere Füllwörter und nutze kurze Sprechpausen.");
-        if (isGerman) {
-            if (!lower.includes("weil")) tips.push("Baue mindestens einen 'weil'-Satz ein, um deine Aussage zu stützen.");
+        if (isPresentation) {
             if (!lower.match(/\b(erstens|zweitens|abschließend|fazit)\b/)) tips.push("Nutze Strukturwörter: erstens, zweitens, abschließend.");
-            tips.push("Sprich Satzenden deutlich aus und setze hörbare Punkte.");
-            tips.push("Vermeide zu schnelle Wechsel zwischen Haupt- und Nebensatz.");
+            tips.push("Sprich in Blöcken: Aussage -> kurze Pause -> nächster Punkt.");
+            tips.push("Zeige Folien nicht nur, erkläre aktiv die Bedeutung in eigenen Worten.");
         } else {
             if (!lower.includes("because")) tips.push("Use 'because' more often to justify your points.");
             if (!lower.match(/\b(first|second|finally|in conclusion)\b/)) tips.push("Use structure words: first, second, finally, in conclusion.");
@@ -2256,7 +2342,7 @@ export function initApp() {
             "focus-pause", "focus-reset", "focus-stop", "focus-floating-stop",
             "exam-focus-pause", "exam-focus-reset", "exam-focus-stop",
             "exam-oral-focus-pause", "exam-oral-focus-reset", "exam-oral-focus-stop",
-            "quiz-topic", "quiz-level", "quiz-style", "quiz-answer",
+            "quiz-subject", "quiz-topic-focus", "quiz-level", "quiz-style", "quiz-answer",
             "quiz-check", "quiz-next", "quiz-hint", "quiz-explain", "quiz-ask-input", "quiz-ask-btn",
             "exam-tutor-track", "exam-tutor-subject", "exam-tutor-level", "exam-tutor-answer",
             "exam-tutor-check", "exam-tutor-next", "exam-tutor-hint", "exam-tutor-ask-input", "exam-tutor-ask-btn",
@@ -2265,6 +2351,7 @@ export function initApp() {
             "oral-presentation-file", "oral-slide-count", "oral-slide-seconds",
             "oral-slide-start", "oral-slide-stop", "oral-slide-next",
             "oral-pronunciation-record", "oral-pronunciation-stop", "oral-pronunciation-text", "oral-pronunciation-check",
+            "calc-input", "calc-eval", "duden-input", "duden-lookup",
             "exam-calc-input", "exam-calc-eval", "exam-duden-input", "exam-duden-lookup",
             "btn-helper", "btn-language", "btn-exams"
         ]);
@@ -2950,7 +3037,8 @@ export function initApp() {
             studyMinutes: els.studyMinutesInput.value,
             examItemText: els.examItemText.value,
             quizAnswer: els.quizAnswer.value,
-            quizTopic: els.quizTopic.value,
+            quizSubject: els.quizSubject.value,
+            quizTopicFocus: els.quizTopicFocus.value,
             quizLevel: els.quizLevel.value,
             quizStyle: els.quizStyle.value,
             quizAskInput: els.quizAskInput.value,
@@ -2980,7 +3068,9 @@ export function initApp() {
             if (typeof drafts.studyMinutes === "string") els.studyMinutesInput.value = drafts.studyMinutes;
             if (typeof drafts.examItemText === "string") els.examItemText.value = drafts.examItemText;
             if (typeof drafts.quizAnswer === "string") els.quizAnswer.value = drafts.quizAnswer;
-            if (typeof drafts.quizTopic === "string") els.quizTopic.value = drafts.quizTopic;
+            if (typeof drafts.quizSubject === "string") els.quizSubject.value = drafts.quizSubject;
+            else if (typeof drafts.quizTopic === "string") els.quizSubject.value = drafts.quizTopic;
+            if (typeof drafts.quizTopicFocus === "string") els.quizTopicFocus.value = drafts.quizTopicFocus;
             if (typeof drafts.quizLevel === "string") els.quizLevel.value = drafts.quizLevel;
             if (typeof drafts.quizStyle === "string") els.quizStyle.value = drafts.quizStyle;
             if (typeof drafts.quizAskInput === "string") els.quizAskInput.value = drafts.quizAskInput;
@@ -3237,7 +3327,7 @@ export function initApp() {
             const oral = {
                 activeTab: oralRaw.activeTab === "oral" ? "oral" : "written",
                 track: ["MSA", "BBR", "eBBR"].includes(oralRaw.track) ? oralRaw.track : "MSA",
-                language: oralRaw.language === "de" ? "de" : "en",
+                language: oralRaw.language === "presentation" ? "presentation" : "en",
                 topic: normalizeText(oralRaw.topic),
                 currentPrompt: typeof oralRaw.currentPrompt === "string" ? oralRaw.currentPrompt : "",
                 teacherQuestions: Array.isArray(oralRaw.teacherQuestions) ? oralRaw.teacherQuestions.filter((entry) => typeof entry === "string") : [],
@@ -3285,7 +3375,7 @@ export function initApp() {
             oral: {
                 activeTab: data.oral?.activeTab === "oral" ? "oral" : "written",
                 track: ["MSA", "BBR", "eBBR"].includes(data.oral?.track) ? data.oral.track : "MSA",
-                language: data.oral?.language === "de" ? "de" : "en",
+                language: data.oral?.language === "presentation" ? "presentation" : "en",
                 topic: normalizeText(data.oral?.topic),
                 currentPrompt: typeof data.oral?.currentPrompt === "string" ? data.oral.currentPrompt : "",
                 teacherQuestions: Array.isArray(data.oral?.teacherQuestions) ? data.oral.teacherQuestions.filter((entry) => typeof entry === "string") : [],

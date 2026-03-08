@@ -1011,6 +1011,19 @@ button:focus-visible {
     resize: vertical;
 }
 
+#oral-pronunciation-text[readonly] {
+    opacity: 0.95;
+    cursor: not-allowed;
+}
+
+.slide-preview {
+    width: 100%;
+    min-height: 460px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #0b1625;
+}
+
 #lang-transcript {
     resize: vertical;
 }
@@ -1019,7 +1032,7 @@ body.focus-active .content {
     opacity: 0.92;
 }
 
-body.focus-active #page-helper .helper-extra,
+body.focus-active #page-helper .helper-extra:not(.focus-keep),
 body.focus-active #page-exams .exams-extra:not(.focus-keep) {
     display: none !important;
 }
