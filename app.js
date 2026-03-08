@@ -301,7 +301,6 @@ export function initApp() {
             const action = event.target.dataset.action;
             const goalId = event.target.dataset.id;
             if (!action || !goalId) return;
-            if (action === "toggle-goal") toggleGoal(goalId);
             if (action === "delete-goal") deleteGoal(goalId);
         });
         els.goalSubjects.addEventListener("click", (event) => {
@@ -452,7 +451,7 @@ export function initApp() {
                 const avg = calculateAverage(subject.notes);
                 const avgClass = classifyScore(avg);
                 return `
-                    <article class="card">
+                    <article class="card subject-card ${avgClass ? `subject-${avgClass}` : "subject-none"}">
                         <h3>${escapeHtml(subject.name)}</h3>
                         <p class="card-value ${avgClass ? `score-${avgClass}` : ""}">${avg ?? "--"}</p>
                         <div class="card-actions">
@@ -678,7 +677,6 @@ export function initApp() {
                         <span class="goal-progress-value">${progress.percent}%</span>
                     </div>
                     <div class="row-actions">
-                        <button class="btn btn-ghost" data-action="toggle-goal" data-id="${goal.id}" type="button">${goal.status === "done" ? "Wieder öffnen" : "Erledigt"}</button>
                         <button class="btn btn-ghost" data-action="delete-goal" data-id="${goal.id}" type="button">Löschen</button>
                     </div>
                 </article>
@@ -720,14 +718,15 @@ export function initApp() {
         const rows = subjects.map((subject) => {
             const avg = subject.notes.length ? (subject.notes.reduce((acc, n) => acc + n.value, 0) / subject.notes.length) : 0;
             const pct = Math.max(2, Math.round((avg / 15) * 100));
-            return { name: subject.name, value: avg, pct };
+            const scoreClass = classifyScore(avg);
+            return { name: subject.name, value: avg, pct, scoreClass };
         });
 
         els.chartSubjectAvg.innerHTML = rows
             .map((row) => `
                 <div class="chart-row">
                     <span class="chart-label">${escapeHtml(row.name)}</span>
-                    <div class="chart-track"><div class="chart-fill" style="width:${row.pct}%"></div></div>
+                    <div class="chart-track"><div class="chart-fill chart-score-${row.scoreClass || "mid"}" style="width:${row.pct}%"></div></div>
                     <span class="chart-value">${row.value.toFixed(1)}</span>
                 </div>
             `)
@@ -1119,21 +1118,6 @@ export function initApp() {
         saveDraftsThrottled();
     }
 
-    function toggleGoal(goalId) {
-        const goal = state.goals.find((entry) => entry.id === goalId);
-        if (!goal) return;
-        goal.status = goal.status === "done" ? "open" : "done";
-        persistGoals(state.goals);
-        renderGoals();
-        renderStats();
-        if (goal.status === "done") {
-            showToast("Ziel erreicht. Stark gemacht!", "success");
-            setFeedback(els.goalFeedback, "Ziel als erreicht markiert.");
-        } else {
-            showToast("Ziel wieder geöffnet.", "info");
-        }
-    }
-
     function deleteGoal(goalId) {
         state.goals = state.goals.filter((entry) => entry.id !== goalId);
         persistGoals(state.goals);
@@ -1260,8 +1244,9 @@ export function initApp() {
     function autoCompleteGoals(goalProgressList) {
         let changed = false;
         goalProgressList.forEach((item) => {
-            if (item.status === "done" && item.goal.status !== "done") {
-                item.goal.status = "done";
+            const nextStoredStatus = item.status === "done" ? "done" : "open";
+            if (item.goal.status !== nextStoredStatus) {
+                item.goal.status = nextStoredStatus;
                 changed = true;
             }
         });
