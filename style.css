@@ -975,6 +975,16 @@ body.focus-active .content {
     opacity: 0.92;
 }
 
+body.focus-active #page-helper .helper-extra,
+body.focus-active #page-exams .exams-extra {
+    display: none !important;
+}
+
+body.focus-active #page-helper .helper-learning-core,
+body.focus-active #page-exams .exams-learning-core {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent), var(--shadow);
+}
+
 body.focus-active button:disabled,
 body.focus-active input:disabled,
 body.focus-active select:disabled,

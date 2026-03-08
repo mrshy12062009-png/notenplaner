@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308l">
+    <link rel="stylesheet" href="style.css?v=20260308m">
 </head>
 <body>
     <div class="app-shell">
@@ -170,7 +170,7 @@
                     <h2 id="helper-heading">Lernhelfer</h2>
                     <p>Adaptiver Tutor-Modus mit Erklärungen, Drill und sofortigem Feedback.</p>
                 </div>
-                <div class="stack coach-card">
+                <div class="stack coach-card helper-learning-core">
                     <h3>Tutor-Drill</h3>
                     <p class="list-meta">Erst Lernimpuls, dann Aufgabe, dann gezielte Korrektur wie im Lernmodus.</p>
                     <div class="inline-form responsive-3">
@@ -202,10 +202,15 @@
                         <button id="quiz-hint" class="btn btn-ghost" type="button">Hinweis</button>
                         <button id="quiz-explain" class="btn btn-ghost" type="button">Lösungsweg</button>
                     </div>
+                    <div class="inline-form">
+                        <input id="quiz-ask-input" type="text" placeholder="Frag den Tutor, z. B. Wie löse ich das Schritt für Schritt?">
+                        <button id="quiz-ask-btn" class="btn btn-ghost" type="button">Frag den Tutor</button>
+                    </div>
+                    <div id="quiz-ask-answer" class="coach-answer"></div>
                     <div id="quiz-feedback" class="coach-answer"></div>
                     <p id="quiz-stats" class="list-meta"></p>
                 </div>
-                <div class="stack">
+                <div class="stack helper-extra">
                     <h3>Fach-Tools</h3>
                     <div class="tool-grid">
                         <article class="tool-card">
@@ -236,7 +241,7 @@
                         </article>
                     </div>
                 </div>
-                <div class="stack">
+                <div class="stack helper-extra">
                     <h3>Fokus-Timer</h3>
                     <div class="inline-form">
                         <input id="focus-minutes" type="number" min="5" max="120" step="5" value="25">
@@ -247,7 +252,7 @@
                     </div>
                     <p id="focus-display" class="focus-display">25:00</p>
                 </div>
-                <form id="study-form" class="stack" novalidate>
+                <form id="study-form" class="stack helper-extra" novalidate>
                     <h3>Lernblock planen</h3>
                     <div class="inline-form responsive-3">
                         <input id="study-subject" type="text" maxlength="60" placeholder="z. B. Mathe" required>
@@ -256,7 +261,7 @@
                     </div>
                     <p id="study-feedback" class="feedback" role="status" aria-live="polite"></p>
                 </form>
-                <div class="stack">
+                <div class="stack helper-extra">
                     <h3>Geplante Lernblöcke</h3>
                     <div id="study-list" class="list"></div>
                 </div>
@@ -267,7 +272,7 @@
                     <h2 id="exams-heading">MSA / BBR Vorbereitung</h2>
                     <p>Prüfungs-Tutor mit harten Aufgaben, Sofortkorrektur und Reife-Score.</p>
                 </div>
-                <div class="stack coach-card">
+                <div class="stack coach-card exams-learning-core">
                     <h3>Prüfungs-Tutor</h3>
                     <div class="inline-form responsive-3">
                         <select id="exam-tutor-track">
@@ -297,10 +302,26 @@
                         <button id="exam-tutor-next" class="btn btn-ghost" type="button">Nächste Aufgabe</button>
                         <button id="exam-tutor-hint" class="btn btn-ghost" type="button">Hinweis</button>
                     </div>
+                    <div class="inline-form">
+                        <input id="exam-tutor-ask-input" type="text" placeholder="Frag den Prüfungs-Tutor, z. B. Wie antworte ich besser?">
+                        <button id="exam-tutor-ask-btn" class="btn btn-ghost" type="button">Frag den Tutor</button>
+                    </div>
+                    <div id="exam-tutor-ask-answer" class="coach-answer"></div>
                     <div id="exam-tutor-feedback" class="coach-answer"></div>
                     <p id="exam-tutor-stats" class="list-meta"></p>
                 </div>
-                <form id="exam-form" class="stack" novalidate>
+                <div class="stack exams-extra">
+                    <h3>MSA/BBR Fokus-Timer</h3>
+                    <div class="inline-form">
+                        <input id="exam-focus-minutes" type="number" min="5" max="120" step="5" value="25">
+                        <button id="exam-focus-start" class="btn btn-primary" type="button">Start</button>
+                        <button id="exam-focus-pause" class="btn btn-ghost" type="button">Pause</button>
+                        <button id="exam-focus-stop" class="btn btn-ghost" type="button">Stop</button>
+                        <button id="exam-focus-reset" class="btn btn-ghost" type="button">Reset</button>
+                    </div>
+                    <p id="exam-focus-display" class="focus-display">25:00</p>
+                </div>
+                <form id="exam-form" class="stack exams-extra" novalidate>
                     <div class="inline-form responsive-3">
                         <select id="exam-track">
                             <option value="MSA">MSA</option>
@@ -312,7 +333,7 @@
                     </div>
                     <p id="exam-feedback" class="feedback" role="status" aria-live="polite"></p>
                 </form>
-                <div class="stack">
+                <div class="stack exams-extra">
                     <h3>Fortschritt</h3>
                     <div class="goal-progress">
                         <div class="goal-progress-track"><div id="exam-progress-fill" class="goal-progress-fill" style="width:0%"></div></div>
@@ -498,6 +519,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308l"></script>
+    <script type="module" src="script.js?v=20260308m"></script>
 </body>
 </html>

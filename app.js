@@ -155,6 +155,9 @@ export function initApp() {
         quizNext: document.getElementById("quiz-next"),
         quizHint: document.getElementById("quiz-hint"),
         quizExplain: document.getElementById("quiz-explain"),
+        quizAskInput: document.getElementById("quiz-ask-input"),
+        quizAskBtn: document.getElementById("quiz-ask-btn"),
+        quizAskAnswer: document.getElementById("quiz-ask-answer"),
         quizFeedback: document.getElementById("quiz-feedback"),
         quizStats: document.getElementById("quiz-stats"),
         calcInput: document.getElementById("calc-input"),
@@ -181,8 +184,17 @@ export function initApp() {
         examTutorCheck: document.getElementById("exam-tutor-check"),
         examTutorNext: document.getElementById("exam-tutor-next"),
         examTutorHint: document.getElementById("exam-tutor-hint"),
+        examTutorAskInput: document.getElementById("exam-tutor-ask-input"),
+        examTutorAskBtn: document.getElementById("exam-tutor-ask-btn"),
+        examTutorAskAnswer: document.getElementById("exam-tutor-ask-answer"),
         examTutorFeedback: document.getElementById("exam-tutor-feedback"),
         examTutorStats: document.getElementById("exam-tutor-stats"),
+        examFocusMinutesInput: document.getElementById("exam-focus-minutes"),
+        examFocusStart: document.getElementById("exam-focus-start"),
+        examFocusPause: document.getElementById("exam-focus-pause"),
+        examFocusStop: document.getElementById("exam-focus-stop"),
+        examFocusReset: document.getElementById("exam-focus-reset"),
+        examFocusDisplay: document.getElementById("exam-focus-display"),
 
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
@@ -375,6 +387,11 @@ export function initApp() {
         els.focusReset.addEventListener("click", resetFocusTimer);
         els.focusFloatingStop.addEventListener("click", stopFocusTimer);
         els.focusMinutesInput.addEventListener("change", resetFocusTimer);
+        els.examFocusStart.addEventListener("click", () => startFocusTimer("exam"));
+        els.examFocusPause.addEventListener("click", pauseFocusTimer);
+        els.examFocusStop.addEventListener("click", stopFocusTimer);
+        els.examFocusReset.addEventListener("click", () => resetFocusTimer("exam"));
+        els.examFocusMinutesInput.addEventListener("change", () => resetFocusTimer("exam"));
 
         els.studyForm.addEventListener("submit", onStudySubmit);
         els.studySubjectInput.addEventListener("input", saveDraftsThrottled);
@@ -389,10 +406,18 @@ export function initApp() {
             generateNewQuizTask();
         });
         els.quizAnswer.addEventListener("input", saveDraftsThrottled);
+        els.quizAskInput.addEventListener("input", saveDraftsThrottled);
         els.quizCheck.addEventListener("click", checkQuizAnswer);
         els.quizNext.addEventListener("click", generateNewQuizTask);
         els.quizHint.addEventListener("click", showQuizHint);
         els.quizExplain.addEventListener("click", showQuizExplanation);
+        els.quizAskBtn.addEventListener("click", answerQuizTutorQuestion);
+        els.quizAskInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                answerQuizTutorQuestion();
+            }
+        });
         els.calcEval.addEventListener("click", evaluateCalculator);
         els.calcInput.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
@@ -430,9 +455,17 @@ export function initApp() {
             generateExamTutorTask();
         });
         els.examTutorAnswer.addEventListener("input", saveDraftsThrottled);
+        els.examTutorAskInput.addEventListener("input", saveDraftsThrottled);
         els.examTutorCheck.addEventListener("click", checkExamTutorAnswer);
         els.examTutorNext.addEventListener("click", generateExamTutorTask);
         els.examTutorHint.addEventListener("click", showExamTutorHint);
+        els.examTutorAskBtn.addEventListener("click", answerExamTutorQuestion);
+        els.examTutorAskInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                answerExamTutorQuestion();
+            }
+        });
         els.examItemText.addEventListener("input", saveDraftsThrottled);
         els.examForm.addEventListener("submit", onExamItemSubmit);
         els.examList.addEventListener("click", (event) => {
@@ -482,6 +515,9 @@ export function initApp() {
     }
 
     function showPage(pageId) {
+        if (focusLockActive && pageId !== "helper" && pageId !== "exams") {
+            pageId = "helper";
+        }
         state.viewPage = pageId;
 
         els.pages.forEach((page) => {
@@ -958,6 +994,9 @@ export function initApp() {
         const remaining = Math.max(0, Number.parseInt(state.studyHelper.focusRemainingSec, 10) || 0);
         const timeText = formatDuration(remaining);
         els.focusDisplay.textContent = timeText;
+        if (els.examFocusDisplay) {
+            els.examFocusDisplay.textContent = timeText;
+        }
         if (els.focusFloatingTime) {
             els.focusFloatingTime.textContent = timeText;
         }
@@ -1042,6 +1081,32 @@ export function initApp() {
         const task = state.studyHelper.quiz?.currentTask;
         if (!task) return;
         els.quizFeedback.innerHTML = `<p><strong>Lösungsweg:</strong> ${escapeHtml(task.explain || task.hint || "Kein Lösungsweg hinterlegt.")}</p>`;
+    }
+
+    function answerQuizTutorQuestion() {
+        const question = normalizeText(els.quizAskInput.value).toLowerCase();
+        const task = state.studyHelper.quiz?.currentTask;
+        if (!question) {
+            els.quizAskAnswer.innerHTML = "<p>Stell eine konkrete Frage, z. B. \"Warum teile ich hier durch 6?\"</p>";
+            return;
+        }
+        if (!task) {
+            els.quizAskAnswer.innerHTML = "<p>Ich brauche zuerst eine Aufgabe. Erzeuge eine neue Lernaufgabe.</p>";
+            return;
+        }
+        if (question.includes("warum") || question.includes("wieso")) {
+            els.quizAskAnswer.innerHTML = `<p><strong>Begründung:</strong> ${escapeHtml(task.lesson || "Wir formen die Aufgabe in kleine Schritte um.")}</p>`;
+            return;
+        }
+        if (question.includes("schritt") || question.includes("weg") || question.includes("lösen")) {
+            els.quizAskAnswer.innerHTML = `<p><strong>Schritt-für-Schritt:</strong> ${escapeHtml(task.explain || task.hint || "Erst ordnen, dann rechnen.")}</p>`;
+            return;
+        }
+        if (question.includes("tip") || question.includes("hilfe")) {
+            els.quizAskAnswer.innerHTML = `<p><strong>Tipp:</strong> ${escapeHtml(task.hint || "Arbeite langsam und sauber.")}</p>`;
+            return;
+        }
+        els.quizAskAnswer.innerHTML = `<p>Gute Frage. Starte mit: Problem verstehen -> bekannten Wert markieren -> Zielgröße lösen. Aufgabe aktuell: <strong>${escapeHtml(task.question)}</strong>.</p>`;
     }
 
     function createQuizTask(topic, level = 3, style = "coach") {
@@ -1407,6 +1472,32 @@ export function initApp() {
         els.examTutorFeedback.innerHTML = `<p><strong>Hinweis:</strong> ${escapeHtml(task.hint || "Strukturiert lösen.")}</p>`;
     }
 
+    function answerExamTutorQuestion() {
+        const question = normalizeText(els.examTutorAskInput.value).toLowerCase();
+        const task = state.examPrep.tutor?.currentTask;
+        if (!question) {
+            els.examTutorAskAnswer.innerHTML = "<p>Frag konkret, z. B. \"Wie strukturiere ich die Antwort?\"</p>";
+            return;
+        }
+        if (!task) {
+            els.examTutorAskAnswer.innerHTML = "<p>Bitte zuerst eine Prüfungsaufgabe erzeugen.</p>";
+            return;
+        }
+        if (question.includes("struktur") || question.includes("aufbau")) {
+            els.examTutorAskAnswer.innerHTML = "<p><strong>Prüfungsstruktur:</strong> Einleitung -> Kernargument/Beispiel -> Schluss. Kurz, klar, begründet.</p>";
+            return;
+        }
+        if (question.includes("besser") || question.includes("verbessern")) {
+            els.examTutorAskAnswer.innerHTML = `<p><strong>So wird es besser:</strong> ${escapeHtml(task.hint || "Nutze präzise Begriffe und begründe jede Aussage.")}</p>`;
+            return;
+        }
+        if (question.includes("bewertung") || question.includes("punkte")) {
+            els.examTutorAskAnswer.innerHTML = "<p><strong>Bewertung:</strong> Inhalt + Struktur + sprachliche Klarheit. Triff die Kernpunkte und bleibe beim Thema.</p>";
+            return;
+        }
+        els.examTutorAskAnswer.innerHTML = `<p>Für diese Aufgabe ist wichtig: <strong>${escapeHtml(task.lesson || "Klare Struktur und passende Begriffe.")}</strong></p>`;
+    }
+
     function subjectLabel(code) {
         if (code === "de") return "Deutsch";
         if (code === "en") return "Englisch";
@@ -1486,13 +1577,15 @@ export function initApp() {
         renderStudyHelper();
     }
 
-    function startFocusTimer() {
+    function startFocusTimer(source = "helper") {
         if (focusTimer) return;
-        const inputMinutes = Number.parseInt(els.focusMinutesInput.value, 10);
+        const minutesInput = source === "exam" ? els.examFocusMinutesInput : els.focusMinutesInput;
+        const inputMinutes = Number.parseInt(minutesInput.value, 10);
         if (!Number.isInteger(inputMinutes) || inputMinutes < 5 || inputMinutes > 120) {
             showToast("Timer-Minuten müssen zwischen 5 und 120 liegen.", "info");
             return;
         }
+        syncFocusMinuteInputs(inputMinutes);
         if (!state.studyHelper.focusRemainingSec || state.studyHelper.focusRemainingSec <= 0) {
             state.studyHelper.focusRemainingSec = inputMinutes * 60;
         }
@@ -1531,14 +1624,16 @@ export function initApp() {
         showToast("Fokus-Modus beendet.", "info");
     }
 
-    function resetFocusTimer() {
+    function resetFocusTimer(source = "helper") {
         if (focusTimer) {
             clearInterval(focusTimer);
             focusTimer = null;
         }
         setFocusLock(false);
-        const inputMinutes = Number.parseInt(els.focusMinutesInput.value, 10);
+        const minutesInput = source === "exam" ? els.examFocusMinutesInput : els.focusMinutesInput;
+        const inputMinutes = Number.parseInt(minutesInput.value, 10);
         const minutes = Number.isInteger(inputMinutes) && inputMinutes >= 5 && inputMinutes <= 120 ? inputMinutes : 25;
+        syncFocusMinuteInputs(minutes);
         state.studyHelper.focusRemainingSec = minutes * 60;
         state.studyHelper = persistStudyHelper(state.studyHelper);
         renderStudyHelper();
@@ -1560,7 +1655,15 @@ export function initApp() {
         if (els.focusFloating) {
             els.focusFloating.classList.toggle("hidden", !active);
         }
-        const whitelist = new Set(["focus-pause", "focus-reset", "focus-stop", "focus-floating-stop"]);
+        const whitelist = new Set([
+            "focus-pause", "focus-reset", "focus-stop", "focus-floating-stop",
+            "exam-focus-pause", "exam-focus-reset", "exam-focus-stop",
+            "quiz-topic", "quiz-level", "quiz-style", "quiz-answer",
+            "quiz-check", "quiz-next", "quiz-hint", "quiz-explain", "quiz-ask-input", "quiz-ask-btn",
+            "exam-tutor-track", "exam-tutor-subject", "exam-tutor-level", "exam-tutor-answer",
+            "exam-tutor-check", "exam-tutor-next", "exam-tutor-hint", "exam-tutor-ask-input", "exam-tutor-ask-btn",
+            "btn-helper", "btn-exams"
+        ]);
         const controls = document.querySelectorAll("button, input, select, textarea");
         controls.forEach((el) => {
             if (whitelist.has(el.id)) {
@@ -1574,6 +1677,14 @@ export function initApp() {
                 el.disabled = false;
             });
         }
+        if (active && state.viewPage !== "helper" && state.viewPage !== "exams") {
+            showPage("helper");
+        }
+    }
+
+    function syncFocusMinuteInputs(minutes) {
+        if (els.focusMinutesInput) els.focusMinutesInput.value = String(minutes);
+        if (els.examFocusMinutesInput) els.examFocusMinutesInput.value = String(minutes);
     }
 
     function onExamItemSubmit(event) {
@@ -2191,7 +2302,9 @@ export function initApp() {
             quizTopic: els.quizTopic.value,
             quizLevel: els.quizLevel.value,
             quizStyle: els.quizStyle.value,
-            examTutorAnswer: els.examTutorAnswer.value
+            quizAskInput: els.quizAskInput.value,
+            examTutorAnswer: els.examTutorAnswer.value,
+            examTutorAskInput: els.examTutorAskInput.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -2215,7 +2328,9 @@ export function initApp() {
             if (typeof drafts.quizTopic === "string") els.quizTopic.value = drafts.quizTopic;
             if (typeof drafts.quizLevel === "string") els.quizLevel.value = drafts.quizLevel;
             if (typeof drafts.quizStyle === "string") els.quizStyle.value = drafts.quizStyle;
+            if (typeof drafts.quizAskInput === "string") els.quizAskInput.value = drafts.quizAskInput;
             if (typeof drafts.examTutorAnswer === "string") els.examTutorAnswer.value = drafts.examTutorAnswer;
+            if (typeof drafts.examTutorAskInput === "string") els.examTutorAskInput.value = drafts.examTutorAskInput;
         } catch (_) {
             // ignore invalid draft storage
         }
