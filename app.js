@@ -143,10 +143,14 @@ export function initApp() {
         studyFeedback: document.getElementById("study-feedback"),
         studyList: document.getElementById("study-list"),
         quizTopic: document.getElementById("quiz-topic"),
+        quizLevel: document.getElementById("quiz-level"),
+        quizStyle: document.getElementById("quiz-style"),
         quizQuestion: document.getElementById("quiz-question"),
         quizAnswer: document.getElementById("quiz-answer"),
         quizCheck: document.getElementById("quiz-check"),
         quizNext: document.getElementById("quiz-next"),
+        quizHint: document.getElementById("quiz-hint"),
+        quizExplain: document.getElementById("quiz-explain"),
         quizFeedback: document.getElementById("quiz-feedback"),
         quizStats: document.getElementById("quiz-stats"),
 
@@ -157,6 +161,16 @@ export function initApp() {
         examList: document.getElementById("exam-list"),
         examProgressFill: document.getElementById("exam-progress-fill"),
         examProgressValue: document.getElementById("exam-progress-value"),
+        examTutorTrack: document.getElementById("exam-tutor-track"),
+        examTutorSubject: document.getElementById("exam-tutor-subject"),
+        examTutorLevel: document.getElementById("exam-tutor-level"),
+        examTutorQuestion: document.getElementById("exam-tutor-question"),
+        examTutorAnswer: document.getElementById("exam-tutor-answer"),
+        examTutorCheck: document.getElementById("exam-tutor-check"),
+        examTutorNext: document.getElementById("exam-tutor-next"),
+        examTutorHint: document.getElementById("exam-tutor-hint"),
+        examTutorFeedback: document.getElementById("exam-tutor-feedback"),
+        examTutorStats: document.getElementById("exam-tutor-stats"),
 
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
@@ -353,9 +367,17 @@ export function initApp() {
         els.quizTopic.addEventListener("change", () => {
             generateNewQuizTask();
         });
+        els.quizLevel.addEventListener("change", () => {
+            generateNewQuizTask();
+        });
+        els.quizStyle.addEventListener("change", () => {
+            generateNewQuizTask();
+        });
         els.quizAnswer.addEventListener("input", saveDraftsThrottled);
         els.quizCheck.addEventListener("click", checkQuizAnswer);
         els.quizNext.addEventListener("click", generateNewQuizTask);
+        els.quizHint.addEventListener("click", showQuizHint);
+        els.quizExplain.addEventListener("click", showQuizExplanation);
         els.studyList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
@@ -370,6 +392,19 @@ export function initApp() {
             renderExamPrep();
             setFeedback(els.examFeedback, `${els.examTrack.value} ausgewählt.`);
         });
+        els.examTutorTrack.addEventListener("change", () => {
+            generateExamTutorTask();
+        });
+        els.examTutorSubject.addEventListener("change", () => {
+            generateExamTutorTask();
+        });
+        els.examTutorLevel.addEventListener("change", () => {
+            generateExamTutorTask();
+        });
+        els.examTutorAnswer.addEventListener("input", saveDraftsThrottled);
+        els.examTutorCheck.addEventListener("click", checkExamTutorAnswer);
+        els.examTutorNext.addEventListener("click", generateExamTutorTask);
+        els.examTutorHint.addEventListener("click", showExamTutorHint);
         els.examItemText.addEventListener("input", saveDraftsThrottled);
         els.examForm.addEventListener("submit", onExamItemSubmit);
         els.examList.addEventListener("click", (event) => {
@@ -415,6 +450,7 @@ export function initApp() {
         renderGoals();
         renderStudyHelper();
         renderExamPrep();
+        renderExamTutor();
         renderQuizCard();
     }
 
@@ -690,6 +726,7 @@ export function initApp() {
         const activeExamItems = getExamItems(state.examPrep.activeTrack);
         const examDone = activeExamItems.filter((entry) => entry.done).length;
         const examPercent = activeExamItems.length ? Math.round((examDone / activeExamItems.length) * 100) : 0;
+        const examTutorReady = state.examPrep.tutor?.stats?.readiness || 0;
         const nowIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
         const upcomingExams = Object.keys(state.eventsStore.events).reduce((count, date) => {
             if (date < nowIso) return count;
@@ -710,7 +747,8 @@ export function initApp() {
             { label: "Nahe Ziele", value: String(nearGoals) },
             { label: "Erreichte Ziele", value: String(doneGoals) },
             { label: "Lernblöcke offen", value: String(studyOpen) },
-            { label: `${state.examPrep.activeTrack}-Fortschritt`, value: `${examPercent}%` }
+            { label: `${state.examPrep.activeTrack}-Fortschritt`, value: `${examPercent}%` },
+            { label: "Prüfungsreife", value: `${examTutorReady}%` }
         ];
 
         els.statsGrid.innerHTML = stats
@@ -907,7 +945,7 @@ export function initApp() {
         const stats = state.studyHelper.quiz.stats;
         const total = stats.correct + stats.wrong;
         const quote = total ? Math.round((stats.correct / total) * 100) : 0;
-        els.quizStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Trefferquote: ${quote}% · Serie: ${stats.streak}`;
+        els.quizStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Trefferquote: ${quote}% · Serie: ${stats.streak} · Punkte: ${stats.points || 0}`;
         if (!els.quizFeedback.textContent) {
             els.quizFeedback.innerHTML = "<p>Antworte auf die Aufgabe. Bei Fehler bekommst du einen Lernhinweis.</p>";
         }
@@ -915,8 +953,10 @@ export function initApp() {
 
     function generateNewQuizTask(clearFeedback = true) {
         const topic = els.quizTopic.value || "mix";
-        const currentTask = createQuizTask(topic);
-        state.studyHelper.quiz = state.studyHelper.quiz || { currentTask: null, stats: { correct: 0, wrong: 0, streak: 0 } };
+        const level = Number.parseInt(els.quizLevel.value, 10) || 3;
+        const style = els.quizStyle.value || "coach";
+        const currentTask = createQuizTask(topic, level, style);
+        state.studyHelper.quiz = state.studyHelper.quiz || { currentTask: null, stats: { correct: 0, wrong: 0, streak: 0, points: 0 } };
         state.studyHelper.quiz.currentTask = currentTask;
         state.studyHelper = persistStudyHelper(state.studyHelper);
         els.quizAnswer.value = "";
@@ -945,11 +985,13 @@ export function initApp() {
         if (isCorrect) {
             stats.correct += 1;
             stats.streak += 1;
+            stats.points = (stats.points || 0) + (task.reward || 10);
             els.quizFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip || "Stark gelöst.")}</p>`;
             showToast("Richtig beantwortet.", "success");
         } else {
             stats.wrong += 1;
             stats.streak = 0;
+            stats.points = Math.max(0, (stats.points || 0) - 3);
             els.quizFeedback.innerHTML = `
                 <p><strong>Noch nicht richtig.</strong> Richtige Antwort: <strong>${escapeHtml(String(task.solutionLabel))}</strong></p>
                 <p>${escapeHtml(task.hint || "Tipp: Schritt für Schritt arbeiten.")}</p>
@@ -960,18 +1002,30 @@ export function initApp() {
         renderQuizCard();
     }
 
-    function createQuizTask(topic) {
-        const resolved = topic === "mix" ? ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)] : topic;
-        if (resolved === "algebra") return createAlgebraQuizTask();
-        if (resolved === "de") return createGermanQuizTask();
-        if (resolved === "en") return createEnglishQuizTask();
-        return createMathQuizTask();
+    function showQuizHint() {
+        const task = state.studyHelper.quiz?.currentTask;
+        if (!task) return;
+        els.quizFeedback.innerHTML = `<p><strong>Hinweis:</strong> ${escapeHtml(task.hint || "Arbeite Schritt für Schritt.")}</p>`;
     }
 
-    function createAlgebraQuizTask() {
-        const a = rand(2, 8);
-        const x = rand(-6, 10);
-        const b = rand(-9, 12);
+    function showQuizExplanation() {
+        const task = state.studyHelper.quiz?.currentTask;
+        if (!task) return;
+        els.quizFeedback.innerHTML = `<p><strong>Lösungsweg:</strong> ${escapeHtml(task.explain || task.hint || "Kein Lösungsweg hinterlegt.")}</p>`;
+    }
+
+    function createQuizTask(topic, level = 3, style = "coach") {
+        const resolved = topic === "mix" ? ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)] : topic;
+        if (resolved === "algebra") return createAlgebraQuizTask(level, style);
+        if (resolved === "de") return createGermanQuizTask(level, style);
+        if (resolved === "en") return createEnglishQuizTask(level, style);
+        return createMathQuizTask(level, style);
+    }
+
+    function createAlgebraQuizTask(level = 3, style = "coach") {
+        const a = rand(2, 3 + level * 2);
+        const x = rand(-4 - level, 6 + level);
+        const b = rand(-6 - level, 8 + level);
         const c = a * x + b;
         const signB = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
         const invSignB = b >= 0 ? `-${b}` : `+ ${Math.abs(b)}`;
@@ -983,15 +1037,17 @@ export function initApp() {
             tolerance: 0.001,
             solutionLabel: `x = ${x}`,
             hint: `Schritt 1: ${a}x = ${c} ${invSignB}. Schritt 2: durch ${a} teilen.`,
-            successTip: "Genau so löst du lineare Gleichungen."
+            explain: `${a}x ${signB} = ${c} -> ${a}x = ${c} ${invSignB} -> x = (${c} ${invSignB}) / ${a} = ${x}`,
+            successTip: style === "exam" ? "Prüfungsstark gelöst." : "Genau so löst du lineare Gleichungen.",
+            reward: 8 + level * 3
         };
     }
 
-    function createMathQuizTask() {
+    function createMathQuizTask(level = 3, style = "coach") {
         const mode = Math.floor(Math.random() * 3);
         if (mode === 0) {
-            const a = rand(10, 70);
-            const b = rand(10, 70);
+            const a = rand(8 * level, 20 * level + 20);
+            const b = rand(8 * level, 20 * level + 20);
             return {
                 type: "number",
                 lesson: "Addiere die Zahlen sauber untereinander.",
@@ -999,12 +1055,15 @@ export function initApp() {
                 solution: a + b,
                 tolerance: 0.001,
                 solutionLabel: String(a + b),
-                hint: `Rechne zuerst Zehner, dann Einer: ${a} + ${b}.`
+                hint: `Rechne zuerst Zehner, dann Einer: ${a} + ${b}.`,
+                explain: `${a} + ${b} = ${a + b}`,
+                successTip: style === "speed" ? "Schnell und korrekt." : "Sauber gerechnet.",
+                reward: 6 + level * 2
             };
         }
         if (mode === 1) {
-            const a = rand(2, 12);
-            const b = rand(2, 12);
+            const a = rand(2, 6 + level * 2);
+            const b = rand(2, 6 + level * 2);
             return {
                 type: "number",
                 lesson: "Multiplikation heißt wiederholte Addition.",
@@ -1012,11 +1071,14 @@ export function initApp() {
                 solution: a * b,
                 tolerance: 0.001,
                 solutionLabel: String(a * b),
-                hint: `Nutze das Einmaleins oder zerlege ${b}.`
+                hint: `Nutze das Einmaleins oder zerlege ${b}.`,
+                explain: `${a} × ${b} = ${a * b}`,
+                successTip: "Gute Rechengeschwindigkeit.",
+                reward: 6 + level * 2
             };
         }
-        const percent = rand(10, 90);
-        const base = rand(20, 200);
+        const percent = rand(10, 35 + level * 12);
+        const base = rand(20, 60 + level * 80);
         const result = Number(((percent / 100) * base).toFixed(2));
         return {
             type: "number",
@@ -1025,15 +1087,19 @@ export function initApp() {
             solution: result,
             tolerance: 0.01,
             solutionLabel: String(result).replace(".", ","),
-            hint: `Rechne ${percent}/100 × ${base}.`
+            hint: `Rechne ${percent}/100 × ${base}.`,
+            explain: `${percent}/100 × ${base} = ${result}`,
+            successTip: "Prozentrechnung sitzt.",
+            reward: 8 + level * 2
         };
     }
 
-    function createGermanQuizTask() {
+    function createGermanQuizTask(level = 3) {
         const pool = [
             { question: "Welches Wort ist ein Nomen? (haus / laufen / schön)", solution: "haus" },
             { question: "Wie heißt die Mehrzahl von \"Buch\"?", solution: "bücher" },
-            { question: "Welches Satzzeichen beendet eine Frage?", solution: "?" }
+            { question: "Welches Satzzeichen beendet eine Frage?", solution: "?" },
+            { question: "Setze ein passendes Verb ein: Ich ___ heute für Mathe.", solution: "lerne" }
         ];
         const item = pool[rand(0, pool.length - 1)];
         return {
@@ -1042,15 +1108,18 @@ export function initApp() {
             question: item.question,
             solution: item.solution,
             solutionLabel: item.solution,
-            hint: "Lies die Aufgabe noch einmal langsam."
+            hint: "Lies die Aufgabe noch einmal langsam.",
+            explain: `Achte auf die Satzfunktion. Die erwartete Lösung ist "${item.solution}".`,
+            reward: 5 + level
         };
     }
 
-    function createEnglishQuizTask() {
+    function createEnglishQuizTask(level = 3) {
         const pool = [
             { question: "Übersetze ins Deutsche: \"school\"", solution: "schule" },
             { question: "Übersetze ins Englische: \"lernen\"", solution: "learn" },
-            { question: "Wie heißt \"Montag\" auf Englisch?", solution: "monday" }
+            { question: "Wie heißt \"Montag\" auf Englisch?", solution: "monday" },
+            { question: "Setze ein: She ___ to school every day. (go/goes)", solution: "goes" }
         ];
         const item = pool[rand(0, pool.length - 1)];
         return {
@@ -1059,7 +1128,9 @@ export function initApp() {
             question: item.question,
             solution: item.solution,
             solutionLabel: item.solution,
-            hint: "Denke an die übliche Schulvokabel."
+            hint: "Denke an die übliche Schulvokabel.",
+            explain: `In diesem Kontext ist "${item.solution}" korrekt.`,
+            reward: 5 + level
         };
     }
 
@@ -1090,6 +1161,93 @@ export function initApp() {
 
     function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function renderExamTutor() {
+        if (!state.examPrep.tutor || !state.examPrep.tutor.currentTask) {
+            generateExamTutorTask(false);
+        }
+        const task = state.examPrep.tutor.currentTask;
+        els.examTutorQuestion.innerHTML = `
+            <p><strong>${escapeHtml(state.examPrep.tutor.track)} · ${escapeHtml(subjectLabel(state.examPrep.tutor.subject))} · Level ${state.examPrep.tutor.level}</strong></p>
+            <p>${escapeHtml(task.question)}</p>
+        `;
+        const stats = state.examPrep.tutor.stats;
+        const total = stats.correct + stats.wrong;
+        const quote = total ? Math.round((stats.correct / total) * 100) : 0;
+        els.examTutorStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Quote: ${quote}% · Reife-Score: ${stats.readiness}%`;
+        if (!els.examTutorFeedback.textContent) {
+            els.examTutorFeedback.innerHTML = "<p>Prüfungsantwort eingeben und prüfen.</p>";
+        }
+    }
+
+    function generateExamTutorTask(clearFeedback = true) {
+        const track = els.examTutorTrack.value || "MSA";
+        const subject = els.examTutorSubject.value || "math";
+        const level = Number.parseInt(els.examTutorLevel.value, 10) || 3;
+        state.examPrep.tutor = state.examPrep.tutor || { track, subject, level, currentTask: null, stats: { correct: 0, wrong: 0, readiness: 0 } };
+        state.examPrep.tutor.track = track;
+        state.examPrep.tutor.subject = subject;
+        state.examPrep.tutor.level = level;
+        state.examPrep.tutor.currentTask = createExamTutorTask(track, subject, level);
+        state.examPrep = persistExamPrep(state.examPrep);
+        els.examTutorAnswer.value = "";
+        if (clearFeedback) {
+            els.examTutorFeedback.innerHTML = "<p>Neue Prüfungsaufgabe erstellt.</p>";
+        }
+        renderExamTutor();
+    }
+
+    function createExamTutorTask(track, subject, level) {
+        if (subject === "math") {
+            const baseTask = createAlgebraQuizTask(level + (track === "MSA" ? 1 : 0), "exam");
+            return { ...baseTask, question: `[${track}] ${baseTask.question}` };
+        }
+        if (subject === "de") {
+            const task = createGermanQuizTask(level + 1);
+            return { ...task, question: `[${track}] ${task.question}` };
+        }
+        const enTask = createEnglishQuizTask(level + 1);
+        return { ...enTask, question: `[${track}] ${enTask.question}` };
+    }
+
+    function checkExamTutorAnswer() {
+        const input = normalizeText(els.examTutorAnswer.value);
+        if (!input) {
+            els.examTutorFeedback.innerHTML = "<p>Bitte Antwort eingeben.</p>";
+            return;
+        }
+        const task = state.examPrep.tutor?.currentTask;
+        if (!task) {
+            generateExamTutorTask();
+            return;
+        }
+        const isCorrect = validateQuizAnswer(task, input);
+        const stats = state.examPrep.tutor.stats;
+        if (isCorrect) {
+            stats.correct += 1;
+            stats.readiness = Math.min(100, stats.readiness + 4 + state.examPrep.tutor.level);
+            els.examTutorFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip || "Prüfungsstark.")}</p>`;
+        } else {
+            stats.wrong += 1;
+            stats.readiness = Math.max(0, stats.readiness - 2);
+            els.examTutorFeedback.innerHTML = `<p><strong>Falsch.</strong> Richtige Antwort: <strong>${escapeHtml(String(task.solutionLabel))}</strong></p><p>${escapeHtml(task.hint || "")}</p>`;
+        }
+        state.examPrep = persistExamPrep(state.examPrep);
+        renderExamTutor();
+        renderStats();
+    }
+
+    function showExamTutorHint() {
+        const task = state.examPrep.tutor?.currentTask;
+        if (!task) return;
+        els.examTutorFeedback.innerHTML = `<p><strong>Hinweis:</strong> ${escapeHtml(task.hint || "Strukturiert lösen.")}</p>`;
+    }
+
+    function subjectLabel(code) {
+        if (code === "de") return "Deutsch";
+        if (code === "en") return "Englisch";
+        return "Mathe";
     }
 
     function renderExamPrep() {
@@ -1277,6 +1435,15 @@ export function initApp() {
     function hydrateExamPrepUI() {
         if (els.examTrack) {
             els.examTrack.value = state.examPrep.activeTrack;
+        }
+        if (els.examTutorTrack) {
+            els.examTutorTrack.value = state.examPrep.tutor?.track || "MSA";
+        }
+        if (els.examTutorSubject) {
+            els.examTutorSubject.value = state.examPrep.tutor?.subject || "math";
+        }
+        if (els.examTutorLevel) {
+            els.examTutorLevel.value = String(state.examPrep.tutor?.level || 3);
         }
     }
 
@@ -1805,7 +1972,11 @@ export function initApp() {
             studySubject: els.studySubjectInput.value,
             studyMinutes: els.studyMinutesInput.value,
             examItemText: els.examItemText.value,
-            quizAnswer: els.quizAnswer.value
+            quizAnswer: els.quizAnswer.value,
+            quizTopic: els.quizTopic.value,
+            quizLevel: els.quizLevel.value,
+            quizStyle: els.quizStyle.value,
+            examTutorAnswer: els.examTutorAnswer.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -1826,6 +1997,10 @@ export function initApp() {
             if (typeof drafts.studyMinutes === "string") els.studyMinutesInput.value = drafts.studyMinutes;
             if (typeof drafts.examItemText === "string") els.examItemText.value = drafts.examItemText;
             if (typeof drafts.quizAnswer === "string") els.quizAnswer.value = drafts.quizAnswer;
+            if (typeof drafts.quizTopic === "string") els.quizTopic.value = drafts.quizTopic;
+            if (typeof drafts.quizLevel === "string") els.quizLevel.value = drafts.quizLevel;
+            if (typeof drafts.quizStyle === "string") els.quizStyle.value = drafts.quizStyle;
+            if (typeof drafts.examTutorAnswer === "string") els.examTutorAnswer.value = drafts.examTutorAnswer;
         } catch (_) {
             // ignore invalid draft storage
         }
@@ -1889,7 +2064,7 @@ export function initApp() {
             focusRemainingSec: 25 * 60,
             quiz: {
                 currentTask: null,
-                stats: { correct: 0, wrong: 0, streak: 0 }
+                stats: { correct: 0, wrong: 0, streak: 0, points: 0 }
             }
         };
         try {
@@ -1913,7 +2088,8 @@ export function initApp() {
                 ? {
                     correct: Math.max(0, Number.parseInt(parsed.quiz.stats.correct, 10) || 0),
                     wrong: Math.max(0, Number.parseInt(parsed.quiz.stats.wrong, 10) || 0),
-                    streak: Math.max(0, Number.parseInt(parsed.quiz.stats.streak, 10) || 0)
+                    streak: Math.max(0, Number.parseInt(parsed.quiz.stats.streak, 10) || 0),
+                    points: Math.max(0, Number.parseInt(parsed.quiz.stats.points, 10) || 0)
                 }
                 : fallback.quiz.stats;
             const currentTask = parsed.quiz && parsed.quiz.currentTask && typeof parsed.quiz.currentTask === "object"
@@ -1941,7 +2117,8 @@ export function initApp() {
                 stats: {
                     correct: Math.max(0, Number.parseInt(data.quiz?.stats?.correct, 10) || 0),
                     wrong: Math.max(0, Number.parseInt(data.quiz?.stats?.wrong, 10) || 0),
-                    streak: Math.max(0, Number.parseInt(data.quiz?.stats?.streak, 10) || 0)
+                    streak: Math.max(0, Number.parseInt(data.quiz?.stats?.streak, 10) || 0),
+                    points: Math.max(0, Number.parseInt(data.quiz?.stats?.points, 10) || 0)
                 }
             }
         };
@@ -1956,6 +2133,13 @@ export function initApp() {
                 MSA: buildExamPreset("MSA"),
                 BBR: buildExamPreset("BBR"),
                 eBBR: buildExamPreset("eBBR")
+            },
+            tutor: {
+                track: "MSA",
+                subject: "math",
+                level: 3,
+                currentTask: null,
+                stats: { correct: 0, wrong: 0, readiness: 0 }
             }
         };
         try {
@@ -1979,7 +2163,19 @@ export function initApp() {
                     tracks[track] = items.length ? items : buildExamPreset(track);
                 });
             }
-            return { activeTrack, tracks };
+            const tutorRaw = parsed.tutor && typeof parsed.tutor === "object" ? parsed.tutor : fallback.tutor;
+            const tutor = {
+                track: ["MSA", "BBR", "eBBR"].includes(tutorRaw.track) ? tutorRaw.track : "MSA",
+                subject: ["math", "de", "en"].includes(tutorRaw.subject) ? tutorRaw.subject : "math",
+                level: [1, 2, 3, 4, 5].includes(Number.parseInt(tutorRaw.level, 10)) ? Number.parseInt(tutorRaw.level, 10) : 3,
+                currentTask: tutorRaw.currentTask && typeof tutorRaw.currentTask === "object" ? tutorRaw.currentTask : null,
+                stats: {
+                    correct: Math.max(0, Number.parseInt(tutorRaw.stats?.correct, 10) || 0),
+                    wrong: Math.max(0, Number.parseInt(tutorRaw.stats?.wrong, 10) || 0),
+                    readiness: Math.max(0, Math.min(100, Number.parseInt(tutorRaw.stats?.readiness, 10) || 0))
+                }
+            };
+            return { activeTrack, tracks, tutor };
         } catch (_) {
             return fallback;
         }
@@ -1992,6 +2188,17 @@ export function initApp() {
                 MSA: Array.isArray(data.tracks?.MSA) ? data.tracks.MSA : buildExamPreset("MSA"),
                 BBR: Array.isArray(data.tracks?.BBR) ? data.tracks.BBR : buildExamPreset("BBR"),
                 eBBR: Array.isArray(data.tracks?.eBBR) ? data.tracks.eBBR : buildExamPreset("eBBR")
+            },
+            tutor: {
+                track: ["MSA", "BBR", "eBBR"].includes(data.tutor?.track) ? data.tutor.track : "MSA",
+                subject: ["math", "de", "en"].includes(data.tutor?.subject) ? data.tutor.subject : "math",
+                level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.tutor?.level, 10)) ? Number.parseInt(data.tutor.level, 10) : 3,
+                currentTask: data.tutor?.currentTask && typeof data.tutor.currentTask === "object" ? data.tutor.currentTask : null,
+                stats: {
+                    correct: Math.max(0, Number.parseInt(data.tutor?.stats?.correct, 10) || 0),
+                    wrong: Math.max(0, Number.parseInt(data.tutor?.stats?.wrong, 10) || 0),
+                    readiness: Math.max(0, Math.min(100, Number.parseInt(data.tutor?.stats?.readiness, 10) || 0))
+                }
             }
         };
         localStorage.setItem("gf_exam_prep", JSON.stringify(clean));

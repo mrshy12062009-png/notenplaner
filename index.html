@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308h">
+    <link rel="stylesheet" href="style.css?v=20260308i">
 </head>
 <body>
     <div class="app-shell">
@@ -168,23 +168,39 @@
             <section id="page-helper" class="page" aria-labelledby="helper-heading">
                 <div class="section-head">
                     <h2 id="helper-heading">Lernhelfer</h2>
-                    <p>Plane Lernblöcke und bleibe mit Fokus-Timer im Rhythmus.</p>
+                    <p>Adaptiver Tutor-Modus mit Erklärungen, Drill und sofortigem Feedback.</p>
                 </div>
                 <div class="stack coach-card">
-                    <h3>Lernmodus (Tutor)</h3>
-                    <p class="list-meta">Wie GPT-Lernmodus: kurz erklären, dann üben, dann gezieltes Feedback.</p>
-                    <select id="quiz-topic">
-                        <option value="mix">Mix</option>
-                        <option value="algebra">Algebra</option>
-                        <option value="math">Mathe</option>
-                        <option value="de">Deutsch</option>
-                        <option value="en">Englisch</option>
-                    </select>
+                    <h3>Tutor-Drill</h3>
+                    <p class="list-meta">Erst Lernimpuls, dann Aufgabe, dann gezielte Korrektur wie im Lernmodus.</p>
+                    <div class="inline-form responsive-3">
+                        <select id="quiz-topic">
+                            <option value="mix">Mix</option>
+                            <option value="algebra">Algebra</option>
+                            <option value="math">Mathe</option>
+                            <option value="de">Deutsch</option>
+                            <option value="en">Englisch</option>
+                        </select>
+                        <select id="quiz-level">
+                            <option value="1">Level 1</option>
+                            <option value="2">Level 2</option>
+                            <option value="3" selected>Level 3</option>
+                            <option value="4">Level 4</option>
+                            <option value="5">Level 5</option>
+                        </select>
+                        <select id="quiz-style">
+                            <option value="coach" selected>Coach</option>
+                            <option value="exam">Prüfungsmodus</option>
+                            <option value="speed">Speed-Drill</option>
+                        </select>
+                    </div>
                     <div id="quiz-question" class="coach-answer"></div>
                     <input id="quiz-answer" type="text" placeholder="Deine Antwort (z. B. x=4 oder 12)">
                     <div class="inline-form">
                         <button id="quiz-check" class="btn btn-primary" type="button">Antwort prüfen</button>
                         <button id="quiz-next" class="btn btn-ghost" type="button">Nächste Lernaufgabe</button>
+                        <button id="quiz-hint" class="btn btn-ghost" type="button">Hinweis</button>
+                        <button id="quiz-explain" class="btn btn-ghost" type="button">Lösungsweg</button>
                     </div>
                     <div id="quiz-feedback" class="coach-answer"></div>
                     <p id="quiz-stats" class="list-meta"></p>
@@ -217,7 +233,38 @@
             <section id="page-exams" class="page" aria-labelledby="exams-heading">
                 <div class="section-head">
                     <h2 id="exams-heading">MSA / BBR Vorbereitung</h2>
-                    <p>Checklisten, Aufgaben und Fortschritt für Abschlussprüfungen.</p>
+                    <p>Prüfungs-Tutor mit harten Aufgaben, Sofortkorrektur und Reife-Score.</p>
+                </div>
+                <div class="stack coach-card">
+                    <h3>Prüfungs-Tutor</h3>
+                    <div class="inline-form responsive-3">
+                        <select id="exam-tutor-track">
+                            <option value="MSA">MSA</option>
+                            <option value="BBR">BBR</option>
+                            <option value="eBBR">eBBR</option>
+                        </select>
+                        <select id="exam-tutor-subject">
+                            <option value="math">Mathe</option>
+                            <option value="de">Deutsch</option>
+                            <option value="en">Englisch</option>
+                        </select>
+                        <select id="exam-tutor-level">
+                            <option value="1">Leicht</option>
+                            <option value="2">Mittel</option>
+                            <option value="3" selected>Stark</option>
+                            <option value="4">Schwer</option>
+                            <option value="5">Sehr schwer</option>
+                        </select>
+                    </div>
+                    <div id="exam-tutor-question" class="coach-answer"></div>
+                    <input id="exam-tutor-answer" type="text" placeholder="Deine Prüfungsantwort">
+                    <div class="inline-form">
+                        <button id="exam-tutor-check" class="btn btn-primary" type="button">Prüfen</button>
+                        <button id="exam-tutor-next" class="btn btn-ghost" type="button">Nächste Aufgabe</button>
+                        <button id="exam-tutor-hint" class="btn btn-ghost" type="button">Hinweis</button>
+                    </div>
+                    <div id="exam-tutor-feedback" class="coach-answer"></div>
+                    <p id="exam-tutor-stats" class="list-meta"></p>
                 </div>
                 <form id="exam-form" class="stack" novalidate>
                     <div class="inline-form responsive-3">
@@ -411,6 +458,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308h"></script>
+    <script type="module" src="script.js?v=20260308i"></script>
 </body>
 </html>
