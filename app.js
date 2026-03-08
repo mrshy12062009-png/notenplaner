@@ -2477,7 +2477,7 @@ export function initApp() {
         if (els.oralSlideSeconds) {
             els.oralSlideSeconds.value = String(state.examPrep.oral?.slides?.secondsPerSlide || 45);
         }
-        setExamTab(state.examPrep.oral?.activeTab || "written");
+        setExamTab("written");
     }
 
     function hydrateLanguageUI() {

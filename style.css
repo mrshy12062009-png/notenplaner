@@ -914,6 +914,11 @@ button:focus-visible {
     display: grid;
 }
 
+#page-exams .exam-tabs,
+#page-exams #exam-panel-oral {
+    display: none !important;
+}
+
 .coach-answer {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
