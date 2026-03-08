@@ -1678,15 +1678,25 @@ export function initApp() {
         }
 
         els.examList.innerHTML = items
-            .map((item) => `
-                <article class="list-item ${item.done ? "goal-item done" : ""}">
-                    <strong>${escapeHtml(item.text)}</strong>
-                    <p class="list-meta">${item.done ? "Abgehakt (auto)" : "Offen"} · ${item.preset ? "Standard" : "Eigener Punkt"}</p>
-                    <div class="row-actions">
-                        ${item.preset ? "" : `<button class="btn btn-ghost" data-action="delete-exam-item" data-id="${item.id}" type="button">Löschen</button>`}
-                    </div>
-                </article>
-            `)
+            .map((item) => {
+                const themeCode = inferThemeCodeFromItemText(item.text);
+                const themePercent = getThemeProgressPercent(track, themeCode);
+                const remaining = Math.max(0, 100 - themePercent);
+                const fillClass = themePercent >= 100 ? "done" : (themePercent >= 75 ? "near" : "");
+                return `
+                    <article class="list-item ${item.done ? "goal-item done" : ""}">
+                        <strong>${escapeHtml(item.text)}</strong>
+                        <p class="list-meta">${item.done ? "Abgehakt (auto)" : "Offen"} · ${item.preset ? "Standard" : "Eigener Punkt"} · ${themePercent}% geschafft · ${remaining}% offen</p>
+                        <div class="goal-progress">
+                            <div class="goal-progress-track"><div class="goal-progress-fill ${fillClass}" style="width:${themePercent}%"></div></div>
+                            <span class="goal-progress-value">${themePercent}%</span>
+                        </div>
+                        <div class="row-actions">
+                            ${item.preset ? "" : `<button class="btn btn-ghost" data-action="delete-exam-item" data-id="${item.id}" type="button">Löschen</button>`}
+                        </div>
+                    </article>
+                `;
+            })
             .join("");
     }
 
@@ -2268,6 +2278,24 @@ export function initApp() {
         const values = keys.map((key) => Math.max(0, Math.min(100, Number.parseInt(map[key], 10) || 0)));
         const avg = Math.round(values.reduce((acc, value) => acc + value, 0) / values.length);
         return avg;
+    }
+
+    function getThemeProgressPercent(track, themeCode) {
+        if (!themeCode) return getTrackCompletionPercent(track);
+        const map = state.examPrep.tutor?.stats?.progressByTheme || {};
+        const key = `${track}:${themeCode}`;
+        return Math.max(0, Math.min(100, Number.parseInt(map[key], 10) || 0));
+    }
+
+    function inferThemeCodeFromItemText(text) {
+        const lower = normalizeText(text).toLowerCase();
+        if (!lower) return "";
+        if (lower.includes("mathe") || lower.includes("algebra") || lower.includes("x ")) return "math";
+        if (lower.includes("deutsch") || lower.includes("textanalyse") || lower.includes("erörterung")) return "de";
+        if (lower.includes("englisch mündlich") || lower.includes("oral") || lower.includes("mündlich")) return "en_oral";
+        if (lower.includes("englisch") || lower.includes("listening") || lower.includes("writing") || lower.includes("vokabel")) return "en";
+        if (lower.includes("präsentation") || lower.includes("praesentation")) return "presentation";
+        return "";
     }
 
     function autoMarkExamItems(track, percent) {
