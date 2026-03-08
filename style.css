@@ -33,8 +33,9 @@ body {
     font-family: "Manrope", "Segoe UI", sans-serif;
     color: var(--text-main);
     background:
-        radial-gradient(circle at 15% 0%, rgba(18, 127, 143, 0.14), transparent 48%),
-        radial-gradient(circle at 85% 20%, rgba(197, 107, 16, 0.1), transparent 40%),
+        radial-gradient(circle at 12% 0%, rgba(18, 127, 143, 0.25), transparent 50%),
+        radial-gradient(circle at 88% 18%, rgba(197, 107, 16, 0.2), transparent 42%),
+        radial-gradient(circle at 48% 40%, rgba(42, 116, 255, 0.08), transparent 55%),
         var(--bg-main);
 }
 
@@ -283,7 +284,8 @@ button:focus-visible {
 
 .btn-primary {
     color: #fff;
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 42%, transparent);
 }
 
 .btn-primary:hover {
@@ -383,6 +385,12 @@ button:focus-visible {
     display: grid;
     gap: var(--space-2);
     backdrop-filter: blur(6px);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
 }
 
 .card h3 {
@@ -393,6 +401,18 @@ button:focus-visible {
     font-size: 2rem;
     font-family: "Sora", "Manrope", sans-serif;
     color: var(--primary-strong);
+}
+
+.score-good {
+    color: #17924f !important;
+}
+
+.score-mid {
+    color: #bd7a08 !important;
+}
+
+.score-bad {
+    color: #c53d2e !important;
 }
 
 .card-actions,
@@ -649,8 +669,45 @@ button:focus-visible {
     backdrop-filter: blur(6px);
 }
 
+.note-pill {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.note-pill.score-good {
+    background: #e0f6e8;
+    border-color: #9ed6b2;
+}
+
+.note-pill.score-mid {
+    background: #fff2d7;
+    border-color: #efc978;
+}
+
+.note-pill.score-bad {
+    background: #ffe0dc;
+    border-color: #eea39a;
+}
+
 .goal-item.done {
     opacity: 0.72;
+    border-left: 4px solid var(--success);
+}
+
+.goal-status {
+    font-weight: 700;
+}
+
+.goal-status.done {
+    color: var(--success);
+}
+
+.goal-status.open {
+    color: var(--warning);
 }
 
 .list-item-special {
@@ -784,6 +841,40 @@ button:focus-visible {
 
 .modal-text {
     color: var(--text-muted);
+}
+
+.app-toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1300;
+    max-width: min(92vw, 360px);
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-main);
+    box-shadow: var(--shadow);
+    transform: translateY(14px);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.app-toast.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.app-toast.success {
+    border-color: #3ca86e;
+    background: #e8f8ef;
+    color: #145934;
+}
+
+.app-toast.info {
+    border-color: #3f8fca;
+    background: #eaf5ff;
+    color: #15456b;
 }
 
 @media (min-width: 921px) {
@@ -1032,8 +1123,10 @@ body.density-compact {
 
     .sidebar-toggle {
         min-height: 32px;
-        padding: 0.25rem 0.55rem;
+        padding: 0.25rem 0.65rem;
         font-size: 0.9rem;
+        width: auto;
+        align-self: flex-start;
     }
 
     .nav {
@@ -1051,6 +1144,36 @@ body.density-compact {
         min-height: 34px;
         padding: 0.45rem 0.5rem;
     }
+}
+
+body.mode-dark .note-pill.score-good {
+    background: #1f4931;
+    border-color: #2f7f4f;
+    color: #d5f6e1 !important;
+}
+
+body.mode-dark .note-pill.score-mid {
+    background: #5a4421;
+    border-color: #89652a;
+    color: #ffeec7 !important;
+}
+
+body.mode-dark .note-pill.score-bad {
+    background: #5a2a2a;
+    border-color: #904141;
+    color: #ffdcdc !important;
+}
+
+body.mode-dark .app-toast.success {
+    background: #1d3a2a;
+    border-color: #2d7b52;
+    color: #d6f6e3;
+}
+
+body.mode-dark .app-toast.info {
+    background: #1d3344;
+    border-color: #2f6f98;
+    color: #d9edff;
 }
 
 @media (max-width: 1200px) and (min-width: 921px) {

@@ -132,9 +132,11 @@ export function initApp() {
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
         confirmOk: document.getElementById("confirm-ok"),
-        confirmCancel: document.getElementById("confirm-cancel")
+        confirmCancel: document.getElementById("confirm-cancel"),
+        appToast: document.getElementById("app-toast")
     };
     let confirmAction = null;
+    let toastTimer = null;
 
     applyThemeSettings();
     closeConfirmModal();
@@ -438,10 +440,11 @@ export function initApp() {
         els.subjectsGrid.innerHTML = subjects
             .map((subject) => {
                 const avg = calculateAverage(subject.notes);
+                const avgClass = classifyScore(avg);
                 return `
                     <article class="card">
                         <h3>${escapeHtml(subject.name)}</h3>
-                        <p class="card-value">${avg ?? "--"}</p>
+                        <p class="card-value ${avgClass ? `score-${avgClass}` : ""}">${avg ?? "--"}</p>
                         <div class="card-actions">
                             <button class="btn btn-primary" data-action="open" data-id="${subject.id}" type="button">Öffnen</button>
                             <button class="btn btn-ghost" data-action="edit" data-id="${subject.id}" type="button">Bearbeiten</button>
@@ -474,9 +477,10 @@ export function initApp() {
         const sortedNotes = [...subject.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         els.noteList.innerHTML = sortedNotes
             .map((note) => {
+                const noteClass = classifyScore(note.value);
                 return `
                     <article class="list-item">
-                        <strong>${note.value} Punkte</strong>
+                        <strong class="note-pill score-${noteClass}">${note.value} Punkte</strong>
                         <p class="list-meta">Erstellt am ${formatDate(note.createdAt)}</p>
                         <div class="row-actions">
                             <button class="btn btn-ghost" data-action="edit-note" data-id="${note.id}" type="button">Bearbeiten</button>
@@ -642,7 +646,7 @@ export function initApp() {
             .map((goal) => `
                 <article class="list-item goal-item ${goal.status === "done" ? "done" : ""}">
                     <strong>${escapeHtml(goal.text)}</strong>
-                    <p class="list-meta">${goal.targetDate ? `Zieldatum: ${formatDate(goal.targetDate)}` : "Ohne Zieldatum"} · Status: ${goal.status === "done" ? "Erledigt" : "Offen"}</p>
+                    <p class="list-meta">${goal.targetDate ? `Zieldatum: ${formatDate(goal.targetDate)}` : "Ohne Zieldatum"} · Status: <span class="goal-status ${goal.status === "done" ? "done" : "open"}">${goal.status === "done" ? "Erreicht" : "Offen"}</span></p>
                     <div class="row-actions">
                         <button class="btn btn-ghost" data-action="toggle-goal" data-id="${goal.id}" type="button">${goal.status === "done" ? "Wieder öffnen" : "Erledigt"}</button>
                         <button class="btn btn-ghost" data-action="delete-goal" data-id="${goal.id}" type="button">Löschen</button>
@@ -1059,6 +1063,12 @@ export function initApp() {
         persistGoals(state.goals);
         renderGoals();
         renderStats();
+        if (goal.status === "done") {
+            showToast("Ziel erreicht. Stark gemacht!", "success");
+            setFeedback(els.goalFeedback, "Ziel als erreicht markiert.");
+        } else {
+            showToast("Ziel wieder geöffnet.", "info");
+        }
     }
 
     function deleteGoal(goalId) {
@@ -1146,10 +1156,31 @@ export function initApp() {
         const desktopCollapsed = document.body.classList.contains("sidebar-collapsed");
         els.sidebarToggle.setAttribute("aria-expanded", mobileExpanded ? "true" : "false");
         if (window.innerWidth <= 920) {
-            els.sidebarToggle.textContent = mobileExpanded ? "Menü schließen" : "Menü öffnen";
+            els.sidebarToggle.textContent = mobileExpanded ? "Menü zu" : "Menü";
         } else {
             els.sidebarToggle.textContent = desktopCollapsed ? "Sidebar öffnen" : "Sidebar zuklappen";
         }
+    }
+
+    function classifyScore(score) {
+        if (typeof score !== "number") return "";
+        if (score >= 11) return "good";
+        if (score >= 7) return "mid";
+        return "bad";
+    }
+
+    function showToast(message, type = "info") {
+        if (!els.appToast) return;
+        els.appToast.textContent = message;
+        els.appToast.classList.remove("hidden", "success", "info");
+        els.appToast.classList.add("is-visible", type);
+        if (toastTimer) {
+            clearTimeout(toastTimer);
+        }
+        toastTimer = setTimeout(() => {
+            els.appToast.classList.remove("is-visible");
+            els.appToast.classList.add("hidden");
+        }, 2600);
     }
 
     function openConfirmModal(message, onConfirm) {
