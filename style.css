@@ -1020,7 +1020,7 @@ body.focus-active .content {
 }
 
 body.focus-active #page-helper .helper-extra,
-body.focus-active #page-exams .exams-extra {
+body.focus-active #page-exams .exams-extra:not(.focus-keep) {
     display: none !important;
 }
 

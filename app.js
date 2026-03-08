@@ -1760,13 +1760,13 @@ export function initApp() {
         const track = ["MSA", "BBR", "eBBR"].includes(els.oralTrack.value) ? els.oralTrack.value : "MSA";
         const language = els.oralLanguage.value === "de" ? "de" : "en";
         const topic = normalizeText(els.oralTopic.value) || (language === "en" ? "My school project" : "Mein Schulprojekt");
+        const level = [1, 2, 3, 4, 5].includes(Number.parseInt(els.examTutorLevel?.value, 10)) ? Number.parseInt(els.examTutorLevel.value, 10) : 3;
+        const scenario = buildOralScenario({ track, language, topic, level });
         state.examPrep.oral.track = track;
         state.examPrep.oral.language = language;
         state.examPrep.oral.topic = topic;
-        state.examPrep.oral.currentPrompt = language === "en"
-            ? `[${track}] Speak 2-3 minutes about "${topic}". Structure: intro, key argument, example, conclusion.`
-            : `[${track}] Sprich 2-3 Minuten über "${topic}". Struktur: Einleitung, Kernargument, Beispiel, Fazit.`;
-        const queue = createTeacherQuestions(topic, language);
+        state.examPrep.oral.currentPrompt = scenario.prompt;
+        const queue = createTeacherQuestions(scenario);
         state.examPrep.oral.teacherQuestions = queue;
         state.examPrep.oral.teacherIndex = 0;
         state.examPrep.oral.currentTeacherQuestion = queue[0] || "";
@@ -1774,20 +1774,54 @@ export function initApp() {
         renderOralCoach();
     }
 
-    function createTeacherQuestions(topic, language) {
-        if (language === "en") {
+    function buildOralScenario({ track, language, topic, level }) {
+        if (language === "de") {
+            const prompts = [
+                `[${
+                    track
+                }] Deutsch mündlich (Level ${level}): Erkläre das Thema "${topic}" in 2-3 Minuten. Struktur: kurze Einleitung -> Hauptaussage mit Beleg -> Gegenargument -> klares Fazit.`,
+                `[${track}] Deutsch mündlich (Level ${level}): Gib eine begründete Stellungnahme zu "${topic}". Nutze mindestens ein Beispiel aus Schule/Alltag und schließe mit einer klaren Position.`,
+                `[${track}] Deutsch mündlich (Level ${level}): Analysiere kurz einen möglichen Textbezug zu "${topic}" (Aussage, Wirkung, Absicht) und leite ein Fazit ab.`
+            ];
+            return {
+                track,
+                language,
+                topic,
+                prompt: prompts[rand(0, prompts.length - 1)],
+                rubric: ["Struktur", "Begründung", "Beispiel", "Fazit", "Sprachklarheit"]
+            };
+        }
+        const prompts = [
+            `[${track}] Oral English (Level ${level}): Speak about "${topic}" for 2-3 minutes. Structure: intro -> claim -> evidence/example -> short conclusion.`,
+            `[${track}] Oral English (Level ${level}): Give your opinion on "${topic}" and support it with one real example and one counter-argument.`,
+            `[${track}] Oral English (Level ${level}): Explain advantages and disadvantages of "${topic}" and finish with your own position.`
+        ];
+        return {
+            track,
+            language,
+            topic,
+            prompt: prompts[rand(0, prompts.length - 1)],
+            rubric: ["Structure", "Reasoning", "Example", "Conclusion", "Clarity"]
+        };
+    }
+
+    function createTeacherQuestions(scenario) {
+        const { topic, language, rubric } = scenario;
+        if (language === "de") {
             return [
-                `Why did you choose "${topic}"?`,
-                "Can you give one concrete real-life example?",
-                "What is the strongest counter-argument?",
-                "How would you summarize your position in one sentence?"
+                `Was ist deine Kernthese zu "${topic}" in einem Satz?`,
+                "Mit welchem Beispiel kannst du deine Aussage belegen?",
+                "Welches Gegenargument ist stark und wie entkräftest du es?",
+                "Warum ist dein Fazit überzeugend?",
+                `Mini-Bewertung: Prüfe selbst ${rubric.join(", ")} (je 0-2 Punkte).`
             ];
         }
         return [
-            `Warum hast du "${topic}" gewählt?`,
-            "Nenne ein konkretes Beispiel aus dem Alltag.",
-            "Welches Gegenargument ist am stärksten?",
-            "Fasse deine Position in einem Satz zusammen."
+            `What is your main claim about "${topic}" in one sentence?`,
+            "Which concrete example supports your argument best?",
+            "What is a strong counter-argument and how do you answer it?",
+            "Why is your conclusion convincing?",
+            `Self-check: rate yourself in ${rubric.join(", ")} (0-2 points each).`
         ];
     }
 
@@ -1830,7 +1864,14 @@ export function initApp() {
             const current = state.examPrep.oral.slides.currentSlide;
             if (current >= maxSlide) {
                 stopOralSlides(false);
-                const queue = createTeacherQuestions(state.examPrep.oral.topic || "dein Thema", state.examPrep.oral.language || "en");
+                const queue = createTeacherQuestions(
+                    buildOralScenario({
+                        track: state.examPrep.oral.track || "MSA",
+                        language: state.examPrep.oral.language || "en",
+                        topic: state.examPrep.oral.topic || (state.examPrep.oral.language === "de" ? "dein Thema" : "your topic"),
+                        level: 3
+                    })
+                );
                 state.examPrep.oral.teacherQuestions = queue;
                 state.examPrep.oral.teacherIndex = 0;
                 state.examPrep.oral.currentTeacherQuestion = queue[0] || "Fragerunde gestartet.";
@@ -1878,7 +1919,7 @@ export function initApp() {
             try { oralRecognition.stop(); } catch (_) { }
         }
         oralRecognition = new SpeechRecognition();
-        oralRecognition.lang = "en-US";
+        oralRecognition.lang = state.examPrep.oral?.language === "de" ? "de-DE" : "en-US";
         oralRecognition.interimResults = true;
         oralRecognition.continuous = true;
         oralRecognition.onresult = (event) => {
@@ -1912,14 +1953,24 @@ export function initApp() {
         const words = lower.split(/\s+/).filter(Boolean);
         const sentenceCount = Math.max(1, text.split(/[.!?]+/).filter((part) => normalizeText(part)).length);
         const avgWords = Math.round(words.length / sentenceCount);
-        const fillerCount = (lower.match(/\b(um|uh|like|you know)\b/g) || []).length;
+        const isGerman = state.examPrep.oral?.language === "de";
+        const fillerCount = isGerman
+            ? (lower.match(/\b(äh|ähm|sozusagen|halt|irgendwie)\b/g) || []).length
+            : (lower.match(/\b(um|uh|like|you know)\b/g) || []).length;
         const tips = [];
-        if (avgWords < 7) tips.push("Sprich in etwas längeren Sätzen (8-14 Wörter) für klarere Argumente.");
-        if (fillerCount > 2) tips.push("Reduziere Füllwörter (um/uh/like), mache lieber kurze Pausen.");
-        if (!lower.includes("because")) tips.push("Nutze häufiger 'because', um Gründe klar zu machen.");
-        if (!lower.match(/\b(first|second|finally|in conclusion)\b/)) tips.push("Verwende Strukturwörter: first, then, finally, in conclusion.");
-        tips.push("Aussprache-Tipp: 'th' weich mit Zungenspitze zwischen den Zähnen (think/this).");
-        tips.push("Achte auf Wortbetonung: PRE-sent (Nomen) vs pre-SENT (Verb).");
+        if (avgWords < 7) tips.push("Nutze längere Sätze (8-14 Wörter), damit deine Begründung klarer wirkt.");
+        if (fillerCount > 2) tips.push("Reduziere Füllwörter und nutze kurze Sprechpausen.");
+        if (isGerman) {
+            if (!lower.includes("weil")) tips.push("Baue mindestens einen 'weil'-Satz ein, um deine Aussage zu stützen.");
+            if (!lower.match(/\b(erstens|zweitens|abschließend|fazit)\b/)) tips.push("Nutze Strukturwörter: erstens, zweitens, abschließend.");
+            tips.push("Sprich Satzenden deutlich aus und setze hörbare Punkte.");
+            tips.push("Vermeide zu schnelle Wechsel zwischen Haupt- und Nebensatz.");
+        } else {
+            if (!lower.includes("because")) tips.push("Use 'because' more often to justify your points.");
+            if (!lower.match(/\b(first|second|finally|in conclusion)\b/)) tips.push("Use structure words: first, second, finally, in conclusion.");
+            tips.push("Pronunciation tip: soft 'th' with tongue between teeth (think/this).");
+            tips.push("Watch stress: PRE-sent (noun) vs pre-SENT (verb).");
+        }
         const score = Math.max(40, Math.min(98, 88 - (fillerCount * 4) + (avgWords >= 8 ? 6 : 0)));
         els.oralPronunciationFeedback.innerHTML = `
             <p><strong>Aussprache-Check:</strong> ca. ${score}% verständlich.</p>
@@ -2214,11 +2265,12 @@ export function initApp() {
             "oral-presentation-file", "oral-slide-count", "oral-slide-seconds",
             "oral-slide-start", "oral-slide-stop", "oral-slide-next",
             "oral-pronunciation-record", "oral-pronunciation-stop", "oral-pronunciation-text", "oral-pronunciation-check",
+            "exam-calc-input", "exam-calc-eval", "exam-duden-input", "exam-duden-lookup",
             "btn-helper", "btn-language", "btn-exams"
         ]);
         const controls = document.querySelectorAll("button, input, select, textarea");
         controls.forEach((el) => {
-            if (whitelist.has(el.id)) {
+            if (whitelist.has(el.id) || el.classList.contains("calc-key")) {
                 el.disabled = false;
                 return;
             }
