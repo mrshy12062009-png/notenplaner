@@ -897,6 +897,23 @@ button:focus-visible {
     border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
 }
 
+.exam-tabs {
+    margin-bottom: var(--space-2);
+}
+
+.exam-tab-btn {
+    min-width: 130px;
+}
+
+.exam-panel {
+    display: none;
+    gap: var(--space-2);
+}
+
+.exam-panel.is-active {
+    display: grid;
+}
+
 .coach-answer {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -969,6 +986,10 @@ button:focus-visible {
     font-size: 1.4rem;
     font-weight: 800;
     color: var(--primary-strong);
+}
+
+#oral-pronunciation-text {
+    resize: vertical;
 }
 
 body.focus-active .content {

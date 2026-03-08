@@ -272,6 +272,11 @@
                     <h2 id="exams-heading">MSA / BBR Vorbereitung</h2>
                     <p>Prüfungs-Tutor mit harten Aufgaben, Sofortkorrektur und Reife-Score.</p>
                 </div>
+                <div class="inline-form exam-tabs" role="tablist" aria-label="MSA-Modi">
+                    <button id="exam-tab-written" class="btn btn-primary exam-tab-btn is-active" type="button" data-tab="written" role="tab" aria-selected="true">Schriftlich</button>
+                    <button id="exam-tab-oral" class="btn btn-ghost exam-tab-btn" type="button" data-tab="oral" role="tab" aria-selected="false">Mündlich</button>
+                </div>
+                <section id="exam-panel-written" class="exam-panel is-active" role="tabpanel" aria-labelledby="exam-tab-written">
                 <div class="stack coach-card exams-learning-core">
                     <h3>Prüfungs-Tutor</h3>
                     <div class="inline-form responsive-3">
@@ -342,6 +347,67 @@
                     <p id="exam-theme-progress" class="list-meta"></p>
                     <div id="exam-list" class="list"></div>
                 </div>
+                </section>
+                <section id="exam-panel-oral" class="exam-panel" role="tabpanel" aria-labelledby="exam-tab-oral" aria-hidden="true">
+                    <div class="stack exams-learning-core coach-card">
+                        <h3>Mündlich-Coach (MSA/BBR)</h3>
+                        <div class="inline-form responsive-3">
+                            <select id="oral-track">
+                                <option value="MSA">MSA</option>
+                                <option value="BBR">BBR</option>
+                                <option value="eBBR">eBBR</option>
+                            </select>
+                            <select id="oral-language">
+                                <option value="en">Englisch</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                            <input id="oral-topic" type="text" maxlength="90" placeholder="Thema, z. B. Climate change">
+                        </div>
+                        <div class="inline-form">
+                            <button id="oral-generate" class="btn btn-primary" type="button">Mündliche Aufgabe starten</button>
+                            <button id="oral-next-question" class="btn btn-ghost" type="button">Nächste Lehrerfrage</button>
+                        </div>
+                        <div id="oral-prompt" class="coach-answer"></div>
+                        <div id="oral-teacher-question" class="coach-answer"></div>
+                    </div>
+                    <div class="stack exams-extra">
+                        <h3>MSA Mündlich Fokus-Timer</h3>
+                        <div class="inline-form">
+                            <input id="exam-oral-focus-minutes" type="number" min="5" max="120" step="5" value="25">
+                            <button id="exam-oral-focus-start" class="btn btn-primary" type="button">Start</button>
+                            <button id="exam-oral-focus-pause" class="btn btn-ghost" type="button">Pause</button>
+                            <button id="exam-oral-focus-stop" class="btn btn-ghost" type="button">Stop</button>
+                            <button id="exam-oral-focus-reset" class="btn btn-ghost" type="button">Reset</button>
+                        </div>
+                        <p id="exam-oral-focus-display" class="focus-display">25:00</p>
+                    </div>
+                    <div class="stack exams-extra">
+                        <h3>Präsentation Upload + Folien-Coach</h3>
+                        <div class="inline-form responsive-3">
+                            <input id="oral-presentation-file" type="file" accept=".ppt,.pptx,.pdf">
+                            <input id="oral-slide-count" type="number" min="1" max="200" value="8" placeholder="Folienanzahl">
+                            <input id="oral-slide-seconds" type="number" min="10" max="300" value="45" placeholder="Sekunden je Folie">
+                        </div>
+                        <div class="inline-form">
+                            <button id="oral-slide-start" class="btn btn-primary" type="button">Folienmodus Start</button>
+                            <button id="oral-slide-stop" class="btn btn-ghost" type="button">Stop</button>
+                            <button id="oral-slide-next" class="btn btn-ghost" type="button">Nächste Folie</button>
+                        </div>
+                        <div id="oral-slide-status" class="coach-answer"></div>
+                    </div>
+                    <div class="stack exams-extra">
+                        <h3>Englisch Aussprache-Tipps</h3>
+                        <div class="inline-form">
+                            <button id="oral-pronunciation-record" class="btn btn-ghost" type="button">Sprechen aufnehmen</button>
+                            <button id="oral-pronunciation-stop" class="btn btn-ghost" type="button">Aufnahme stoppen</button>
+                        </div>
+                        <textarea id="oral-pronunciation-text" rows="3" placeholder="Oder Text einfügen/schreiben und analysieren..."></textarea>
+                        <div class="inline-form">
+                            <button id="oral-pronunciation-check" class="btn btn-primary" type="button">Aussprache analysieren</button>
+                        </div>
+                        <div id="oral-pronunciation-feedback" class="coach-answer"></div>
+                    </div>
+                </section>
             </section>
 
             <section id="page-settings" class="page" aria-labelledby="settings-heading">
