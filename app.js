@@ -142,6 +142,11 @@ export function initApp() {
         studyMinutesInput: document.getElementById("study-minutes"),
         studyFeedback: document.getElementById("study-feedback"),
         studyList: document.getElementById("study-list"),
+        coachQuestion: document.getElementById("coach-question"),
+        coachPlan: document.getElementById("coach-plan"),
+        coachNextExam: document.getElementById("coach-next-exam"),
+        coachAsk: document.getElementById("coach-ask"),
+        coachAnswer: document.getElementById("coach-answer"),
 
         examForm: document.getElementById("exam-form"),
         examTrack: document.getElementById("exam-track"),
@@ -343,6 +348,16 @@ export function initApp() {
         els.studyForm.addEventListener("submit", onStudySubmit);
         els.studySubjectInput.addEventListener("input", saveDraftsThrottled);
         els.studyMinutesInput.addEventListener("input", saveDraftsThrottled);
+        els.coachQuestion.addEventListener("input", saveDraftsThrottled);
+        els.coachPlan.addEventListener("click", () => {
+            renderCoachAnswer("plan");
+        });
+        els.coachNextExam.addEventListener("click", () => {
+            renderCoachAnswer("exam");
+        });
+        els.coachAsk.addEventListener("click", () => {
+            renderCoachAnswer("ask");
+        });
         els.studyList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
@@ -402,6 +417,7 @@ export function initApp() {
         renderGoals();
         renderStudyHelper();
         renderExamPrep();
+        renderCoachAnswer("welcome");
     }
 
     function showPage(pageId) {
@@ -879,6 +895,126 @@ export function initApp() {
 
         const remaining = Math.max(0, Number.parseInt(state.studyHelper.focusRemainingSec, 10) || 0);
         els.focusDisplay.textContent = formatDuration(remaining);
+    }
+
+    function renderCoachAnswer(mode) {
+        const answer = buildCoachAnswer(mode, normalizeText(els.coachQuestion.value));
+        els.coachAnswer.innerHTML = answer;
+    }
+
+    function buildCoachAnswer(mode, question) {
+        const weakest = getWeakestSubject();
+        const nextExam = getNextExam();
+        const openGoals = evaluateGoalsProgress().filter((goal) => goal.status !== "done").length;
+        const baseTips = [
+            `Offene Ziele: <strong>${openGoals}</strong>`,
+            weakest ? `Fokusfach: <strong>${escapeHtml(weakest.name)}</strong> (Schnitt ${weakest.avg.toFixed(1)})` : "Fokusfach: <strong>noch nicht bestimmbar</strong>",
+            nextExam ? `Nächste Prüfung: <strong>${escapeHtml(nextExam.text)}</strong> am ${formatDate(nextExam.date)}` : "Nächste Prüfung: <strong>kein Termin</strong>"
+        ];
+
+        if (mode === "welcome") {
+            return `
+                <p>Dein Lerncoach ist bereit. Er nutzt deine echten App-Daten für Vorschläge.</p>
+                <ul>
+                    <li>${baseTips[0]}</li>
+                    <li>${baseTips[1]}</li>
+                    <li>${baseTips[2]}</li>
+                </ul>
+            `;
+        }
+
+        if (mode === "plan") {
+            const plan = createDailyPlan(weakest, nextExam);
+            return `
+                <p><strong>Dein Tagesplan:</strong></p>
+                <ul>${plan.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                <p class="list-meta">Tipp: Arbeite in 25/5-Blöcken und hake Lernblöcke direkt unten ab.</p>
+            `;
+        }
+
+        if (mode === "exam") {
+            if (!nextExam) {
+                return "<p>Du hast aktuell keine kommende Prüfung im Kalender. Trag eine Prüfung im Kalender ein, dann gebe ich dir einen genauen Lernplan.</p>";
+            }
+            const daysLeft = getDaysUntil(nextExam.date);
+            return `
+                <p><strong>Prüfungsanalyse:</strong> ${escapeHtml(nextExam.text)} in ${daysLeft} Tagen.</p>
+                <ul>
+                    <li>Tag 1-${Math.max(1, daysLeft - 2)}: Grundlagen + typische Aufgaben.</li>
+                    <li>Vorletzter Tag: nur Schwachstellen wiederholen.</li>
+                    <li>Letzter Tag: Kurz-Review (45-60 Min), dann Pause.</li>
+                </ul>
+            `;
+        }
+
+        const lower = question.toLowerCase();
+        if (!question) {
+            return "<p>Stell eine konkrete Frage, z. B. \"Wie lerne ich Mathe bis Freitag?\"</p>";
+        }
+        if (lower.includes("mathe") || lower.includes("rechnung") || lower.includes("gleichung")) {
+            return "<p><strong>Mathe-Strategie:</strong> 1. Grundlagen 20 Min, 2. 3 schwere Aufgaben, 3. Fehlerliste, 4. gleiche Aufgabe ohne Hilfe wiederholen.</p>";
+        }
+        if (lower.includes("englisch") || lower.includes("vokabel")) {
+            return "<p><strong>Englisch-Strategie:</strong> 15 Min Vokabelkarten, 20 Min Reading, 15 Min Writing. Am Ende laut zusammenfassen.</p>";
+        }
+        if (lower.includes("deutsch") || lower.includes("aufsatz") || lower.includes("analyse")) {
+            return "<p><strong>Deutsch-Strategie:</strong> erst Gliederung, dann Einleitung/Hauptteil/Schluss in Zeitblöcken schreiben und 10 Min Korrektur einplanen.</p>";
+        }
+        return `
+            <p><strong>Empfehlung:</strong> Starte mit deinem Fokusfach und arbeite in 2-3 Blöcken.</p>
+            <ul>
+                <li>${baseTips[0]}</li>
+                <li>${baseTips[1]}</li>
+                <li>${baseTips[2]}</li>
+            </ul>
+        `;
+    }
+
+    function getWeakestSubject() {
+        const withAvg = state.subjectsStore.subjects
+            .map((subject) => {
+                const avg = Number(calculateAverage(subject.notes));
+                return Number.isFinite(avg) ? { id: subject.id, name: subject.name, avg } : null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.avg - b.avg);
+        return withAvg[0] || null;
+    }
+
+    function getNextExam() {
+        const todayIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+        const items = [];
+        Object.keys(state.eventsStore.events).forEach((date) => {
+            if (date < todayIso) return;
+            (state.eventsStore.events[date] || []).forEach((entry) => {
+                items.push({ date, text: entry.text, priority: entry.priority, type: entry.type || "exam" });
+            });
+        });
+        items.sort((a, b) => a.date.localeCompare(b.date) || priorityRank(a.priority) - priorityRank(b.priority));
+        return items[0] || null;
+    }
+
+    function getDaysUntil(isoDate) {
+        const start = new Date();
+        const end = new Date(`${isoDate}T00:00:00`);
+        const diff = end.getTime() - new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+        return Math.max(0, Math.ceil(diff / 86400000));
+    }
+
+    function createDailyPlan(weakest, nextExam) {
+        const plan = [];
+        if (weakest) {
+            plan.push(`${weakest.name}: 30 Min Grundlagen wiederholen.`);
+            plan.push(`${weakest.name}: 25 Min Übungsaufgaben mit Timer.`);
+        } else {
+            plan.push("25 Min Kernfach lernen.");
+            plan.push("25 Min zweites Fach wiederholen.");
+        }
+        if (nextExam) {
+            plan.push(`20 Min Prüfungsvorbereitung für "${nextExam.text}".`);
+        }
+        plan.push("10 Min Fehleranalyse + nächste Lernaufgabe notieren.");
+        return plan;
     }
 
     function renderExamPrep() {
@@ -1593,7 +1729,8 @@ export function initApp() {
             goalDate: els.goalDateInput.value,
             studySubject: els.studySubjectInput.value,
             studyMinutes: els.studyMinutesInput.value,
-            examItemText: els.examItemText.value
+            examItemText: els.examItemText.value,
+            coachQuestion: els.coachQuestion.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -1613,6 +1750,7 @@ export function initApp() {
             if (typeof drafts.studySubject === "string") els.studySubjectInput.value = drafts.studySubject;
             if (typeof drafts.studyMinutes === "string") els.studyMinutesInput.value = drafts.studyMinutes;
             if (typeof drafts.examItemText === "string") els.examItemText.value = drafts.examItemText;
+            if (typeof drafts.coachQuestion === "string") els.coachQuestion.value = drafts.coachQuestion;
         } catch (_) {
             // ignore invalid draft storage
         }

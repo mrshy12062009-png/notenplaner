@@ -250,6 +250,16 @@ button {
     font: inherit;
 }
 
+textarea {
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--text-main);
+    padding: 0.65rem 0.8rem;
+    resize: vertical;
+}
+
 input,
 select {
     min-height: 42px;
@@ -261,6 +271,7 @@ select {
 }
 
 input:focus-visible,
+textarea:focus-visible,
 select:focus-visible,
 button:focus-visible {
     outline: 3px solid rgba(18, 127, 143, 0.28);
@@ -882,6 +893,22 @@ button:focus-visible {
     color: var(--success);
 }
 
+.coach-card {
+    border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.coach-answer {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 0.8rem;
+    background: color-mix(in srgb, var(--bg-panel) 88%, var(--bg-soft) 12%);
+}
+
+.coach-answer ul {
+    margin: 0.35rem 0 0 1rem;
+    padding: 0;
+}
+
 .focus-display {
     font-family: "Sora", "Manrope", sans-serif;
     font-size: clamp(2rem, 6vw, 3rem);
@@ -1092,6 +1119,7 @@ body.mode-dark .subject-card.subject-bad {
 }
 
 body.mode-dark input,
+body.mode-dark textarea,
 body.mode-dark select {
     background: #11202d;
     color: #e8f0f6;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308e">
+    <link rel="stylesheet" href="style.css?v=20260308f">
 </head>
 <body>
     <div class="app-shell">
@@ -169,6 +169,17 @@
                 <div class="section-head">
                     <h2 id="helper-heading">Lernhelfer</h2>
                     <p>Plane Lernblöcke und bleibe mit Fokus-Timer im Rhythmus.</p>
+                </div>
+                <div class="stack coach-card">
+                    <h3>KI-Lerncoach</h3>
+                    <p class="list-meta">Gibt dir direkte Tipps aus deinen Noten, Zielen und Prüfungsterminen.</p>
+                    <textarea id="coach-question" rows="3" placeholder="z. B. Ich schreibe nächste Woche Mathe, wie lerne ich am besten?"></textarea>
+                    <div class="inline-form">
+                        <button id="coach-plan" class="btn btn-primary" type="button">Tagesplan</button>
+                        <button id="coach-next-exam" class="btn btn-ghost" type="button">Nächste Prüfung</button>
+                        <button id="coach-ask" class="btn btn-ghost" type="button">Antwort</button>
+                    </div>
+                    <div id="coach-answer" class="coach-answer"></div>
                 </div>
                 <div class="stack">
                     <h3>Fokus-Timer</h3>
@@ -392,6 +403,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308e"></script>
+    <script type="module" src="script.js?v=20260308f"></script>
 </body>
 </html>
