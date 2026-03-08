@@ -19,6 +19,8 @@
                 <button id="btn-calendar" class="nav-btn" data-page="calendar" type="button"><span class="nav-icon">◷</span><span class="nav-label">Kalender</span></button>
                 <button id="btn-stats" class="nav-btn" data-page="stats" type="button"><span class="nav-icon">▤</span><span class="nav-label">Stats</span></button>
                 <button id="btn-goals" class="nav-btn" data-page="goals" type="button"><span class="nav-icon">◎</span><span class="nav-label">Ziele</span></button>
+                <button id="btn-helper" class="nav-btn" data-page="helper" type="button"><span class="nav-icon">✦</span><span class="nav-label">Lernhelfer</span></button>
+                <button id="btn-exams" class="nav-btn" data-page="exams" type="button"><span class="nav-icon">✓</span><span class="nav-label">MSA/BBR</span></button>
                 <button id="btn-settings" class="nav-btn" data-page="settings" type="button"><span class="nav-icon">⚙</span><span class="nav-label">Einstellungen</span></button>
             </nav>
         </aside>
@@ -163,6 +165,63 @@
                 <div id="goal-list" class="list"></div>
             </section>
 
+            <section id="page-helper" class="page" aria-labelledby="helper-heading">
+                <div class="section-head">
+                    <h2 id="helper-heading">Lernhelfer</h2>
+                    <p>Plane Lernblöcke und bleibe mit Fokus-Timer im Rhythmus.</p>
+                </div>
+                <div class="stack">
+                    <h3>Fokus-Timer</h3>
+                    <div class="inline-form">
+                        <input id="focus-minutes" type="number" min="5" max="120" step="5" value="25">
+                        <button id="focus-start" class="btn btn-primary" type="button">Start</button>
+                        <button id="focus-pause" class="btn btn-ghost" type="button">Pause</button>
+                        <button id="focus-reset" class="btn btn-ghost" type="button">Reset</button>
+                    </div>
+                    <p id="focus-display" class="focus-display">25:00</p>
+                </div>
+                <form id="study-form" class="stack" novalidate>
+                    <h3>Lernblock planen</h3>
+                    <div class="inline-form responsive-3">
+                        <input id="study-subject" type="text" maxlength="60" placeholder="z. B. Mathe" required>
+                        <input id="study-minutes" type="number" min="10" max="240" step="5" placeholder="Minuten" required>
+                        <button id="study-submit" class="btn btn-primary" type="submit">Hinzufügen</button>
+                    </div>
+                    <p id="study-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div class="stack">
+                    <h3>Geplante Lernblöcke</h3>
+                    <div id="study-list" class="list"></div>
+                </div>
+            </section>
+
+            <section id="page-exams" class="page" aria-labelledby="exams-heading">
+                <div class="section-head">
+                    <h2 id="exams-heading">MSA / BBR Vorbereitung</h2>
+                    <p>Checklisten, Aufgaben und Fortschritt für Abschlussprüfungen.</p>
+                </div>
+                <form id="exam-form" class="stack" novalidate>
+                    <div class="inline-form responsive-3">
+                        <select id="exam-track">
+                            <option value="MSA">MSA</option>
+                            <option value="BBR">BBR</option>
+                            <option value="eBBR">eBBR</option>
+                        </select>
+                        <input id="exam-item-text" type="text" maxlength="90" placeholder="Eigenen Punkt hinzufügen">
+                        <button id="exam-item-add" class="btn btn-primary" type="submit">Punkt hinzufügen</button>
+                    </div>
+                    <p id="exam-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </form>
+                <div class="stack">
+                    <h3>Fortschritt</h3>
+                    <div class="goal-progress">
+                        <div class="goal-progress-track"><div id="exam-progress-fill" class="goal-progress-fill" style="width:0%"></div></div>
+                        <span id="exam-progress-value" class="goal-progress-value">0%</span>
+                    </div>
+                    <div id="exam-list" class="list"></div>
+                </div>
+            </section>
+
             <section id="page-settings" class="page" aria-labelledby="settings-heading">
                 <div class="section-head">
                     <h2 id="settings-heading">Einstellungen</h2>
@@ -233,6 +292,8 @@
                                         <option value="calendar">Kalender</option>
                                         <option value="stats">Stats</option>
                                         <option value="goals">Ziele</option>
+                                        <option value="helper">Lernhelfer</option>
+                                        <option value="exams">MSA/BBR</option>
                                     </select>
                                 </label>
                             </div>

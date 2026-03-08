@@ -866,6 +866,14 @@ button:focus-visible {
     color: var(--success);
 }
 
+.focus-display {
+    font-family: "Sora", "Manrope", sans-serif;
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--primary-strong);
+}
+
 .empty-state {
     border: 1px dashed var(--border);
     border-radius: var(--radius-md);

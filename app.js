@@ -53,7 +53,9 @@ export function initApp() {
         subjectsStore: loadSubjectsStore(),
         eventsStore: loadEventsStore(),
         settings: initialSettings,
-        goals: loadGoals()
+        goals: loadGoals(),
+        studyHelper: loadStudyHelper(),
+        examPrep: loadExamPrep()
     };
 
     const els = {
@@ -130,6 +132,25 @@ export function initApp() {
         goalList: document.getElementById("goal-list"),
         goalSubjects: document.getElementById("goal-subjects"),
 
+        focusMinutesInput: document.getElementById("focus-minutes"),
+        focusStart: document.getElementById("focus-start"),
+        focusPause: document.getElementById("focus-pause"),
+        focusReset: document.getElementById("focus-reset"),
+        focusDisplay: document.getElementById("focus-display"),
+        studyForm: document.getElementById("study-form"),
+        studySubjectInput: document.getElementById("study-subject"),
+        studyMinutesInput: document.getElementById("study-minutes"),
+        studyFeedback: document.getElementById("study-feedback"),
+        studyList: document.getElementById("study-list"),
+
+        examForm: document.getElementById("exam-form"),
+        examTrack: document.getElementById("exam-track"),
+        examItemText: document.getElementById("exam-item-text"),
+        examFeedback: document.getElementById("exam-feedback"),
+        examList: document.getElementById("exam-list"),
+        examProgressFill: document.getElementById("exam-progress-fill"),
+        examProgressValue: document.getElementById("exam-progress-value"),
+
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
         confirmOk: document.getElementById("confirm-ok"),
@@ -139,6 +160,7 @@ export function initApp() {
     let confirmAction = null;
     let toastTimer = null;
     let draftsTimer = null;
+    let focusTimer = null;
 
     applyThemeSettings();
     closeConfirmModal();
@@ -149,6 +171,7 @@ export function initApp() {
     hydrateSettingsForm();
     hydrateDrafts();
     updateSelectedDayUI();
+    hydrateExamPrepUI();
     bindEvents();
     showPage(state.settings.defaultPage || "list");
     renderAll();
@@ -310,6 +333,38 @@ export function initApp() {
             applySubjectGoalTemplate(subjectId);
         });
 
+        els.focusStart.addEventListener("click", startFocusTimer);
+        els.focusPause.addEventListener("click", pauseFocusTimer);
+        els.focusReset.addEventListener("click", resetFocusTimer);
+        els.focusMinutesInput.addEventListener("change", resetFocusTimer);
+
+        els.studyForm.addEventListener("submit", onStudySubmit);
+        els.studySubjectInput.addEventListener("input", saveDraftsThrottled);
+        els.studyMinutesInput.addEventListener("input", saveDraftsThrottled);
+        els.studyList.addEventListener("click", (event) => {
+            const action = event.target.dataset.action;
+            const id = event.target.dataset.id;
+            if (!action || !id) return;
+            if (action === "toggle-study") toggleStudySession(id);
+            if (action === "delete-study") deleteStudySession(id);
+        });
+
+        els.examTrack.addEventListener("change", () => {
+            state.examPrep.activeTrack = els.examTrack.value;
+            persistExamPrep(state.examPrep);
+            renderExamPrep();
+            setFeedback(els.examFeedback, `${els.examTrack.value} ausgewählt.`);
+        });
+        els.examItemText.addEventListener("input", saveDraftsThrottled);
+        els.examForm.addEventListener("submit", onExamItemSubmit);
+        els.examList.addEventListener("click", (event) => {
+            const action = event.target.dataset.action;
+            const id = event.target.dataset.id;
+            if (!action || !id) return;
+            if (action === "toggle-exam-item") toggleExamItem(id);
+            if (action === "delete-exam-item") deleteExamItem(id);
+        });
+
         els.confirmOk.addEventListener("click", () => {
             const action = confirmAction;
             closeConfirmModal();
@@ -343,6 +398,8 @@ export function initApp() {
         renderStats();
         renderGoalSubjects();
         renderGoals();
+        renderStudyHelper();
+        renderExamPrep();
     }
 
     function showPage(pageId) {
@@ -613,6 +670,10 @@ export function initApp() {
         const allEvents = Object.values(state.eventsStore.events).flat();
         const goalProgressList = evaluateGoalsProgress();
         autoCompleteGoals(goalProgressList);
+        const studyOpen = state.studyHelper.sessions.filter((entry) => !entry.done).length;
+        const activeExamItems = getExamItems(state.examPrep.activeTrack);
+        const examDone = activeExamItems.filter((entry) => entry.done).length;
+        const examPercent = activeExamItems.length ? Math.round((examDone / activeExamItems.length) * 100) : 0;
         const nowIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
         const upcomingExams = Object.keys(state.eventsStore.events).reduce((count, date) => {
             if (date < nowIso) return count;
@@ -631,7 +692,9 @@ export function initApp() {
             { label: "Prüfungen offen", value: String(upcomingExams) },
             { label: "Offene Ziele", value: String(openGoals) },
             { label: "Nahe Ziele", value: String(nearGoals) },
-            { label: "Erreichte Ziele", value: String(doneGoals) }
+            { label: "Erreichte Ziele", value: String(doneGoals) },
+            { label: "Lernblöcke offen", value: String(studyOpen) },
+            { label: `${state.examPrep.activeTrack}-Fortschritt`, value: `${examPercent}%` }
         ];
 
         els.statsGrid.innerHTML = stats
@@ -789,6 +852,225 @@ export function initApp() {
                 </div>
             `)
             .join("");
+    }
+
+    function renderStudyHelper() {
+        const sessions = Array.isArray(state.studyHelper.sessions) ? state.studyHelper.sessions : [];
+        if (!sessions.length) {
+            els.studyList.innerHTML = createEmptyState("Noch keine Lernblöcke geplant.");
+        } else {
+            els.studyList.innerHTML = sessions
+                .slice()
+                .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                .map((entry) => `
+                    <article class="list-item ${entry.done ? "goal-item done" : ""}">
+                        <strong>${escapeHtml(entry.subject)}</strong>
+                        <p class="list-meta">${entry.minutes} Minuten · ${entry.done ? "Abgeschlossen" : "Offen"}</p>
+                        <div class="row-actions">
+                            <button class="btn btn-ghost" data-action="toggle-study" data-id="${entry.id}" type="button">${entry.done ? "Wieder öffnen" : "Erledigt"}</button>
+                            <button class="btn btn-ghost" data-action="delete-study" data-id="${entry.id}" type="button">Löschen</button>
+                        </div>
+                    </article>
+                `)
+                .join("");
+        }
+
+        const remaining = Math.max(0, Number.parseInt(state.studyHelper.focusRemainingSec, 10) || 0);
+        els.focusDisplay.textContent = formatDuration(remaining);
+    }
+
+    function renderExamPrep() {
+        const track = state.examPrep.activeTrack;
+        const items = getExamItems(track);
+        const doneCount = items.filter((item) => item.done).length;
+        const percent = items.length ? Math.round((doneCount / items.length) * 100) : 0;
+
+        els.examProgressFill.style.width = `${percent}%`;
+        els.examProgressValue.textContent = `${percent}%`;
+        els.examProgressFill.classList.remove("done", "near");
+        if (percent >= 100) els.examProgressFill.classList.add("done");
+        else if (percent >= 75) els.examProgressFill.classList.add("near");
+
+        if (!items.length) {
+            els.examList.innerHTML = createEmptyState("Keine Punkte vorhanden.");
+            return;
+        }
+
+        els.examList.innerHTML = items
+            .map((item) => `
+                <article class="list-item ${item.done ? "goal-item done" : ""}">
+                    <strong>${escapeHtml(item.text)}</strong>
+                    <p class="list-meta">${item.done ? "Erledigt" : "Offen"} · ${item.preset ? "Standard" : "Eigener Punkt"}</p>
+                    <div class="row-actions">
+                        <button class="btn btn-ghost" data-action="toggle-exam-item" data-id="${item.id}" type="button">${item.done ? "Wieder öffnen" : "Erledigt"}</button>
+                        ${item.preset ? "" : `<button class="btn btn-ghost" data-action="delete-exam-item" data-id="${item.id}" type="button">Löschen</button>`}
+                    </div>
+                </article>
+            `)
+            .join("");
+    }
+
+    function onStudySubmit(event) {
+        event.preventDefault();
+        clearFeedback(els.studyFeedback);
+        const subject = normalizeText(els.studySubjectInput.value);
+        const minutes = Number.parseInt(els.studyMinutesInput.value, 10);
+
+        if (!subject) {
+            setFeedback(els.studyFeedback, "Bitte ein Fach eingeben.", true);
+            return;
+        }
+        if (!Number.isInteger(minutes) || minutes < 10 || minutes > 240) {
+            setFeedback(els.studyFeedback, "Minuten nur von 10 bis 240.", true);
+            return;
+        }
+
+        state.studyHelper.sessions.push({
+            id: createId("study"),
+            subject,
+            minutes,
+            done: false,
+            createdAt: new Date().toISOString()
+        });
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        els.studySubjectInput.value = "";
+        els.studyMinutesInput.value = "";
+        saveDraftsThrottled();
+        renderStudyHelper();
+        setFeedback(els.studyFeedback, "Lernblock hinzugefügt.");
+    }
+
+    function toggleStudySession(id) {
+        const item = state.studyHelper.sessions.find((entry) => entry.id === id);
+        if (!item) return;
+        item.done = !item.done;
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        renderStudyHelper();
+    }
+
+    function deleteStudySession(id) {
+        state.studyHelper.sessions = state.studyHelper.sessions.filter((entry) => entry.id !== id);
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        renderStudyHelper();
+    }
+
+    function startFocusTimer() {
+        if (focusTimer) return;
+        const inputMinutes = Number.parseInt(els.focusMinutesInput.value, 10);
+        if (!Number.isInteger(inputMinutes) || inputMinutes < 5 || inputMinutes > 120) {
+            showToast("Timer-Minuten müssen zwischen 5 und 120 liegen.", "info");
+            return;
+        }
+        if (!state.studyHelper.focusRemainingSec || state.studyHelper.focusRemainingSec <= 0) {
+            state.studyHelper.focusRemainingSec = inputMinutes * 60;
+        }
+        focusTimer = setInterval(() => {
+            state.studyHelper.focusRemainingSec -= 1;
+            if (state.studyHelper.focusRemainingSec <= 0) {
+                clearInterval(focusTimer);
+                focusTimer = null;
+                state.studyHelper.focusRemainingSec = 0;
+                showToast("Fokus-Block abgeschlossen.", "success");
+            }
+            renderStudyHelper();
+            persistStudyHelper(state.studyHelper);
+        }, 1000);
+        showToast("Fokus-Timer gestartet.", "info");
+    }
+
+    function pauseFocusTimer() {
+        if (!focusTimer) return;
+        clearInterval(focusTimer);
+        focusTimer = null;
+        persistStudyHelper(state.studyHelper);
+        showToast("Fokus-Timer pausiert.", "info");
+    }
+
+    function resetFocusTimer() {
+        if (focusTimer) {
+            clearInterval(focusTimer);
+            focusTimer = null;
+        }
+        const inputMinutes = Number.parseInt(els.focusMinutesInput.value, 10);
+        const minutes = Number.isInteger(inputMinutes) && inputMinutes >= 5 && inputMinutes <= 120 ? inputMinutes : 25;
+        state.studyHelper.focusRemainingSec = minutes * 60;
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        renderStudyHelper();
+    }
+
+    function onExamItemSubmit(event) {
+        event.preventDefault();
+        clearFeedback(els.examFeedback);
+        const text = normalizeText(els.examItemText.value);
+        if (!text) {
+            setFeedback(els.examFeedback, "Bitte einen Punkt eingeben.", true);
+            return;
+        }
+        const track = state.examPrep.activeTrack;
+        const items = getExamItems(track);
+        items.push({
+            id: createId("exam-item"),
+            text,
+            done: false,
+            preset: false
+        });
+        state.examPrep = persistExamPrep(state.examPrep);
+        els.examItemText.value = "";
+        saveDraftsThrottled();
+        renderExamPrep();
+        renderStats();
+        setFeedback(els.examFeedback, "Punkt hinzugefügt.");
+    }
+
+    function toggleExamItem(id) {
+        const track = state.examPrep.activeTrack;
+        const item = getExamItems(track).find((entry) => entry.id === id);
+        if (!item) return;
+        item.done = !item.done;
+        state.examPrep = persistExamPrep(state.examPrep);
+        renderExamPrep();
+        renderStats();
+    }
+
+    function deleteExamItem(id) {
+        const track = state.examPrep.activeTrack;
+        state.examPrep.tracks[track] = getExamItems(track).filter((entry) => entry.id !== id);
+        state.examPrep = persistExamPrep(state.examPrep);
+        renderExamPrep();
+        renderStats();
+    }
+
+    function getExamItems(track) {
+        if (!state.examPrep.tracks[track]) {
+            state.examPrep.tracks[track] = buildExamPreset(track);
+        }
+        return state.examPrep.tracks[track];
+    }
+
+    function buildExamPreset(track) {
+        const presets = {
+            MSA: ["Deutsch: Textanalyse üben", "Mathe: Aufgabenmix trainieren", "Englisch: Listening + Writing", "Präsentationsprüfung vorbereiten"],
+            BBR: ["Deutsch Grundlagen wiederholen", "Mathe Grundaufgaben festigen", "Englisch Basis-Vokabeln", "Prüfungsablauf durchgehen"],
+            eBBR: ["Deutsch: Erörterung strukturieren", "Mathe: Sachaufgaben intensiv", "Englisch: Grammatik festigen", "Lernplan für Prüfungstage erstellen"]
+        };
+        return (presets[track] || presets.MSA).map((text) => ({
+            id: createId("exam-item"),
+            text,
+            done: false,
+            preset: true
+        }));
+    }
+
+    function hydrateExamPrepUI() {
+        if (els.examTrack) {
+            els.examTrack.value = state.examPrep.activeTrack;
+        }
+    }
+
+    function formatDuration(totalSeconds) {
+        const min = Math.floor(totalSeconds / 60);
+        const sec = totalSeconds % 60;
+        return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
     }
 
     function selectDate(dateStr) {
@@ -1298,7 +1580,10 @@ export function initApp() {
             eventDate: els.eventDateInput.value,
             eventText: els.eventTextInput.value,
             goalText: els.goalTextInput.value,
-            goalDate: els.goalDateInput.value
+            goalDate: els.goalDateInput.value,
+            studySubject: els.studySubjectInput.value,
+            studyMinutes: els.studyMinutesInput.value,
+            examItemText: els.examItemText.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -1315,6 +1600,9 @@ export function initApp() {
             if (typeof drafts.eventText === "string") els.eventTextInput.value = drafts.eventText;
             if (typeof drafts.goalText === "string") els.goalTextInput.value = drafts.goalText;
             if (typeof drafts.goalDate === "string") els.goalDateInput.value = drafts.goalDate;
+            if (typeof drafts.studySubject === "string") els.studySubjectInput.value = drafts.studySubject;
+            if (typeof drafts.studyMinutes === "string") els.studyMinutesInput.value = drafts.studyMinutes;
+            if (typeof drafts.examItemText === "string") els.examItemText.value = drafts.examItemText;
         } catch (_) {
             // ignore invalid draft storage
         }
@@ -1372,13 +1660,98 @@ export function initApp() {
         localStorage.setItem("gf_goals", JSON.stringify(goals));
     }
 
+    function loadStudyHelper() {
+        const fallback = { sessions: [], focusRemainingSec: 25 * 60 };
+        try {
+            const raw = localStorage.getItem("gf_study_helper");
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") return fallback;
+            const sessions = Array.isArray(parsed.sessions)
+                ? parsed.sessions
+                    .map((entry) => ({
+                        id: typeof entry.id === "string" ? entry.id : createId("study"),
+                        subject: normalizeText(entry.subject),
+                        minutes: Number.parseInt(entry.minutes, 10),
+                        done: Boolean(entry.done),
+                        createdAt: typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString()
+                    }))
+                    .filter((entry) => entry.subject && Number.isInteger(entry.minutes) && entry.minutes >= 10 && entry.minutes <= 240)
+                : [];
+            const focusRemainingSec = Number.isInteger(parsed.focusRemainingSec) && parsed.focusRemainingSec >= 0 ? parsed.focusRemainingSec : fallback.focusRemainingSec;
+            return { sessions, focusRemainingSec };
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    function persistStudyHelper(data) {
+        const clean = {
+            sessions: Array.isArray(data.sessions) ? data.sessions : [],
+            focusRemainingSec: Number.isInteger(data.focusRemainingSec) && data.focusRemainingSec >= 0 ? data.focusRemainingSec : 25 * 60
+        };
+        localStorage.setItem("gf_study_helper", JSON.stringify(clean));
+        return clean;
+    }
+
+    function loadExamPrep() {
+        const fallback = {
+            activeTrack: "MSA",
+            tracks: {
+                MSA: buildExamPreset("MSA"),
+                BBR: buildExamPreset("BBR"),
+                eBBR: buildExamPreset("eBBR")
+            }
+        };
+        try {
+            const raw = localStorage.getItem("gf_exam_prep");
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") return fallback;
+            const activeTrack = ["MSA", "BBR", "eBBR"].includes(parsed.activeTrack) ? parsed.activeTrack : "MSA";
+            const tracks = { ...fallback.tracks };
+            if (parsed.tracks && typeof parsed.tracks === "object") {
+                ["MSA", "BBR", "eBBR"].forEach((track) => {
+                    if (!Array.isArray(parsed.tracks[track])) return;
+                    const items = parsed.tracks[track]
+                        .map((entry) => ({
+                            id: typeof entry.id === "string" ? entry.id : createId("exam-item"),
+                            text: normalizeText(entry.text),
+                            done: Boolean(entry.done),
+                            preset: Boolean(entry.preset)
+                        }))
+                        .filter((entry) => entry.text);
+                    tracks[track] = items.length ? items : buildExamPreset(track);
+                });
+            }
+            return { activeTrack, tracks };
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    function persistExamPrep(data) {
+        const clean = {
+            activeTrack: ["MSA", "BBR", "eBBR"].includes(data.activeTrack) ? data.activeTrack : "MSA",
+            tracks: {
+                MSA: Array.isArray(data.tracks?.MSA) ? data.tracks.MSA : buildExamPreset("MSA"),
+                BBR: Array.isArray(data.tracks?.BBR) ? data.tracks.BBR : buildExamPreset("BBR"),
+                eBBR: Array.isArray(data.tracks?.eBBR) ? data.tracks.eBBR : buildExamPreset("eBBR")
+            }
+        };
+        localStorage.setItem("gf_exam_prep", JSON.stringify(clean));
+        return clean;
+    }
+
     function exportData() {
         const payload = {
             exportedAt: new Date().toISOString(),
             subjectsStore: state.subjectsStore,
             eventsStore: state.eventsStore,
             settings: state.settings,
-            goals: state.goals
+            goals: state.goals,
+            studyHelper: state.studyHelper,
+            examPrep: state.examPrep
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -1413,6 +1786,13 @@ export function initApp() {
                 if (Array.isArray(parsed.goals)) {
                     state.goals = parsed.goals;
                     persistGoals(state.goals);
+                }
+                if (parsed.studyHelper && typeof parsed.studyHelper === "object") {
+                    state.studyHelper = persistStudyHelper(parsed.studyHelper);
+                }
+                if (parsed.examPrep && typeof parsed.examPrep === "object") {
+                    state.examPrep = persistExamPrep(parsed.examPrep);
+                    hydrateExamPrepUI();
                 }
 
                 applyThemeSettings();

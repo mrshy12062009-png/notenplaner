@@ -278,7 +278,7 @@ function sanitizeSettings(input) {
         mode: ["light", "dark"].includes(settings.mode) ? settings.mode : DEFAULT_SETTINGS.mode,
         fontScale: ["small", "normal", "large"].includes(settings.fontScale) ? settings.fontScale : DEFAULT_SETTINGS.fontScale,
         reducedMotion: ["on", "off"].includes(settings.reducedMotion) ? settings.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
-        defaultPage: ["list", "calendar", "stats", "goals"].includes(settings.defaultPage) ? settings.defaultPage : DEFAULT_SETTINGS.defaultPage,
+        defaultPage: ["list", "calendar", "stats", "goals", "helper", "exams"].includes(settings.defaultPage) ? settings.defaultPage : DEFAULT_SETTINGS.defaultPage,
         showHolidays: ["on", "off"].includes(settings.showHolidays) ? settings.showHolidays : DEFAULT_SETTINGS.showHolidays,
         showVacations: ["on", "off"].includes(settings.showVacations) ? settings.showVacations : DEFAULT_SETTINGS.showVacations,
         showEventLabels: ["on", "off"].includes(settings.showEventLabels) ? settings.showEventLabels : DEFAULT_SETTINGS.showEventLabels,
