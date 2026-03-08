@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308j">
+    <link rel="stylesheet" href="style.css?v=20260308k">
 </head>
 <body>
     <div class="app-shell">
@@ -211,6 +211,7 @@
                         <input id="focus-minutes" type="number" min="5" max="120" step="5" value="25">
                         <button id="focus-start" class="btn btn-primary" type="button">Start</button>
                         <button id="focus-pause" class="btn btn-ghost" type="button">Pause</button>
+                        <button id="focus-stop" class="btn btn-ghost" type="button">Stop</button>
                         <button id="focus-reset" class="btn btn-ghost" type="button">Reset</button>
                     </div>
                     <p id="focus-display" class="focus-display">25:00</p>
@@ -286,6 +287,7 @@
                         <div class="goal-progress-track"><div id="exam-progress-fill" class="goal-progress-fill" style="width:0%"></div></div>
                         <span id="exam-progress-value" class="goal-progress-value">0%</span>
                     </div>
+                    <p id="exam-theme-progress" class="list-meta"></p>
                     <div id="exam-list" class="list"></div>
                 </div>
             </section>
@@ -448,6 +450,11 @@
             </section>
         </main>
     </div>
+    <div id="focus-floating" class="focus-floating hidden" aria-live="polite">
+        <p class="focus-floating-title">Fokus läuft</p>
+        <p id="focus-floating-time" class="focus-floating-time">25:00</p>
+        <button id="focus-floating-stop" class="btn btn-primary" type="button">Stop</button>
+    </div>
     <div id="confirm-modal" class="modal hidden" aria-hidden="true">
         <div class="modal-backdrop" data-action="close-confirm"></div>
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
@@ -460,6 +467,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308j"></script>
+    <script type="module" src="script.js?v=20260308k"></script>
 </body>
 </html>

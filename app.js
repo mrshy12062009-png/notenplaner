@@ -135,8 +135,12 @@ export function initApp() {
         focusMinutesInput: document.getElementById("focus-minutes"),
         focusStart: document.getElementById("focus-start"),
         focusPause: document.getElementById("focus-pause"),
+        focusStop: document.getElementById("focus-stop"),
         focusReset: document.getElementById("focus-reset"),
         focusDisplay: document.getElementById("focus-display"),
+        focusFloating: document.getElementById("focus-floating"),
+        focusFloatingTime: document.getElementById("focus-floating-time"),
+        focusFloatingStop: document.getElementById("focus-floating-stop"),
         studyForm: document.getElementById("study-form"),
         studySubjectInput: document.getElementById("study-subject"),
         studyMinutesInput: document.getElementById("study-minutes"),
@@ -161,6 +165,7 @@ export function initApp() {
         examList: document.getElementById("exam-list"),
         examProgressFill: document.getElementById("exam-progress-fill"),
         examProgressValue: document.getElementById("exam-progress-value"),
+        examThemeProgress: document.getElementById("exam-theme-progress"),
         examTutorTrack: document.getElementById("exam-tutor-track"),
         examTutorSubject: document.getElementById("exam-tutor-subject"),
         examTutorLevel: document.getElementById("exam-tutor-level"),
@@ -182,6 +187,7 @@ export function initApp() {
     let toastTimer = null;
     let draftsTimer = null;
     let focusTimer = null;
+    let focusLockActive = false;
 
     applyThemeSettings();
     closeConfirmModal();
@@ -358,7 +364,9 @@ export function initApp() {
 
         els.focusStart.addEventListener("click", startFocusTimer);
         els.focusPause.addEventListener("click", pauseFocusTimer);
+        els.focusStop.addEventListener("click", stopFocusTimer);
         els.focusReset.addEventListener("click", resetFocusTimer);
+        els.focusFloatingStop.addEventListener("click", stopFocusTimer);
         els.focusMinutesInput.addEventListener("change", resetFocusTimer);
 
         els.studyForm.addEventListener("submit", onStudySubmit);
@@ -382,7 +390,6 @@ export function initApp() {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
             if (!action || !id) return;
-            if (action === "toggle-study") toggleStudySession(id);
             if (action === "delete-study") deleteStudySession(id);
         });
 
@@ -411,7 +418,6 @@ export function initApp() {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
             if (!action || !id) return;
-            if (action === "toggle-exam-item") toggleExamItem(id);
             if (action === "delete-exam-item") deleteExamItem(id);
         });
 
@@ -921,7 +927,6 @@ export function initApp() {
                         <strong>${escapeHtml(entry.subject)}</strong>
                         <p class="list-meta">${entry.minutes} Minuten · ${entry.done ? "Abgeschlossen" : "Offen"}</p>
                         <div class="row-actions">
-                            <button class="btn btn-ghost" data-action="toggle-study" data-id="${entry.id}" type="button">${entry.done ? "Wieder öffnen" : "Erledigt"}</button>
                             <button class="btn btn-ghost" data-action="delete-study" data-id="${entry.id}" type="button">Löschen</button>
                         </div>
                     </article>
@@ -930,7 +935,11 @@ export function initApp() {
         }
 
         const remaining = Math.max(0, Number.parseInt(state.studyHelper.focusRemainingSec, 10) || 0);
-        els.focusDisplay.textContent = formatDuration(remaining);
+        const timeText = formatDuration(remaining);
+        els.focusDisplay.textContent = timeText;
+        if (els.focusFloatingTime) {
+            els.focusFloatingTime.textContent = timeText;
+        }
     }
 
     function renderQuizCard() {
@@ -1182,7 +1191,9 @@ export function initApp() {
         const stats = state.examPrep.tutor.stats;
         const total = stats.correct + stats.wrong;
         const quote = total ? Math.round((stats.correct / total) * 100) : 0;
-        els.examTutorStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Quote: ${quote}% · Reife-Score: ${stats.readiness}%`;
+        const key = `${state.examPrep.tutor.track}:${state.examPrep.tutor.subject}`;
+        const themeReadiness = Math.max(0, Math.min(100, Number.parseInt(stats.progressByTheme?.[key], 10) || stats.readiness || 0));
+        els.examTutorStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Quote: ${quote}% · Reife-Score Thema: ${themeReadiness}%`;
         if (!els.examTutorFeedback.textContent) {
             els.examTutorFeedback.innerHTML = "<p>Prüfungsantwort eingeben und prüfen.</p>";
         }
@@ -1297,17 +1308,24 @@ export function initApp() {
         }
         const isCorrect = validateQuizAnswer(task, input);
         const stats = state.examPrep.tutor.stats;
+        const key = `${state.examPrep.tutor.track}:${state.examPrep.tutor.subject}`;
+        const themeMap = stats.progressByTheme || {};
+        let currentTheme = Math.max(0, Math.min(100, Number.parseInt(themeMap[key], 10) || 0));
         if (isCorrect) {
             stats.correct += 1;
-            stats.readiness = Math.min(100, stats.readiness + 4 + state.examPrep.tutor.level);
+            currentTheme = Math.min(100, currentTheme + 4 + state.examPrep.tutor.level);
+            stats.readiness = currentTheme;
             els.examTutorFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip || "Prüfungsstark.")}</p>`;
         } else {
             stats.wrong += 1;
-            stats.readiness = Math.max(0, stats.readiness - 2);
+            currentTheme = Math.max(0, currentTheme - 2);
+            stats.readiness = currentTheme;
             els.examTutorFeedback.innerHTML = `<p><strong>Falsch.</strong> Richtige Antwort: <strong>${escapeHtml(String(task.solutionLabel))}</strong></p><p>${escapeHtml(task.hint || "")}</p>`;
         }
+        stats.progressByTheme = { ...themeMap, [key]: currentTheme };
         state.examPrep = persistExamPrep(state.examPrep);
         renderExamTutor();
+        renderExamPrep();
         renderStats();
     }
 
@@ -1328,11 +1346,16 @@ export function initApp() {
     function renderExamPrep() {
         const track = state.examPrep.activeTrack;
         const items = getExamItems(track);
+        const autoPercent = getTrackCompletionPercent(track);
+        autoMarkExamItems(track, autoPercent);
         const doneCount = items.filter((item) => item.done).length;
-        const percent = items.length ? Math.round((doneCount / items.length) * 100) : 0;
+        const percent = items.length ? Math.round((doneCount / items.length) * 100) : autoPercent;
 
         els.examProgressFill.style.width = `${percent}%`;
         els.examProgressValue.textContent = `${percent}%`;
+        if (els.examThemeProgress) {
+            els.examThemeProgress.textContent = `Thema-Abschluss (${track}): ${autoPercent}%`;
+        }
         els.examProgressFill.classList.remove("done", "near");
         if (percent >= 100) els.examProgressFill.classList.add("done");
         else if (percent >= 75) els.examProgressFill.classList.add("near");
@@ -1346,9 +1369,8 @@ export function initApp() {
             .map((item) => `
                 <article class="list-item ${item.done ? "goal-item done" : ""}">
                     <strong>${escapeHtml(item.text)}</strong>
-                    <p class="list-meta">${item.done ? "Erledigt" : "Offen"} · ${item.preset ? "Standard" : "Eigener Punkt"}</p>
+                    <p class="list-meta">${item.done ? "Abgehakt (auto)" : "Offen"} · ${item.preset ? "Standard" : "Eigener Punkt"}</p>
                     <div class="row-actions">
-                        <button class="btn btn-ghost" data-action="toggle-exam-item" data-id="${item.id}" type="button">${item.done ? "Wieder öffnen" : "Erledigt"}</button>
                         ${item.preset ? "" : `<button class="btn btn-ghost" data-action="delete-exam-item" data-id="${item.id}" type="button">Löschen</button>`}
                     </div>
                 </article>
@@ -1386,14 +1408,6 @@ export function initApp() {
         setFeedback(els.studyFeedback, "Lernblock hinzugefügt.");
     }
 
-    function toggleStudySession(id) {
-        const item = state.studyHelper.sessions.find((entry) => entry.id === id);
-        if (!item) return;
-        item.done = !item.done;
-        state.studyHelper = persistStudyHelper(state.studyHelper);
-        renderStudyHelper();
-    }
-
     function deleteStudySession(id) {
         state.studyHelper.sessions = state.studyHelper.sessions.filter((entry) => entry.id !== id);
         state.studyHelper = persistStudyHelper(state.studyHelper);
@@ -1410,12 +1424,15 @@ export function initApp() {
         if (!state.studyHelper.focusRemainingSec || state.studyHelper.focusRemainingSec <= 0) {
             state.studyHelper.focusRemainingSec = inputMinutes * 60;
         }
+        setFocusLock(true);
         focusTimer = setInterval(() => {
             state.studyHelper.focusRemainingSec -= 1;
             if (state.studyHelper.focusRemainingSec <= 0) {
                 clearInterval(focusTimer);
                 focusTimer = null;
                 state.studyHelper.focusRemainingSec = 0;
+                completeNextStudySession();
+                setFocusLock(false);
                 showToast("Fokus-Block abgeschlossen.", "success");
             }
             renderStudyHelper();
@@ -1432,16 +1449,59 @@ export function initApp() {
         showToast("Fokus-Timer pausiert.", "info");
     }
 
+    function stopFocusTimer() {
+        if (focusTimer) {
+            clearInterval(focusTimer);
+            focusTimer = null;
+        }
+        setFocusLock(false);
+        persistStudyHelper(state.studyHelper);
+        showToast("Fokus-Modus beendet.", "info");
+    }
+
     function resetFocusTimer() {
         if (focusTimer) {
             clearInterval(focusTimer);
             focusTimer = null;
         }
+        setFocusLock(false);
         const inputMinutes = Number.parseInt(els.focusMinutesInput.value, 10);
         const minutes = Number.isInteger(inputMinutes) && inputMinutes >= 5 && inputMinutes <= 120 ? inputMinutes : 25;
         state.studyHelper.focusRemainingSec = minutes * 60;
         state.studyHelper = persistStudyHelper(state.studyHelper);
         renderStudyHelper();
+    }
+
+    function completeNextStudySession() {
+        const nextOpen = state.studyHelper.sessions
+            .filter((entry) => !entry.done)
+            .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+        if (!nextOpen) return;
+        nextOpen.done = true;
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        renderStudyHelper();
+    }
+
+    function setFocusLock(active) {
+        focusLockActive = active;
+        document.body.classList.toggle("focus-active", active);
+        if (els.focusFloating) {
+            els.focusFloating.classList.toggle("hidden", !active);
+        }
+        const whitelist = new Set(["focus-pause", "focus-reset", "focus-stop", "focus-floating-stop"]);
+        const controls = document.querySelectorAll("button, input, select, textarea");
+        controls.forEach((el) => {
+            if (whitelist.has(el.id)) {
+                el.disabled = false;
+                return;
+            }
+            el.disabled = active;
+        });
+        if (!active) {
+            controls.forEach((el) => {
+                el.disabled = false;
+            });
+        }
     }
 
     function onExamItemSubmit(event) {
@@ -1468,22 +1528,30 @@ export function initApp() {
         setFeedback(els.examFeedback, "Punkt hinzugefügt.");
     }
 
-    function toggleExamItem(id) {
-        const track = state.examPrep.activeTrack;
-        const item = getExamItems(track).find((entry) => entry.id === id);
-        if (!item) return;
-        item.done = !item.done;
-        state.examPrep = persistExamPrep(state.examPrep);
-        renderExamPrep();
-        renderStats();
-    }
-
     function deleteExamItem(id) {
         const track = state.examPrep.activeTrack;
         state.examPrep.tracks[track] = getExamItems(track).filter((entry) => entry.id !== id);
         state.examPrep = persistExamPrep(state.examPrep);
         renderExamPrep();
         renderStats();
+    }
+
+    function getTrackCompletionPercent(track) {
+        const map = state.examPrep.tutor?.stats?.progressByTheme || {};
+        const keys = [`${track}:math`, `${track}:de`, `${track}:en`, `${track}:en_oral`, `${track}:presentation`];
+        const values = keys.map((key) => Math.max(0, Math.min(100, Number.parseInt(map[key], 10) || 0)));
+        const avg = Math.round(values.reduce((acc, value) => acc + value, 0) / values.length);
+        return avg;
+    }
+
+    function autoMarkExamItems(track, percent) {
+        const items = getExamItems(track);
+        if (!items.length) return;
+        const targetDone = Math.round((percent / 100) * items.length);
+        items.forEach((item, index) => {
+            item.done = index < targetDone;
+        });
+        state.examPrep = persistExamPrep(state.examPrep);
     }
 
     function getExamItems(track) {
@@ -2247,7 +2315,8 @@ export function initApp() {
                 stats: {
                     correct: Math.max(0, Number.parseInt(tutorRaw.stats?.correct, 10) || 0),
                     wrong: Math.max(0, Number.parseInt(tutorRaw.stats?.wrong, 10) || 0),
-                    readiness: Math.max(0, Math.min(100, Number.parseInt(tutorRaw.stats?.readiness, 10) || 0))
+                    readiness: Math.max(0, Math.min(100, Number.parseInt(tutorRaw.stats?.readiness, 10) || 0)),
+                    progressByTheme: tutorRaw.stats?.progressByTheme && typeof tutorRaw.stats.progressByTheme === "object" ? tutorRaw.stats.progressByTheme : {}
                 }
             };
             return { activeTrack, tracks, tutor };
@@ -2272,7 +2341,8 @@ export function initApp() {
                 stats: {
                     correct: Math.max(0, Number.parseInt(data.tutor?.stats?.correct, 10) || 0),
                     wrong: Math.max(0, Number.parseInt(data.tutor?.stats?.wrong, 10) || 0),
-                    readiness: Math.max(0, Math.min(100, Number.parseInt(data.tutor?.stats?.readiness, 10) || 0))
+                    readiness: Math.max(0, Math.min(100, Number.parseInt(data.tutor?.stats?.readiness, 10) || 0)),
+                    progressByTheme: data.tutor?.stats?.progressByTheme && typeof data.tutor.stats.progressByTheme === "object" ? data.tutor.stats.progressByTheme : {}
                 }
             }
         };

@@ -917,6 +917,46 @@ button:focus-visible {
     color: var(--primary-strong);
 }
 
+.focus-floating {
+    position: fixed;
+    top: 0.9rem;
+    right: 0.9rem;
+    z-index: 1400;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-panel);
+    box-shadow: var(--shadow);
+    padding: 0.65rem 0.75rem;
+    display: grid;
+    gap: 0.35rem;
+    min-width: 170px;
+}
+
+.focus-floating-title {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.focus-floating-time {
+    font-family: "Sora", "Manrope", sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--primary-strong);
+}
+
+body.focus-active .content {
+    opacity: 0.92;
+}
+
+body.focus-active button:disabled,
+body.focus-active input:disabled,
+body.focus-active select:disabled,
+body.focus-active textarea:disabled {
+    opacity: 0.45;
+    filter: grayscale(0.2);
+    cursor: not-allowed;
+}
+
 .empty-state {
     border: 1px dashed var(--border);
     border-radius: var(--radius-md);
