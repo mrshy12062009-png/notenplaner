@@ -142,11 +142,13 @@ export function initApp() {
         studyMinutesInput: document.getElementById("study-minutes"),
         studyFeedback: document.getElementById("study-feedback"),
         studyList: document.getElementById("study-list"),
-        coachQuestion: document.getElementById("coach-question"),
-        coachPlan: document.getElementById("coach-plan"),
-        coachNextExam: document.getElementById("coach-next-exam"),
-        coachAsk: document.getElementById("coach-ask"),
-        coachAnswer: document.getElementById("coach-answer"),
+        quizTopic: document.getElementById("quiz-topic"),
+        quizQuestion: document.getElementById("quiz-question"),
+        quizAnswer: document.getElementById("quiz-answer"),
+        quizCheck: document.getElementById("quiz-check"),
+        quizNext: document.getElementById("quiz-next"),
+        quizFeedback: document.getElementById("quiz-feedback"),
+        quizStats: document.getElementById("quiz-stats"),
 
         examForm: document.getElementById("exam-form"),
         examTrack: document.getElementById("exam-track"),
@@ -348,16 +350,12 @@ export function initApp() {
         els.studyForm.addEventListener("submit", onStudySubmit);
         els.studySubjectInput.addEventListener("input", saveDraftsThrottled);
         els.studyMinutesInput.addEventListener("input", saveDraftsThrottled);
-        els.coachQuestion.addEventListener("input", saveDraftsThrottled);
-        els.coachPlan.addEventListener("click", () => {
-            renderCoachAnswer("plan");
+        els.quizTopic.addEventListener("change", () => {
+            generateNewQuizTask();
         });
-        els.coachNextExam.addEventListener("click", () => {
-            renderCoachAnswer("exam");
-        });
-        els.coachAsk.addEventListener("click", () => {
-            renderCoachAnswer("ask");
-        });
+        els.quizAnswer.addEventListener("input", saveDraftsThrottled);
+        els.quizCheck.addEventListener("click", checkQuizAnswer);
+        els.quizNext.addEventListener("click", generateNewQuizTask);
         els.studyList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
@@ -417,7 +415,7 @@ export function initApp() {
         renderGoals();
         renderStudyHelper();
         renderExamPrep();
-        renderCoachAnswer("welcome");
+        renderQuizCard();
     }
 
     function showPage(pageId) {
@@ -897,124 +895,201 @@ export function initApp() {
         els.focusDisplay.textContent = formatDuration(remaining);
     }
 
-    function renderCoachAnswer(mode) {
-        const answer = buildCoachAnswer(mode, normalizeText(els.coachQuestion.value));
-        els.coachAnswer.innerHTML = answer;
-    }
-
-    function buildCoachAnswer(mode, question) {
-        const weakest = getWeakestSubject();
-        const nextExam = getNextExam();
-        const openGoals = evaluateGoalsProgress().filter((goal) => goal.status !== "done").length;
-        const baseTips = [
-            `Offene Ziele: <strong>${openGoals}</strong>`,
-            weakest ? `Fokusfach: <strong>${escapeHtml(weakest.name)}</strong> (Schnitt ${weakest.avg.toFixed(1)})` : "Fokusfach: <strong>noch nicht bestimmbar</strong>",
-            nextExam ? `Nächste Prüfung: <strong>${escapeHtml(nextExam.text)}</strong> am ${formatDate(nextExam.date)}` : "Nächste Prüfung: <strong>kein Termin</strong>"
-        ];
-
-        if (mode === "welcome") {
-            return `
-                <p>Dein Lerncoach ist bereit. Er nutzt deine echten App-Daten für Vorschläge.</p>
-                <ul>
-                    <li>${baseTips[0]}</li>
-                    <li>${baseTips[1]}</li>
-                    <li>${baseTips[2]}</li>
-                </ul>
-            `;
+    function renderQuizCard() {
+        if (!state.studyHelper.quiz || !state.studyHelper.quiz.currentTask) {
+            generateNewQuizTask(false);
         }
-
-        if (mode === "plan") {
-            const plan = createDailyPlan(weakest, nextExam);
-            return `
-                <p><strong>Dein Tagesplan:</strong></p>
-                <ul>${plan.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-                <p class="list-meta">Tipp: Arbeite in 25/5-Blöcken und hake Lernblöcke direkt unten ab.</p>
-            `;
-        }
-
-        if (mode === "exam") {
-            if (!nextExam) {
-                return "<p>Du hast aktuell keine kommende Prüfung im Kalender. Trag eine Prüfung im Kalender ein, dann gebe ich dir einen genauen Lernplan.</p>";
-            }
-            const daysLeft = getDaysUntil(nextExam.date);
-            return `
-                <p><strong>Prüfungsanalyse:</strong> ${escapeHtml(nextExam.text)} in ${daysLeft} Tagen.</p>
-                <ul>
-                    <li>Tag 1-${Math.max(1, daysLeft - 2)}: Grundlagen + typische Aufgaben.</li>
-                    <li>Vorletzter Tag: nur Schwachstellen wiederholen.</li>
-                    <li>Letzter Tag: Kurz-Review (45-60 Min), dann Pause.</li>
-                </ul>
-            `;
-        }
-
-        const lower = question.toLowerCase();
-        if (!question) {
-            return "<p>Stell eine konkrete Frage, z. B. \"Wie lerne ich Mathe bis Freitag?\"</p>";
-        }
-        if (lower.includes("mathe") || lower.includes("rechnung") || lower.includes("gleichung")) {
-            return "<p><strong>Mathe-Strategie:</strong> 1. Grundlagen 20 Min, 2. 3 schwere Aufgaben, 3. Fehlerliste, 4. gleiche Aufgabe ohne Hilfe wiederholen.</p>";
-        }
-        if (lower.includes("englisch") || lower.includes("vokabel")) {
-            return "<p><strong>Englisch-Strategie:</strong> 15 Min Vokabelkarten, 20 Min Reading, 15 Min Writing. Am Ende laut zusammenfassen.</p>";
-        }
-        if (lower.includes("deutsch") || lower.includes("aufsatz") || lower.includes("analyse")) {
-            return "<p><strong>Deutsch-Strategie:</strong> erst Gliederung, dann Einleitung/Hauptteil/Schluss in Zeitblöcken schreiben und 10 Min Korrektur einplanen.</p>";
-        }
-        return `
-            <p><strong>Empfehlung:</strong> Starte mit deinem Fokusfach und arbeite in 2-3 Blöcken.</p>
-            <ul>
-                <li>${baseTips[0]}</li>
-                <li>${baseTips[1]}</li>
-                <li>${baseTips[2]}</li>
-            </ul>
+        const task = state.studyHelper.quiz.currentTask;
+        els.quizQuestion.innerHTML = `
+            <p><strong>Mini-Erklärung:</strong> ${escapeHtml(task.lesson || "Wir lösen die Aufgabe Schritt für Schritt.")}</p>
+            <p><strong>Aufgabe:</strong> ${escapeHtml(task.question)}</p>
         `;
+        const stats = state.studyHelper.quiz.stats;
+        const total = stats.correct + stats.wrong;
+        const quote = total ? Math.round((stats.correct / total) * 100) : 0;
+        els.quizStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Trefferquote: ${quote}% · Serie: ${stats.streak}`;
+        if (!els.quizFeedback.textContent) {
+            els.quizFeedback.innerHTML = "<p>Antworte auf die Aufgabe. Bei Fehler bekommst du einen Lernhinweis.</p>";
+        }
     }
 
-    function getWeakestSubject() {
-        const withAvg = state.subjectsStore.subjects
-            .map((subject) => {
-                const avg = Number(calculateAverage(subject.notes));
-                return Number.isFinite(avg) ? { id: subject.id, name: subject.name, avg } : null;
-            })
-            .filter(Boolean)
-            .sort((a, b) => a.avg - b.avg);
-        return withAvg[0] || null;
+    function generateNewQuizTask(clearFeedback = true) {
+        const topic = els.quizTopic.value || "mix";
+        const currentTask = createQuizTask(topic);
+        state.studyHelper.quiz = state.studyHelper.quiz || { currentTask: null, stats: { correct: 0, wrong: 0, streak: 0 } };
+        state.studyHelper.quiz.currentTask = currentTask;
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        els.quizAnswer.value = "";
+        if (clearFeedback) {
+            els.quizFeedback.innerHTML = "<p>Neue Lernaufgabe ist bereit.</p>";
+        }
+        renderQuizCard();
+        saveDraftsThrottled();
     }
 
-    function getNextExam() {
-        const todayIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
-        const items = [];
-        Object.keys(state.eventsStore.events).forEach((date) => {
-            if (date < todayIso) return;
-            (state.eventsStore.events[date] || []).forEach((entry) => {
-                items.push({ date, text: entry.text, priority: entry.priority, type: entry.type || "exam" });
-            });
-        });
-        items.sort((a, b) => a.date.localeCompare(b.date) || priorityRank(a.priority) - priorityRank(b.priority));
-        return items[0] || null;
-    }
+    function checkQuizAnswer() {
+        const userInput = normalizeText(els.quizAnswer.value);
+        if (!userInput) {
+            els.quizFeedback.innerHTML = "<p>Bitte eine Antwort eingeben.</p>";
+            return;
+        }
 
-    function getDaysUntil(isoDate) {
-        const start = new Date();
-        const end = new Date(`${isoDate}T00:00:00`);
-        const diff = end.getTime() - new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
-        return Math.max(0, Math.ceil(diff / 86400000));
-    }
+        const task = state.studyHelper.quiz?.currentTask;
+        if (!task) {
+            generateNewQuizTask();
+            return;
+        }
 
-    function createDailyPlan(weakest, nextExam) {
-        const plan = [];
-        if (weakest) {
-            plan.push(`${weakest.name}: 30 Min Grundlagen wiederholen.`);
-            plan.push(`${weakest.name}: 25 Min Übungsaufgaben mit Timer.`);
+        const isCorrect = validateQuizAnswer(task, userInput);
+        const stats = state.studyHelper.quiz.stats;
+        if (isCorrect) {
+            stats.correct += 1;
+            stats.streak += 1;
+            els.quizFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip || "Stark gelöst.")}</p>`;
+            showToast("Richtig beantwortet.", "success");
         } else {
-            plan.push("25 Min Kernfach lernen.");
-            plan.push("25 Min zweites Fach wiederholen.");
+            stats.wrong += 1;
+            stats.streak = 0;
+            els.quizFeedback.innerHTML = `
+                <p><strong>Noch nicht richtig.</strong> Richtige Antwort: <strong>${escapeHtml(String(task.solutionLabel))}</strong></p>
+                <p>${escapeHtml(task.hint || "Tipp: Schritt für Schritt arbeiten.")}</p>
+            `;
+            showToast("Nicht richtig. Versuch die nächste Aufgabe.", "info");
         }
-        if (nextExam) {
-            plan.push(`20 Min Prüfungsvorbereitung für "${nextExam.text}".`);
+        state.studyHelper = persistStudyHelper(state.studyHelper);
+        renderQuizCard();
+    }
+
+    function createQuizTask(topic) {
+        const resolved = topic === "mix" ? ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)] : topic;
+        if (resolved === "algebra") return createAlgebraQuizTask();
+        if (resolved === "de") return createGermanQuizTask();
+        if (resolved === "en") return createEnglishQuizTask();
+        return createMathQuizTask();
+    }
+
+    function createAlgebraQuizTask() {
+        const a = rand(2, 8);
+        const x = rand(-6, 10);
+        const b = rand(-9, 12);
+        const c = a * x + b;
+        const signB = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+        const invSignB = b >= 0 ? `-${b}` : `+ ${Math.abs(b)}`;
+        return {
+            type: "algebra-x",
+            lesson: "Bringe zuerst die Zahl auf die andere Seite, dann durch den Faktor vor x teilen.",
+            question: `${a}x ${signB} = ${c}. Löse nach x auf.`,
+            solution: x,
+            tolerance: 0.001,
+            solutionLabel: `x = ${x}`,
+            hint: `Schritt 1: ${a}x = ${c} ${invSignB}. Schritt 2: durch ${a} teilen.`,
+            successTip: "Genau so löst du lineare Gleichungen."
+        };
+    }
+
+    function createMathQuizTask() {
+        const mode = Math.floor(Math.random() * 3);
+        if (mode === 0) {
+            const a = rand(10, 70);
+            const b = rand(10, 70);
+            return {
+                type: "number",
+                lesson: "Addiere die Zahlen sauber untereinander.",
+                question: `${a} + ${b} = ?`,
+                solution: a + b,
+                tolerance: 0.001,
+                solutionLabel: String(a + b),
+                hint: `Rechne zuerst Zehner, dann Einer: ${a} + ${b}.`
+            };
         }
-        plan.push("10 Min Fehleranalyse + nächste Lernaufgabe notieren.");
-        return plan;
+        if (mode === 1) {
+            const a = rand(2, 12);
+            const b = rand(2, 12);
+            return {
+                type: "number",
+                lesson: "Multiplikation heißt wiederholte Addition.",
+                question: `${a} × ${b} = ?`,
+                solution: a * b,
+                tolerance: 0.001,
+                solutionLabel: String(a * b),
+                hint: `Nutze das Einmaleins oder zerlege ${b}.`
+            };
+        }
+        const percent = rand(10, 90);
+        const base = rand(20, 200);
+        const result = Number(((percent / 100) * base).toFixed(2));
+        return {
+            type: "number",
+            lesson: "Prozent heißt Bruch: p% = p/100.",
+            question: `Wie viel sind ${percent}% von ${base}?`,
+            solution: result,
+            tolerance: 0.01,
+            solutionLabel: String(result).replace(".", ","),
+            hint: `Rechne ${percent}/100 × ${base}.`
+        };
+    }
+
+    function createGermanQuizTask() {
+        const pool = [
+            { question: "Welches Wort ist ein Nomen? (haus / laufen / schön)", solution: "haus" },
+            { question: "Wie heißt die Mehrzahl von \"Buch\"?", solution: "bücher" },
+            { question: "Welches Satzzeichen beendet eine Frage?", solution: "?" }
+        ];
+        const item = pool[rand(0, pool.length - 1)];
+        return {
+            type: "text",
+            lesson: "Achte auf Wortart und Rechtschreibung.",
+            question: item.question,
+            solution: item.solution,
+            solutionLabel: item.solution,
+            hint: "Lies die Aufgabe noch einmal langsam."
+        };
+    }
+
+    function createEnglishQuizTask() {
+        const pool = [
+            { question: "Übersetze ins Deutsche: \"school\"", solution: "schule" },
+            { question: "Übersetze ins Englische: \"lernen\"", solution: "learn" },
+            { question: "Wie heißt \"Montag\" auf Englisch?", solution: "monday" }
+        ];
+        const item = pool[rand(0, pool.length - 1)];
+        return {
+            type: "text",
+            lesson: "Nutze dein Grundvokabular und prüfe die Schreibweise.",
+            question: item.question,
+            solution: item.solution,
+            solutionLabel: item.solution,
+            hint: "Denke an die übliche Schulvokabel."
+        };
+    }
+
+    function validateQuizAnswer(task, input) {
+        if (task.type === "algebra-x") {
+            const raw = input.toLowerCase().replace(/\s/g, "");
+            const valueText = raw.startsWith("x=") ? raw.slice(2) : raw;
+            const normalized = Number.parseFloat(valueText.replace(",", "."));
+            if (!Number.isFinite(normalized)) return false;
+            return Math.abs(normalized - Number(task.solution)) <= (task.tolerance || 0.001);
+        }
+        if (task.type === "number") {
+            const normalized = Number.parseFloat(input.replace(",", "."));
+            if (!Number.isFinite(normalized)) return false;
+            return Math.abs(normalized - Number(task.solution)) <= (task.tolerance || 0.001);
+        }
+        const cleanedInput = normalizeQuizText(input);
+        const cleanedSolution = normalizeQuizText(String(task.solution));
+        return cleanedInput === cleanedSolution;
+    }
+
+    function normalizeQuizText(value) {
+        return normalizeText(value)
+            .toLowerCase()
+            .replace(/[.!?,;:]/g, "")
+            .trim();
+    }
+
+    function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     function renderExamPrep() {
@@ -1730,7 +1805,7 @@ export function initApp() {
             studySubject: els.studySubjectInput.value,
             studyMinutes: els.studyMinutesInput.value,
             examItemText: els.examItemText.value,
-            coachQuestion: els.coachQuestion.value
+            quizAnswer: els.quizAnswer.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -1750,7 +1825,7 @@ export function initApp() {
             if (typeof drafts.studySubject === "string") els.studySubjectInput.value = drafts.studySubject;
             if (typeof drafts.studyMinutes === "string") els.studyMinutesInput.value = drafts.studyMinutes;
             if (typeof drafts.examItemText === "string") els.examItemText.value = drafts.examItemText;
-            if (typeof drafts.coachQuestion === "string") els.coachQuestion.value = drafts.coachQuestion;
+            if (typeof drafts.quizAnswer === "string") els.quizAnswer.value = drafts.quizAnswer;
         } catch (_) {
             // ignore invalid draft storage
         }
@@ -1809,7 +1884,14 @@ export function initApp() {
     }
 
     function loadStudyHelper() {
-        const fallback = { sessions: [], focusRemainingSec: 25 * 60 };
+        const fallback = {
+            sessions: [],
+            focusRemainingSec: 25 * 60,
+            quiz: {
+                currentTask: null,
+                stats: { correct: 0, wrong: 0, streak: 0 }
+            }
+        };
         try {
             const raw = localStorage.getItem("gf_study_helper");
             if (!raw) return fallback;
@@ -1827,7 +1909,24 @@ export function initApp() {
                     .filter((entry) => entry.subject && Number.isInteger(entry.minutes) && entry.minutes >= 10 && entry.minutes <= 240)
                 : [];
             const focusRemainingSec = Number.isInteger(parsed.focusRemainingSec) && parsed.focusRemainingSec >= 0 ? parsed.focusRemainingSec : fallback.focusRemainingSec;
-            return { sessions, focusRemainingSec };
+            const quizStats = parsed.quiz && parsed.quiz.stats && typeof parsed.quiz.stats === "object"
+                ? {
+                    correct: Math.max(0, Number.parseInt(parsed.quiz.stats.correct, 10) || 0),
+                    wrong: Math.max(0, Number.parseInt(parsed.quiz.stats.wrong, 10) || 0),
+                    streak: Math.max(0, Number.parseInt(parsed.quiz.stats.streak, 10) || 0)
+                }
+                : fallback.quiz.stats;
+            const currentTask = parsed.quiz && parsed.quiz.currentTask && typeof parsed.quiz.currentTask === "object"
+                ? parsed.quiz.currentTask
+                : null;
+            return {
+                sessions,
+                focusRemainingSec,
+                quiz: {
+                    currentTask,
+                    stats: quizStats
+                }
+            };
         } catch (_) {
             return fallback;
         }
@@ -1836,7 +1935,15 @@ export function initApp() {
     function persistStudyHelper(data) {
         const clean = {
             sessions: Array.isArray(data.sessions) ? data.sessions : [],
-            focusRemainingSec: Number.isInteger(data.focusRemainingSec) && data.focusRemainingSec >= 0 ? data.focusRemainingSec : 25 * 60
+            focusRemainingSec: Number.isInteger(data.focusRemainingSec) && data.focusRemainingSec >= 0 ? data.focusRemainingSec : 25 * 60,
+            quiz: {
+                currentTask: data.quiz && data.quiz.currentTask ? data.quiz.currentTask : null,
+                stats: {
+                    correct: Math.max(0, Number.parseInt(data.quiz?.stats?.correct, 10) || 0),
+                    wrong: Math.max(0, Number.parseInt(data.quiz?.stats?.wrong, 10) || 0),
+                    streak: Math.max(0, Number.parseInt(data.quiz?.stats?.streak, 10) || 0)
+                }
+            }
         };
         localStorage.setItem("gf_study_helper", JSON.stringify(clean));
         return clean;
