@@ -1135,6 +1135,13 @@ export function initApp() {
     }
 
     function validateQuizAnswer(task, input) {
+        if (task.type === "keyword-text") {
+            const cleaned = normalizeQuizText(input);
+            const keywords = Array.isArray(task.solution) ? task.solution.map((k) => normalizeQuizText(String(k))) : [];
+            const hits = keywords.reduce((count, key) => (key && cleaned.includes(key) ? count + 1 : count), 0);
+            const threshold = Number.isInteger(task.keywordThreshold) ? task.keywordThreshold : Math.max(1, Math.ceil(keywords.length * 0.6));
+            return hits >= threshold;
+        }
         if (task.type === "algebra-x") {
             const raw = input.toLowerCase().replace(/\s/g, "");
             const valueText = raw.startsWith("x=") ? raw.slice(2) : raw;
@@ -1207,8 +1214,74 @@ export function initApp() {
             const task = createGermanQuizTask(level + 1);
             return { ...task, question: `[${track}] ${task.question}` };
         }
+        if (subject === "en_oral") {
+            return createEnglishOralTutorTask(track, level);
+        }
+        if (subject === "presentation") {
+            return createPresentationTutorTask(track, level);
+        }
         const enTask = createEnglishQuizTask(level + 1);
         return { ...enTask, question: `[${track}] ${enTask.question}` };
+    }
+
+    function createEnglishOralTutorTask(track, level) {
+        const prompts = [
+            {
+                question: "Speak for about 60 seconds: introduce yourself and your school goals.",
+                keywords: ["name", "school", "goal", "because"]
+            },
+            {
+                question: "Describe your favorite subject and explain why it is useful.",
+                keywords: ["subject", "because", "important", "future"]
+            },
+            {
+                question: "Compare learning at home and learning at school.",
+                keywords: ["home", "school", "difference", "better"]
+            }
+        ];
+        const selected = prompts[rand(0, prompts.length - 1)];
+        return {
+            type: "keyword-text",
+            lesson: "Mündlich zählen Struktur, klare Sätze und Begründung.",
+            question: `[${track}] Oral English (${level}): ${selected.question}`,
+            solution: selected.keywords,
+            solutionLabel: `Schlüsselwörter: ${selected.keywords.join(", ")}`,
+            hint: "Nutze 3-4 Sätze: Aussage, Grund, Beispiel, Abschluss.",
+            explain: `Treffe mindestens ${Math.max(2, Math.ceil(selected.keywords.length * 0.6))} Schlüsselwörter.`,
+            keywordThreshold: Math.max(2, Math.ceil(selected.keywords.length * 0.6)),
+            successTip: "Gute mündliche Leistung. Achte auch auf Aussprache und Tempo.",
+            reward: 10 + level * 3
+        };
+    }
+
+    function createPresentationTutorTask(track, level) {
+        const prompts = [
+            {
+                question: "Skizziere eine Kurzpräsentation: 'Social Media in der Schule - Chance oder Risiko?'",
+                keywords: ["einleitung", "argument", "beispiel", "fazit"]
+            },
+            {
+                question: "Baue eine 3-Minuten-Präsentation zu 'Klimawandel und Alltag'.",
+                keywords: ["thema", "daten", "beispiel", "schluss"]
+            },
+            {
+                question: "Gliedere eine Präsentation über deinen Wunschberuf.",
+                keywords: ["beruf", "aufgaben", "ausbildung", "warum"]
+            }
+        ];
+        const selected = prompts[rand(0, prompts.length - 1)];
+        return {
+            type: "keyword-text",
+            lesson: "Präsentationen brauchen roten Faden: Einstieg, Kern, Schluss.",
+            question: `[${track}] Präsentation (${level}): ${selected.question}`,
+            solution: selected.keywords,
+            solutionLabel: `Strukturwörter: ${selected.keywords.join(", ")}`,
+            hint: "Nutze klare Gliederung: Einleitung - Hauptteil - Fazit.",
+            explain: `Mindestens ${Math.max(2, Math.ceil(selected.keywords.length * 0.6))} Strukturpunkte einbauen.`,
+            keywordThreshold: Math.max(2, Math.ceil(selected.keywords.length * 0.6)),
+            successTip: "Struktur ist stark. Als Nächstes auf Zeit und freies Sprechen achten.",
+            reward: 10 + level * 3
+        };
     }
 
     function checkExamTutorAnswer() {
@@ -1247,6 +1320,8 @@ export function initApp() {
     function subjectLabel(code) {
         if (code === "de") return "Deutsch";
         if (code === "en") return "Englisch";
+        if (code === "en_oral") return "Englisch mündlich";
+        if (code === "presentation") return "Präsentation";
         return "Mathe";
     }
 
@@ -2166,7 +2241,7 @@ export function initApp() {
             const tutorRaw = parsed.tutor && typeof parsed.tutor === "object" ? parsed.tutor : fallback.tutor;
             const tutor = {
                 track: ["MSA", "BBR", "eBBR"].includes(tutorRaw.track) ? tutorRaw.track : "MSA",
-                subject: ["math", "de", "en"].includes(tutorRaw.subject) ? tutorRaw.subject : "math",
+                subject: ["math", "de", "en", "en_oral", "presentation"].includes(tutorRaw.subject) ? tutorRaw.subject : "math",
                 level: [1, 2, 3, 4, 5].includes(Number.parseInt(tutorRaw.level, 10)) ? Number.parseInt(tutorRaw.level, 10) : 3,
                 currentTask: tutorRaw.currentTask && typeof tutorRaw.currentTask === "object" ? tutorRaw.currentTask : null,
                 stats: {
@@ -2191,7 +2266,7 @@ export function initApp() {
             },
             tutor: {
                 track: ["MSA", "BBR", "eBBR"].includes(data.tutor?.track) ? data.tutor.track : "MSA",
-                subject: ["math", "de", "en"].includes(data.tutor?.subject) ? data.tutor.subject : "math",
+                subject: ["math", "de", "en", "en_oral", "presentation"].includes(data.tutor?.subject) ? data.tutor.subject : "math",
                 level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.tutor?.level, 10)) ? Number.parseInt(data.tutor.level, 10) : 3,
                 currentTask: data.tutor?.currentTask && typeof data.tutor.currentTask === "object" ? data.tutor.currentTask : null,
                 stats: {
