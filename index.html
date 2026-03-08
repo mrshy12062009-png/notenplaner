@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308k">
+    <link rel="stylesheet" href="style.css?v=20260308l">
 </head>
 <body>
     <div class="app-shell">
@@ -204,6 +204,37 @@
                     </div>
                     <div id="quiz-feedback" class="coach-answer"></div>
                     <p id="quiz-stats" class="list-meta"></p>
+                </div>
+                <div class="stack">
+                    <h3>Fach-Tools</h3>
+                    <div class="tool-grid">
+                        <article class="tool-card">
+                            <h4>Mathe: Formelsammlung</h4>
+                            <ul class="formula-list">
+                                <li>Prozent: `Teil = Grundwert * p / 100`</li>
+                                <li>Dreisatz: `x = (b * c) / a`</li>
+                                <li>Lineare Form: `ax + b = c -> x = (c - b) / a`</li>
+                                <li>Pythagoras: `a^2 + b^2 = c^2`</li>
+                                <li>Fläche Rechteck: `A = a * b`</li>
+                                <li>Fläche Dreieck: `A = (g * h) / 2`</li>
+                            </ul>
+                            <h4>Taschenrechner</h4>
+                            <div class="inline-form">
+                                <input id="calc-input" type="text" placeholder="z. B. (12+3)*4/5">
+                                <button id="calc-eval" class="btn btn-primary" type="button">Rechnen</button>
+                            </div>
+                            <p id="calc-result" class="list-meta"></p>
+                        </article>
+                        <article class="tool-card">
+                            <h4>Deutsch: Duden-Helfer</h4>
+                            <div class="inline-form">
+                                <input id="duden-input" type="text" placeholder="Wort eingeben">
+                                <button id="duden-lookup" class="btn btn-primary" type="button">Suchen</button>
+                            </div>
+                            <p id="duden-result" class="list-meta"></p>
+                            <a id="duden-link" class="btn btn-ghost" target="_blank" rel="noopener noreferrer" href="https://www.duden.de/suchen/dudenonline">Im Duden öffnen</a>
+                        </article>
+                    </div>
                 </div>
                 <div class="stack">
                     <h3>Fokus-Timer</h3>
@@ -467,6 +498,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308k"></script>
+    <script type="module" src="script.js?v=20260308l"></script>
 </body>
 </html>

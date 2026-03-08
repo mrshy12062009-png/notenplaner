@@ -157,6 +157,13 @@ export function initApp() {
         quizExplain: document.getElementById("quiz-explain"),
         quizFeedback: document.getElementById("quiz-feedback"),
         quizStats: document.getElementById("quiz-stats"),
+        calcInput: document.getElementById("calc-input"),
+        calcEval: document.getElementById("calc-eval"),
+        calcResult: document.getElementById("calc-result"),
+        dudenInput: document.getElementById("duden-input"),
+        dudenLookup: document.getElementById("duden-lookup"),
+        dudenResult: document.getElementById("duden-result"),
+        dudenLink: document.getElementById("duden-link"),
 
         examForm: document.getElementById("exam-form"),
         examTrack: document.getElementById("exam-track"),
@@ -386,6 +393,20 @@ export function initApp() {
         els.quizNext.addEventListener("click", generateNewQuizTask);
         els.quizHint.addEventListener("click", showQuizHint);
         els.quizExplain.addEventListener("click", showQuizExplanation);
+        els.calcEval.addEventListener("click", evaluateCalculator);
+        els.calcInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                evaluateCalculator();
+            }
+        });
+        els.dudenLookup.addEventListener("click", lookupDudenWord);
+        els.dudenInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                lookupDudenWord();
+            }
+        });
         els.studyList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const id = event.target.dataset.id;
@@ -1177,6 +1198,57 @@ export function initApp() {
 
     function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function evaluateCalculator() {
+        const raw = normalizeText(els.calcInput.value);
+        if (!raw) {
+            els.calcResult.textContent = "Bitte einen Ausdruck eingeben.";
+            return;
+        }
+        const expr = raw.replace(/,/g, ".").replace(/\s+/g, "");
+        if (!/^[0-9+\-*/().%]+$/.test(expr)) {
+            els.calcResult.textContent = "Nur Zahlen und + - * / ( ) % erlaubt.";
+            return;
+        }
+        try {
+            const safeExpr = expr.replace(/%/g, "/100");
+            const value = Function(`"use strict"; return (${safeExpr});`)();
+            if (!Number.isFinite(value)) {
+                els.calcResult.textContent = "Ungültige Berechnung.";
+                return;
+            }
+            els.calcResult.textContent = `Ergebnis: ${value}`;
+        } catch (_) {
+            els.calcResult.textContent = "Ausdruck konnte nicht berechnet werden.";
+        }
+    }
+
+    function lookupDudenWord() {
+        const input = normalizeText(els.dudenInput.value);
+        if (!input) {
+            els.dudenResult.textContent = "Bitte ein Wort eingeben.";
+            return;
+        }
+        const word = input.toLowerCase();
+        const definitions = {
+            analyse: "Untersuchung eines Sachverhalts nach einzelnen Merkmalen.",
+            argument: "Begründung, mit der eine Aussage gestützt wird.",
+            erörterung: "Schriftliche Auseinandersetzung mit Pro- und Contra-Argumenten.",
+            interpretation: "Sinngebende Deutung eines Textes oder Ergebnisses.",
+            präsentation: "Strukturierte Vorstellung eines Themas vor Publikum.",
+            grammatik: "Regelsystem einer Sprache.",
+            rechtschreibung: "Regeln zur korrekten Schreibung von Wörtern.",
+            synonyme: "Wörter mit gleicher oder ähnlicher Bedeutung.",
+            metaphor: "Sprachliches Bild mit übertragener Bedeutung.",
+            kohärenz: "Inhaltlicher Zusammenhang zwischen Aussagen."
+        };
+        els.dudenLink.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
+        if (definitions[word]) {
+            els.dudenResult.textContent = `${input}: ${definitions[word]}`;
+        } else {
+            els.dudenResult.textContent = `Kein lokaler Eintrag für "${input}". Öffne den Duden-Link für Details.`;
+        }
     }
 
     function renderExamTutor() {
