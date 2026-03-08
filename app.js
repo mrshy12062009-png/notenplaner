@@ -122,6 +122,7 @@ export function initApp() {
         statsGrid: document.getElementById("stats-grid"),
         chartSubjectAvg: document.getElementById("chart-subject-avg"),
         chartEventsMonth: document.getElementById("chart-events-month"),
+        chartGoalsProgress: document.getElementById("chart-goals-progress"),
         goalForm: document.getElementById("goal-form"),
         goalTextInput: document.getElementById("goal-text"),
         goalDateInput: document.getElementById("goal-date"),
@@ -137,6 +138,7 @@ export function initApp() {
     };
     let confirmAction = null;
     let toastTimer = null;
+    let draftsTimer = null;
 
     applyThemeSettings();
     closeConfirmModal();
@@ -145,6 +147,7 @@ export function initApp() {
     }
     syncSidebarToggleState();
     hydrateSettingsForm();
+    hydrateDrafts();
     updateSelectedDayUI();
     bindEvents();
     showPage(state.settings.defaultPage || "list");
@@ -178,6 +181,7 @@ export function initApp() {
         });
 
         els.subjectForm.addEventListener("submit", onSubjectSubmit);
+        els.subjectNameInput.addEventListener("input", saveDraftsThrottled);
 
         els.subjectsGrid.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
@@ -196,6 +200,7 @@ export function initApp() {
         els.backDashboard.addEventListener("click", () => showPage("list"));
         els.noteForm.addEventListener("submit", onNoteSubmit);
         els.noteCancel.addEventListener("click", resetNoteForm);
+        els.noteValueInput.addEventListener("input", saveDraftsThrottled);
 
         els.noteList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
@@ -223,6 +228,8 @@ export function initApp() {
 
         els.eventForm.addEventListener("submit", onEventSubmit);
         els.eventCancel.addEventListener("click", resetEventForm);
+        els.eventDateInput.addEventListener("input", saveDraftsThrottled);
+        els.eventTextInput.addEventListener("input", saveDraftsThrottled);
         els.eventDateInput.addEventListener("change", () => {
             if (isIsoDate(els.eventDateInput.value)) {
                 selectDate(els.eventDateInput.value);
@@ -242,6 +249,7 @@ export function initApp() {
                 else if (tpl.includes("abgabe")) els.eventTypeInput.value = "deadline";
                 else els.eventTypeInput.value = "exam";
                 els.eventTextInput.focus();
+                saveDraftsThrottled();
             });
         });
 
@@ -287,6 +295,8 @@ export function initApp() {
         els.dataImportFile.addEventListener("change", importData);
 
         els.goalForm.addEventListener("submit", onGoalSubmit);
+        els.goalTextInput.addEventListener("input", saveDraftsThrottled);
+        els.goalDateInput.addEventListener("input", saveDraftsThrottled);
         els.goalList.addEventListener("click", (event) => {
             const action = event.target.dataset.action;
             const goalId = event.target.dataset.id;
@@ -467,7 +477,8 @@ export function initApp() {
 
         els.detailHeading.textContent = subject.name;
         const avg = calculateAverage(subject.notes);
-        els.detailAverage.textContent = `Schnitt: ${avg ?? "--"}`;
+        const avgClass = classifyScore(avg);
+        els.detailAverage.innerHTML = `Schnitt: <span class="${avgClass ? `score-${avgClass}` : ""}">${avg ?? "--"}</span>`;
 
         if (!subject.notes.length) {
             els.noteList.innerHTML = createEmptyState("Noch keine Noten gespeichert.");
@@ -601,13 +612,17 @@ export function initApp() {
         const subjects = state.subjectsStore.subjects;
         const notes = subjects.flatMap((subject) => subject.notes || []);
         const allEvents = Object.values(state.eventsStore.events).flat();
+        const goalProgressList = evaluateGoalsProgress();
+        autoCompleteGoals(goalProgressList);
         const nowIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
         const upcomingExams = Object.keys(state.eventsStore.events).reduce((count, date) => {
             if (date < nowIso) return count;
             const exams = (state.eventsStore.events[date] || []).filter((entry) => (entry.type || "exam") === "exam").length;
             return count + exams;
         }, 0);
-        const openGoals = state.goals.filter((goal) => goal.status === "open").length;
+        const openGoals = goalProgressList.filter((goal) => goal.status === "open").length;
+        const nearGoals = goalProgressList.filter((goal) => goal.status === "near").length;
+        const doneGoals = goalProgressList.filter((goal) => goal.status === "done").length;
 
         const stats = [
             { label: "Fächer", value: String(subjects.length) },
@@ -615,7 +630,9 @@ export function initApp() {
             { label: "Schnitt gesamt", value: notes.length ? (notes.reduce((acc, note) => acc + note.value, 0) / notes.length).toFixed(1) : "--" },
             { label: "Termine gesamt", value: String(allEvents.length) },
             { label: "Prüfungen offen", value: String(upcomingExams) },
-            { label: "Offene Ziele", value: String(openGoals) }
+            { label: "Offene Ziele", value: String(openGoals) },
+            { label: "Nahe Ziele", value: String(nearGoals) },
+            { label: "Erreichte Ziele", value: String(doneGoals) }
         ];
 
         els.statsGrid.innerHTML = stats
@@ -629,6 +646,7 @@ export function initApp() {
 
         renderSubjectAverageChart(subjects);
         renderEventsByMonthChart();
+        renderGoalsProgressChart(goalProgressList);
     }
 
     function renderGoals() {
@@ -637,22 +655,35 @@ export function initApp() {
             return;
         }
 
+        const progressMap = new Map(evaluateGoalsProgress().map((item) => [item.goal.id, item]));
+        autoCompleteGoals([...progressMap.values()]);
+
         els.goalList.innerHTML = state.goals
             .slice()
             .sort((a, b) => {
-                if (a.status !== b.status) return a.status === "open" ? -1 : 1;
+                const aStatus = progressMap.get(a.id)?.status || a.status;
+                const bStatus = progressMap.get(b.id)?.status || b.status;
+                if (aStatus !== bStatus) return aStatus === "open" ? -1 : 1;
                 return (a.targetDate || "9999-12-31").localeCompare(b.targetDate || "9999-12-31");
             })
-            .map((goal) => `
-                <article class="list-item goal-item ${goal.status === "done" ? "done" : ""}">
+            .map((goal) => {
+                const progress = progressMap.get(goal.id) || { status: goal.status === "done" ? "done" : "open", ratio: goal.status === "done" ? 1 : 0, percent: goal.status === "done" ? 100 : 0 };
+                const statusLabel = progress.status === "done" ? "Erreicht" : (progress.status === "near" ? "Nah dran" : "Offen");
+                return `
+                <article class="list-item goal-item ${progress.status === "done" ? "done" : ""}">
                     <strong>${escapeHtml(goal.text)}</strong>
-                    <p class="list-meta">${goal.targetDate ? `Zieldatum: ${formatDate(goal.targetDate)}` : "Ohne Zieldatum"} · Status: <span class="goal-status ${goal.status === "done" ? "done" : "open"}">${goal.status === "done" ? "Erreicht" : "Offen"}</span></p>
+                    <p class="list-meta">${goal.targetDate ? `Zieldatum: ${formatDate(goal.targetDate)}` : "Ohne Zieldatum"} · Status: <span class="goal-status ${progress.status}">${statusLabel}</span></p>
+                    <div class="goal-progress">
+                        <div class="goal-progress-track"><div class="goal-progress-fill ${progress.status}" style="width:${progress.percent}%"></div></div>
+                        <span class="goal-progress-value">${progress.percent}%</span>
+                    </div>
                     <div class="row-actions">
                         <button class="btn btn-ghost" data-action="toggle-goal" data-id="${goal.id}" type="button">${goal.status === "done" ? "Wieder öffnen" : "Erledigt"}</button>
                         <button class="btn btn-ghost" data-action="delete-goal" data-id="${goal.id}" type="button">Löschen</button>
                     </div>
                 </article>
-            `)
+            `;
+            })
             .join("");
     }
 
@@ -666,11 +697,12 @@ export function initApp() {
         els.goalSubjects.innerHTML = subjects
             .map((subject) => {
                 const avg = calculateAverage(subject.notes);
+                const avgClass = classifyScore(avg);
                 return `
                     <article class="stat-card">
                         <p class="list-meta">Fach</p>
                         <strong>${escapeHtml(subject.name)}</strong>
-                        <p class="list-meta">Schnitt: ${avg ?? "--"} · Noten: ${subject.notes.length}</p>
+                        <p class="list-meta">Schnitt: <span class="${avgClass ? `score-${avgClass}` : ""}">${avg ?? "--"}</span> · Noten: ${subject.notes.length}</p>
                         <div class="row-actions">
                             <button class="btn btn-ghost" data-action="goal-from-subject" data-id="${subject.id}" type="button">Ziel aus Fach erstellen</button>
                         </div>
@@ -734,6 +766,32 @@ export function initApp() {
             .join("");
     }
 
+    function renderGoalsProgressChart(goalProgressList) {
+        if (!goalProgressList.length) {
+            els.chartGoalsProgress.innerHTML = createEmptyState("Noch keine Ziele für ein Diagramm.");
+            return;
+        }
+
+        const rows = goalProgressList
+            .slice()
+            .sort((a, b) => b.percent - a.percent)
+            .map((item) => ({
+                label: item.goal.text,
+                percent: item.percent,
+                status: item.status
+            }));
+
+        els.chartGoalsProgress.innerHTML = rows
+            .map((row) => `
+                <div class="chart-row">
+                    <span class="chart-label">${escapeHtml(row.label)}</span>
+                    <div class="chart-track"><div class="chart-fill chart-goal-${row.status}" style="width:${Math.max(4, row.percent)}%"></div></div>
+                    <span class="chart-value">${row.percent}%</span>
+                </div>
+            `)
+            .join("");
+    }
+
     function selectDate(dateStr) {
         if (!isIsoDate(dateStr)) return;
         state.selectedDate = dateStr;
@@ -778,6 +836,7 @@ export function initApp() {
             renderGoalSubjects();
             setFeedback(els.subjectFeedback, "Fach aktualisiert.");
             els.subjectNameInput.value = "";
+            saveDraftsThrottled();
             return;
         }
 
@@ -792,6 +851,7 @@ export function initApp() {
         renderGoalSubjects();
         els.subjectNameInput.value = "";
         setFeedback(els.subjectFeedback, "Fach angelegt.");
+        saveDraftsThrottled();
     }
 
     function startEditSubject(subjectId) {
@@ -872,6 +932,7 @@ export function initApp() {
         renderSubjectDetail();
         renderStats();
         renderGoalSubjects();
+        saveDraftsThrottled();
     }
 
     function startEditNote(noteId) {
@@ -1044,6 +1105,7 @@ export function initApp() {
         renderGoals();
         renderStats();
         setFeedback(els.goalFeedback, "Ziel gespeichert.");
+        saveDraftsThrottled();
     }
 
     function applySubjectGoalTemplate(subjectId) {
@@ -1054,6 +1116,7 @@ export function initApp() {
         els.goalTextInput.value = `${subject.name}: Schnitt auf ${baseTarget.toFixed(1)} steigern`;
         els.goalTextInput.focus();
         setFeedback(els.goalFeedback, `Vorlage für ${subject.name} eingefügt.`);
+        saveDraftsThrottled();
     }
 
     function toggleGoal(goalId) {
@@ -1089,6 +1152,7 @@ export function initApp() {
         els.eventSubmit.textContent = "Speichern";
         els.eventFormTitle.textContent = "Termin hinzufügen";
         els.eventCancel.classList.add("hidden");
+        saveDraftsThrottled();
     }
 
     function getCurrentSubject() {
@@ -1167,6 +1231,108 @@ export function initApp() {
         if (score >= 11) return "good";
         if (score >= 7) return "mid";
         return "bad";
+    }
+
+    function evaluateGoalsProgress() {
+        return state.goals.map((goal) => {
+            const manualDone = goal.status === "done";
+            const parsed = parseGoalTarget(goal.text);
+            let ratio = manualDone ? 1 : 0;
+            let status = manualDone ? "done" : "open";
+
+            if (parsed) {
+                const subject = findSubjectByName(parsed.subjectName);
+                const avg = subject ? Number(calculateAverage(subject.notes) || 0) : 0;
+                ratio = parsed.targetPoints <= 0 ? 0 : Math.max(0, Math.min(1, avg / parsed.targetPoints));
+                if (ratio >= 1) status = "done";
+                else if (ratio >= 0.85) status = "near";
+            }
+
+            return {
+                goal,
+                status,
+                ratio,
+                percent: Math.round(ratio * 100)
+            };
+        });
+    }
+
+    function autoCompleteGoals(goalProgressList) {
+        let changed = false;
+        goalProgressList.forEach((item) => {
+            if (item.status === "done" && item.goal.status !== "done") {
+                item.goal.status = "done";
+                changed = true;
+            }
+        });
+        if (changed) {
+            persistGoals(state.goals);
+        }
+    }
+
+    function parseGoalTarget(text) {
+        const normalized = normalizeText(text).toLowerCase();
+        if (!normalized) return null;
+
+        const match = normalized.match(/auf\s*(\d+(?:[.,]\d+)?)\s*(punkte|punkt|p)?/i)
+            || normalized.match(/(\d+(?:[.,]\d+)?)\s*(punkte|punkt|p)/i);
+        if (!match) return null;
+
+        const targetPoints = Number.parseFloat(String(match[1]).replace(",", "."));
+        if (!Number.isFinite(targetPoints) || targetPoints <= 0 || targetPoints > 15) return null;
+
+        const subjectName = normalized.includes(":")
+            ? normalized.split(":")[0]
+            : normalized.split(" auf ")[0];
+
+        return {
+            targetPoints,
+            subjectName: normalizeText(subjectName)
+        };
+    }
+
+    function findSubjectByName(name) {
+        if (!name) return null;
+        const target = name.toLowerCase();
+        return state.subjectsStore.subjects.find((subject) => subject.name.toLowerCase() === target)
+            || state.subjectsStore.subjects.find((subject) => target.includes(subject.name.toLowerCase()))
+            || null;
+    }
+
+    function saveDraftsThrottled() {
+        if (draftsTimer) {
+            clearTimeout(draftsTimer);
+        }
+        draftsTimer = setTimeout(saveDrafts, 220);
+    }
+
+    function saveDrafts() {
+        const drafts = {
+            subjectName: els.subjectNameInput.value,
+            noteValue: els.noteValueInput.value,
+            eventDate: els.eventDateInput.value,
+            eventText: els.eventTextInput.value,
+            goalText: els.goalTextInput.value,
+            goalDate: els.goalDateInput.value
+        };
+        localStorage.setItem("gf_drafts", JSON.stringify(drafts));
+    }
+
+    function hydrateDrafts() {
+        try {
+            const raw = localStorage.getItem("gf_drafts");
+            if (!raw) return;
+            const drafts = JSON.parse(raw);
+            if (!drafts || typeof drafts !== "object") return;
+            if (typeof drafts.subjectName === "string") els.subjectNameInput.value = drafts.subjectName;
+            if (typeof drafts.noteValue === "string") els.noteValueInput.value = drafts.noteValue;
+            if (typeof drafts.eventDate === "string" && drafts.eventDate) els.eventDateInput.value = drafts.eventDate;
+            if (typeof drafts.eventText === "string") els.eventTextInput.value = drafts.eventText;
+            if (typeof drafts.goalText === "string") els.goalTextInput.value = drafts.goalText;
+            if (typeof drafts.goalDate === "string") els.goalDateInput.value = drafts.goalDate;
+        } catch (_) {
+            // ignore invalid draft storage
+        }
     }
 
     function showToast(message, type = "info") {

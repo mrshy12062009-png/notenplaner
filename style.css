@@ -370,6 +370,18 @@ button:focus-visible {
     background: linear-gradient(90deg, #2f8ec2, #57b9c8);
 }
 
+.chart-goal-done {
+    background: linear-gradient(90deg, #2fbb6b, #1f8a4c);
+}
+
+.chart-goal-near {
+    background: linear-gradient(90deg, #f0b22a, #c56b10);
+}
+
+.chart-goal-open {
+    background: linear-gradient(90deg, #4e78c8, #395fa6);
+}
+
 .chart-value {
     text-align: right;
     font-weight: 700;
@@ -708,6 +720,46 @@ button:focus-visible {
 
 .goal-status.open {
     color: var(--warning);
+}
+
+.goal-status.near {
+    color: #c8790d;
+}
+
+.goal-progress {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.goal-progress-track {
+    width: 100%;
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(41, 61, 78, 0.16);
+    border: 1px solid rgba(41, 61, 78, 0.14);
+    overflow: hidden;
+}
+
+.goal-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #4e78c8, #395fa6);
+}
+
+.goal-progress-fill.done {
+    background: linear-gradient(90deg, #2fbb6b, #1f8a4c);
+}
+
+.goal-progress-fill.near {
+    background: linear-gradient(90deg, #f0b22a, #c56b10);
+}
+
+.goal-progress-value {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
 }
 
 .list-item-special {
