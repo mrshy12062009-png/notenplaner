@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260308m">
+    <link rel="stylesheet" href="style.css?v=20260308p">
 </head>
 <body>
     <div class="app-shell">
@@ -20,7 +20,7 @@
                 <button id="btn-stats" class="nav-btn" data-page="stats" type="button"><span class="nav-icon">▤</span><span class="nav-label">Stats</span></button>
                 <button id="btn-goals" class="nav-btn" data-page="goals" type="button"><span class="nav-icon">◎</span><span class="nav-label">Ziele</span></button>
                 <button id="btn-helper" class="nav-btn" data-page="helper" type="button"><span class="nav-icon">✦</span><span class="nav-label">Lernhelfer</span></button>
-                <button id="btn-language" class="nav-btn" data-page="language" type="button"><span class="nav-icon">◉</span><span class="nav-label">Sprachseite</span></button>
+                <button id="btn-language" class="nav-btn" data-page="language" type="button"><span class="nav-icon">◉</span><span class="nav-label">Mündlich-Lab</span></button>
                 <button id="btn-exams" class="nav-btn" data-page="exams" type="button"><span class="nav-icon">✓</span><span class="nav-label">MSA/BBR</span></button>
                 <button id="btn-settings" class="nav-btn" data-page="settings" type="button"><span class="nav-icon">⚙</span><span class="nav-label">Einstellungen</span></button>
             </nav>
@@ -177,9 +177,6 @@
                     <div class="inline-form responsive-3">
                         <select id="quiz-subject">
                             <option value="mix">Alle Fächer (Mix)</option>
-                            <option value="math">Mathe</option>
-                            <option value="de">Deutsch</option>
-                            <option value="en">Englisch</option>
                         </select>
                         <select id="quiz-level">
                             <option value="1">Level 1</option>
@@ -432,16 +429,15 @@
 
             <section id="page-language" class="page" aria-labelledby="language-heading">
                 <div class="section-head">
-                    <h2 id="language-heading">Sprachseite</h2>
-                    <p>Eigener Sprach-Coach für Deutsch/Englisch mit Sprechtraining und Direkt-Feedback.</p>
+                    <h2 id="language-heading">Mündlich-Lab</h2>
+                    <p>Nur mündliches Training: Englisch Sprechen und Präsentation.</p>
                 </div>
                 <div class="stack coach-card">
-                    <h3>Sprach-Coach</h3>
+                    <h3>Mündlich-Coach</h3>
                     <div class="inline-form responsive-3">
                         <select id="lang-mode">
                             <option value="en_speaking">Englisch Sprechen</option>
-                            <option value="en_writing">Englisch Schreiben</option>
-                            <option value="de_writing">Deutsch Schreiben</option>
+                            <option value="presentation_speaking">Präsentation</option>
                         </select>
                         <select id="lang-level">
                             <option value="1">Leicht</option>
@@ -453,13 +449,7 @@
                         <button id="lang-next" class="btn btn-ghost" type="button">Neue Aufgabe</button>
                     </div>
                     <div id="lang-question" class="coach-answer"></div>
-                    <input id="lang-answer" type="text" placeholder="Deine Antwort">
-                    <div class="inline-form">
-                        <button id="lang-check" class="btn btn-primary" type="button">Prüfen</button>
-                        <button id="lang-tip" class="btn btn-ghost" type="button">Sprachtipp</button>
-                    </div>
                     <div id="lang-feedback" class="coach-answer"></div>
-                    <p id="lang-stats" class="list-meta"></p>
                 </div>
                 <div class="stack">
                     <h3>Sprechen + Aussprache</h3>
@@ -467,7 +457,7 @@
                         <button id="lang-record-start" class="btn btn-ghost" type="button">Sprechen starten</button>
                         <button id="lang-record-stop" class="btn btn-ghost" type="button">Stop</button>
                     </div>
-                    <textarea id="lang-transcript" rows="4" placeholder="Transkript erscheint hier oder Text manuell einfügen..."></textarea>
+                    <textarea id="lang-transcript" rows="4" placeholder="Transkript erscheint hier automatisch..." readonly></textarea>
                     <div class="inline-form">
                         <button id="lang-pron-check" class="btn btn-primary" type="button">Aussprache-Check</button>
                     </div>
@@ -546,7 +536,7 @@
                                         <option value="stats">Stats</option>
                                         <option value="goals">Ziele</option>
                                         <option value="helper">Lernhelfer</option>
-                                        <option value="language">Sprachseite</option>
+                                        <option value="language">Mündlich-Lab</option>
                                         <option value="exams">MSA/BBR</option>
                                     </select>
                                 </label>
@@ -651,6 +641,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260308m"></script>
+    <script type="module" src="script.js?v=20260308p"></script>
 </body>
 </html>

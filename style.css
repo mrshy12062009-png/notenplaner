@@ -1037,6 +1037,10 @@ body.focus-active #page-exams .exams-extra:not(.focus-keep) {
     display: none !important;
 }
 
+body.focus-active #page-helper .helper-extra.focus-keep {
+    display: grid !important;
+}
+
 body.focus-active #page-helper .helper-learning-core,
 body.focus-active #page-exams .exams-learning-core {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent), var(--shadow);

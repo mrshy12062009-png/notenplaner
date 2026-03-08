@@ -591,9 +591,9 @@ export function initApp() {
         els.langMode.addEventListener("change", () => generateLanguageTask(true));
         els.langLevel.addEventListener("change", () => generateLanguageTask(true));
         els.langNext.addEventListener("click", () => generateLanguageTask(true));
-        els.langCheck.addEventListener("click", checkLanguageTask);
-        els.langTip.addEventListener("click", showLanguageTip);
-        els.langAnswer.addEventListener("input", saveDraftsThrottled);
+        if (els.langCheck) els.langCheck.addEventListener("click", checkLanguageTask);
+        if (els.langTip) els.langTip.addEventListener("click", showLanguageTip);
+        if (els.langAnswer) els.langAnswer.addEventListener("input", saveDraftsThrottled);
         els.langRecordStart.addEventListener("click", startLanguageRecording);
         els.langRecordStop.addEventListener("click", stopLanguageRecording);
         els.langPronCheck.addEventListener("click", analyzeLanguagePronunciation);
@@ -1260,8 +1260,7 @@ export function initApp() {
     }
 
     function resolveQuizDomain(subjectKey) {
-        if (subjectKey === "mix") return ["algebra", "math", "de", "en"][Math.floor(Math.random() * 4)];
-        if (["algebra", "math", "de", "en"].includes(subjectKey)) return subjectKey;
+        if (subjectKey === "mix") return ["math", "de", "en"][Math.floor(Math.random() * 3)];
         if (subjectKey.startsWith("subject:")) {
             const subjectName = subjectKey.slice("subject:".length);
             const inferred = inferDomainFromSubjectName(subjectName);
@@ -1284,11 +1283,7 @@ export function initApp() {
         if (!els.quizSubject) return;
         const current = els.quizSubject.value || "mix";
         const base = [
-            { value: "mix", label: "Alle Fächer (Mix)" },
-            { value: "algebra", label: "Algebra" },
-            { value: "math", label: "Mathe" },
-            { value: "de", label: "Deutsch" },
-            { value: "en", label: "Englisch" }
+            { value: "mix", label: "Alle Fächer" }
         ];
         const fromDashboard = state.subjectsStore.subjects.map((subject) => ({
             value: `subject:${subject.name}`,
@@ -2074,15 +2069,11 @@ export function initApp() {
         const task = state.languageHelper.currentTask;
         if (!task) return;
         els.langQuestion.innerHTML = `<p><strong>${escapeHtml(task.title)}</strong></p><p>${escapeHtml(task.question)}</p>`;
-        const stats = state.languageHelper.stats || { correct: 0, wrong: 0 };
-        const total = stats.correct + stats.wrong;
-        const quote = total ? Math.round((stats.correct / total) * 100) : 0;
-        els.langStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Quote: ${quote}%`;
         if (!els.langFeedback.textContent.trim()) {
-            els.langFeedback.innerHTML = "<p>Antworte auf die Sprachaufgabe und prüfe direkt.</p>";
+            els.langFeedback.innerHTML = "<p>Starte Aufnahme und antworte mündlich. Danach Aussprache-Check ausführen.</p>";
         }
         if (!els.langPronFeedback.textContent.trim()) {
-            els.langPronFeedback.innerHTML = "<p>Starte Sprechen oder gib Text ein für Aussprache-/Sprachstil-Tipps.</p>";
+            els.langPronFeedback.innerHTML = "<p>Starte Sprechen für Aussprache-/Sprachstil-Tipps.</p>";
         }
     }
 
@@ -2094,7 +2085,7 @@ export function initApp() {
         const task = createLanguageTask(mode, level);
         state.languageHelper.currentTask = task;
         state.languageHelper = persistLanguageHelper(state.languageHelper);
-        els.langAnswer.value = "";
+        if (els.langAnswer) els.langAnswer.value = "";
         if (clearFeedback) {
             els.langFeedback.innerHTML = "<p>Neue Sprachaufgabe erzeugt.</p>";
         }
@@ -2112,23 +2103,13 @@ export function initApp() {
                 successTip: "Starke Struktur. Sprich deutlich und mit Pausen."
             };
         }
-        if (mode === "en_writing") {
-            return {
-                type: "keyword-text",
-                title: `Englisch Schreiben · Level ${level}`,
-                question: "Write a short argument: Should homework be reduced?",
-                solution: ["because", "example", "however", "conclusion"],
-                hint: "Baue ein Gegenargument ein und schließe mit eigener Position.",
-                successTip: "Gute Argumentation. Achte auf klare Verknüpfungen."
-            };
-        }
         return {
             type: "keyword-text",
-            title: `Deutsch Schreiben · Level ${level}`,
-            question: "Schreibe eine kurze Stellungnahme: Soll Schule später beginnen?",
-            solution: ["argument", "beispiel", "fazit", "weil"],
-            hint: "Einleitung, ein starkes Argument mit Beispiel, dann Fazit.",
-            successTip: "Starke Struktur. Achte auf präzise Formulierungen."
+            title: `Präsentation · Level ${level}`,
+            question: "Präsentiere dein Thema 2-3 Minuten: Einstieg, 2 Kernpunkte, Beispiel, Schluss.",
+            solution: ["einstieg", "kernpunkt", "beispiel", "schluss"],
+            hint: "Klarer Aufbau und ruhiges Sprechen mit Pausen.",
+            successTip: "Gute Präsentationsstruktur und klare Aussagen."
         };
     }
 
@@ -3046,7 +3027,7 @@ export function initApp() {
             examTutorAskInput: els.examTutorAskInput.value,
             oralTopic: els.oralTopic.value,
             oralPronunciationText: els.oralPronunciationText.value,
-            langAnswer: els.langAnswer.value,
+            langAnswer: els.langAnswer ? els.langAnswer.value : "",
             langTranscript: els.langTranscript.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
@@ -3078,7 +3059,7 @@ export function initApp() {
             if (typeof drafts.examTutorAskInput === "string") els.examTutorAskInput.value = drafts.examTutorAskInput;
             if (typeof drafts.oralTopic === "string") els.oralTopic.value = drafts.oralTopic;
             if (typeof drafts.oralPronunciationText === "string") els.oralPronunciationText.value = drafts.oralPronunciationText;
-            if (typeof drafts.langAnswer === "string") els.langAnswer.value = drafts.langAnswer;
+            if (els.langAnswer && typeof drafts.langAnswer === "string") els.langAnswer.value = drafts.langAnswer;
             if (typeof drafts.langTranscript === "string") els.langTranscript.value = drafts.langTranscript;
         } catch (_) {
             // ignore invalid draft storage
@@ -3220,7 +3201,7 @@ export function initApp() {
             const parsed = JSON.parse(raw);
             if (!parsed || typeof parsed !== "object") return fallback;
             return {
-                mode: ["en_speaking", "en_writing", "de_writing"].includes(parsed.mode) ? parsed.mode : fallback.mode,
+                mode: ["en_speaking", "presentation_speaking"].includes(parsed.mode) ? parsed.mode : fallback.mode,
                 level: [1, 2, 3, 4, 5].includes(Number.parseInt(parsed.level, 10)) ? Number.parseInt(parsed.level, 10) : fallback.level,
                 currentTask: parsed.currentTask && typeof parsed.currentTask === "object" ? parsed.currentTask : null,
                 stats: {
@@ -3237,7 +3218,7 @@ export function initApp() {
 
     function persistLanguageHelper(data) {
         const clean = {
-            mode: ["en_speaking", "en_writing", "de_writing"].includes(data.mode) ? data.mode : "en_speaking",
+            mode: ["en_speaking", "presentation_speaking"].includes(data.mode) ? data.mode : "en_speaking",
             level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.level, 10)) ? Number.parseInt(data.level, 10) : 3,
             currentTask: data.currentTask && typeof data.currentTask === "object" ? data.currentTask : null,
             stats: {
