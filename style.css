@@ -156,6 +156,9 @@ p {
 
 .content {
     padding: clamp(1rem, 2vw, 2rem);
+    background:
+        radial-gradient(circle at 10% 10%, rgba(45, 156, 219, 0.08), transparent 35%),
+        radial-gradient(circle at 80% 20%, rgba(255, 172, 65, 0.08), transparent 30%);
 }
 
 .page {
@@ -351,6 +354,19 @@ button:focus-visible {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.chart-row-goal {
+    grid-template-columns: 210px 1fr 52px;
+}
+
+.chart-label-goal {
+    white-space: normal;
+    line-height: 1.2;
+    max-height: 2.4em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .chart-track {
@@ -1033,17 +1049,31 @@ body.weekend-rose .day.is-weekend .day-number {
 }
 
 body.mode-dark {
-    --bg-main: #10171e;
-    --bg-panel: #18222d;
-    --bg-soft: #24313d;
+    --bg-main: #0f1b2a;
+    --bg-panel: #1b2b3d;
+    --bg-soft: #23384d;
     --text-main: #e8f0f6;
-    --text-muted: #a6b6c4;
-    --border: #2d3d4c;
+    --text-muted: #afc0d2;
+    --border: #35516a;
     --shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
 }
 
 body.mode-dark .stack {
     background-image: linear-gradient(160deg, color-mix(in srgb, var(--bg-panel) 90%, #2b6f8f 10%), color-mix(in srgb, var(--bg-panel) 92%, #7f5e2d 8%));
+}
+
+body.mode-dark .card,
+body.mode-dark .stat-card,
+body.mode-dark .list-item,
+body.mode-dark .calendar-card,
+body.mode-dark .calendar-nav,
+body.mode-dark .detail-banner {
+    background-image: linear-gradient(165deg, color-mix(in srgb, var(--bg-panel) 92%, #1f8a4c 8%), color-mix(in srgb, var(--bg-panel) 92%, #1f63dc 8%));
+}
+
+body.mode-dark .section-head h2 {
+    color: #d9f4ff;
+    text-shadow: 0 0 16px rgba(51, 170, 255, 0.16);
 }
 
 body.mode-dark .subject-card.subject-good {
@@ -1260,6 +1290,20 @@ body.density-compact {
         min-height: 34px;
         padding: 0.45rem 0.5rem;
     }
+}
+
+body.is-mobile .app-shell {
+    min-height: 0;
+}
+
+body.is-mobile .sidebar {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 0.8rem !important;
 }
 
 body.mode-dark .note-pill.score-good {

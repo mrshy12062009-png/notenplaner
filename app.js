@@ -167,6 +167,7 @@ export function initApp() {
     if (window.innerWidth <= 1200 && window.innerWidth > 920) {
         document.body.classList.add("sidebar-collapsed");
     }
+    applyResponsiveLayoutState();
     syncSidebarToggleState();
     hydrateSettingsForm();
     hydrateDrafts();
@@ -197,6 +198,7 @@ export function initApp() {
         });
 
         window.addEventListener("resize", () => {
+            applyResponsiveLayoutState();
             if (window.innerWidth > 920) {
                 document.body.classList.remove("sidebar-expanded");
                 syncSidebarToggleState();
@@ -845,8 +847,8 @@ export function initApp() {
 
         els.chartGoalsProgress.innerHTML = rows
             .map((row) => `
-                <div class="chart-row">
-                    <span class="chart-label">${escapeHtml(row.label)}</span>
+                <div class="chart-row chart-row-goal">
+                    <span class="chart-label chart-label-goal" title="${escapeHtml(row.label)}">${escapeHtml(row.label)}</span>
                     <div class="chart-track"><div class="chart-fill chart-goal-${row.status}" style="width:${Math.max(4, row.percent)}%"></div></div>
                     <span class="chart-value">${row.percent}%</span>
                 </div>
@@ -1489,6 +1491,14 @@ export function initApp() {
             els.sidebarToggle.textContent = mobileExpanded ? "Menü zu" : "Menü";
         } else {
             els.sidebarToggle.textContent = desktopCollapsed ? "Sidebar öffnen" : "Sidebar zuklappen";
+        }
+    }
+
+    function applyResponsiveLayoutState() {
+        const isMobile = window.innerWidth <= 920;
+        document.body.classList.toggle("is-mobile", isMobile);
+        if (isMobile) {
+            document.body.classList.remove("sidebar-collapsed");
         }
     }
 
