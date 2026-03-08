@@ -946,6 +946,25 @@ button:focus-visible {
     font-size: 1rem;
 }
 
+.calc-pad {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(44px, 1fr));
+    gap: 0.45rem;
+}
+
+.calc-pad .btn {
+    min-height: 40px;
+    padding: 0.4rem 0.35rem;
+}
+
+.calc-pad .calc-eq {
+    font-weight: 700;
+}
+
+.calc-pad .calc-clear {
+    border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+}
+
 .formula-list {
     margin: 0;
     padding-left: 1rem;
@@ -989,6 +1008,10 @@ button:focus-visible {
 }
 
 #oral-pronunciation-text {
+    resize: vertical;
+}
+
+#lang-transcript {
     resize: vertical;
 }
 

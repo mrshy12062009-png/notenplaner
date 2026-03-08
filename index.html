@@ -20,6 +20,7 @@
                 <button id="btn-stats" class="nav-btn" data-page="stats" type="button"><span class="nav-icon">▤</span><span class="nav-label">Stats</span></button>
                 <button id="btn-goals" class="nav-btn" data-page="goals" type="button"><span class="nav-icon">◎</span><span class="nav-label">Ziele</span></button>
                 <button id="btn-helper" class="nav-btn" data-page="helper" type="button"><span class="nav-icon">✦</span><span class="nav-label">Lernhelfer</span></button>
+                <button id="btn-language" class="nav-btn" data-page="language" type="button"><span class="nav-icon">◉</span><span class="nav-label">Sprachseite</span></button>
                 <button id="btn-exams" class="nav-btn" data-page="exams" type="button"><span class="nav-icon">✓</span><span class="nav-label">MSA/BBR</span></button>
                 <button id="btn-settings" class="nav-btn" data-page="settings" type="button"><span class="nav-icon">⚙</span><span class="nav-label">Einstellungen</span></button>
             </nav>
@@ -228,6 +229,13 @@
                                 <input id="calc-input" type="text" placeholder="z. B. (12+3)*4/5">
                                 <button id="calc-eval" class="btn btn-primary" type="button">Rechnen</button>
                             </div>
+                            <div class="calc-pad" data-target="calc-input">
+                                <button class="btn btn-ghost calc-key" data-key="7" type="button">7</button><button class="btn btn-ghost calc-key" data-key="8" type="button">8</button><button class="btn btn-ghost calc-key" data-key="9" type="button">9</button><button class="btn btn-ghost calc-key" data-key="/" type="button">/</button>
+                                <button class="btn btn-ghost calc-key" data-key="4" type="button">4</button><button class="btn btn-ghost calc-key" data-key="5" type="button">5</button><button class="btn btn-ghost calc-key" data-key="6" type="button">6</button><button class="btn btn-ghost calc-key" data-key="*" type="button">*</button>
+                                <button class="btn btn-ghost calc-key" data-key="1" type="button">1</button><button class="btn btn-ghost calc-key" data-key="2" type="button">2</button><button class="btn btn-ghost calc-key" data-key="3" type="button">3</button><button class="btn btn-ghost calc-key" data-key="-" type="button">-</button>
+                                <button class="btn btn-ghost calc-key" data-key="0" type="button">0</button><button class="btn btn-ghost calc-key" data-key="." type="button">.</button><button class="btn btn-ghost calc-key" data-key="(" type="button">(</button><button class="btn btn-ghost calc-key" data-key=")" type="button">)</button>
+                                <button class="btn btn-ghost calc-key" data-key="%" type="button">%</button><button class="btn btn-ghost calc-key" data-key="+" type="button">+</button><button class="btn btn-ghost calc-key calc-clear" data-key="clear" type="button">C</button><button class="btn btn-primary calc-key calc-eq" data-key="eval" type="button">=</button>
+                            </div>
                             <p id="calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
@@ -408,6 +416,80 @@
                         <div id="oral-pronunciation-feedback" class="coach-answer"></div>
                     </div>
                 </section>
+                <div class="stack exams-extra">
+                    <h3>MSA Fach-Tools</h3>
+                    <div class="tool-grid">
+                        <article class="tool-card">
+                            <h4>Mathe: Taschenrechner (klickbar)</h4>
+                            <div class="inline-form">
+                                <input id="exam-calc-input" type="text" placeholder="z. B. (18-3)*2">
+                                <button id="exam-calc-eval" class="btn btn-primary" type="button">Rechnen</button>
+                            </div>
+                            <div class="calc-pad" data-target="exam-calc-input">
+                                <button class="btn btn-ghost calc-key" data-key="7" type="button">7</button><button class="btn btn-ghost calc-key" data-key="8" type="button">8</button><button class="btn btn-ghost calc-key" data-key="9" type="button">9</button><button class="btn btn-ghost calc-key" data-key="/" type="button">/</button>
+                                <button class="btn btn-ghost calc-key" data-key="4" type="button">4</button><button class="btn btn-ghost calc-key" data-key="5" type="button">5</button><button class="btn btn-ghost calc-key" data-key="6" type="button">6</button><button class="btn btn-ghost calc-key" data-key="*" type="button">*</button>
+                                <button class="btn btn-ghost calc-key" data-key="1" type="button">1</button><button class="btn btn-ghost calc-key" data-key="2" type="button">2</button><button class="btn btn-ghost calc-key" data-key="3" type="button">3</button><button class="btn btn-ghost calc-key" data-key="-" type="button">-</button>
+                                <button class="btn btn-ghost calc-key" data-key="0" type="button">0</button><button class="btn btn-ghost calc-key" data-key="." type="button">.</button><button class="btn btn-ghost calc-key" data-key="(" type="button">(</button><button class="btn btn-ghost calc-key" data-key=")" type="button">)</button>
+                                <button class="btn btn-ghost calc-key" data-key="%" type="button">%</button><button class="btn btn-ghost calc-key" data-key="+" type="button">+</button><button class="btn btn-ghost calc-key calc-clear" data-key="clear" type="button">C</button><button class="btn btn-primary calc-key calc-eq" data-key="eval" type="button">=</button>
+                            </div>
+                            <p id="exam-calc-result" class="list-meta"></p>
+                        </article>
+                        <article class="tool-card">
+                            <h4>Deutsch: Duden-Helfer</h4>
+                            <div class="inline-form">
+                                <input id="exam-duden-input" type="text" placeholder="Wort eingeben">
+                                <button id="exam-duden-lookup" class="btn btn-primary" type="button">Suchen</button>
+                            </div>
+                            <p id="exam-duden-result" class="list-meta"></p>
+                            <a id="exam-duden-link" class="btn btn-ghost" target="_blank" rel="noopener noreferrer" href="https://www.duden.de/suchen/dudenonline">Im Duden öffnen</a>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-language" class="page" aria-labelledby="language-heading">
+                <div class="section-head">
+                    <h2 id="language-heading">Sprachseite</h2>
+                    <p>Eigener Sprach-Coach für Deutsch/Englisch mit Sprechtraining und Direkt-Feedback.</p>
+                </div>
+                <div class="stack coach-card">
+                    <h3>Sprach-Coach</h3>
+                    <div class="inline-form responsive-3">
+                        <select id="lang-mode">
+                            <option value="en_speaking">Englisch Sprechen</option>
+                            <option value="en_writing">Englisch Schreiben</option>
+                            <option value="de_writing">Deutsch Schreiben</option>
+                        </select>
+                        <select id="lang-level">
+                            <option value="1">Leicht</option>
+                            <option value="2">Mittel</option>
+                            <option value="3" selected>Stark</option>
+                            <option value="4">Schwer</option>
+                            <option value="5">Sehr schwer</option>
+                        </select>
+                        <button id="lang-next" class="btn btn-ghost" type="button">Neue Aufgabe</button>
+                    </div>
+                    <div id="lang-question" class="coach-answer"></div>
+                    <input id="lang-answer" type="text" placeholder="Deine Antwort">
+                    <div class="inline-form">
+                        <button id="lang-check" class="btn btn-primary" type="button">Prüfen</button>
+                        <button id="lang-tip" class="btn btn-ghost" type="button">Sprachtipp</button>
+                    </div>
+                    <div id="lang-feedback" class="coach-answer"></div>
+                    <p id="lang-stats" class="list-meta"></p>
+                </div>
+                <div class="stack">
+                    <h3>Sprechen + Aussprache</h3>
+                    <div class="inline-form">
+                        <button id="lang-record-start" class="btn btn-ghost" type="button">Sprechen starten</button>
+                        <button id="lang-record-stop" class="btn btn-ghost" type="button">Stop</button>
+                    </div>
+                    <textarea id="lang-transcript" rows="4" placeholder="Transkript erscheint hier oder Text manuell einfügen..."></textarea>
+                    <div class="inline-form">
+                        <button id="lang-pron-check" class="btn btn-primary" type="button">Aussprache-Check</button>
+                    </div>
+                    <div id="lang-pron-feedback" class="coach-answer"></div>
+                </div>
             </section>
 
             <section id="page-settings" class="page" aria-labelledby="settings-heading">
@@ -481,6 +563,7 @@
                                         <option value="stats">Stats</option>
                                         <option value="goals">Ziele</option>
                                         <option value="helper">Lernhelfer</option>
+                                        <option value="language">Sprachseite</option>
                                         <option value="exams">MSA/BBR</option>
                                     </select>
                                 </label>

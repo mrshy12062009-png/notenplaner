@@ -55,7 +55,8 @@ export function initApp() {
         settings: initialSettings,
         goals: loadGoals(),
         studyHelper: loadStudyHelper(),
-        examPrep: loadExamPrep()
+        examPrep: loadExamPrep(),
+        languageHelper: loadLanguageHelper()
     };
 
     const els = {
@@ -167,6 +168,14 @@ export function initApp() {
         dudenLookup: document.getElementById("duden-lookup"),
         dudenResult: document.getElementById("duden-result"),
         dudenLink: document.getElementById("duden-link"),
+        examCalcInput: document.getElementById("exam-calc-input"),
+        examCalcEval: document.getElementById("exam-calc-eval"),
+        examCalcResult: document.getElementById("exam-calc-result"),
+        examDudenInput: document.getElementById("exam-duden-input"),
+        examDudenLookup: document.getElementById("exam-duden-lookup"),
+        examDudenResult: document.getElementById("exam-duden-result"),
+        examDudenLink: document.getElementById("exam-duden-link"),
+        calcKeys: document.querySelectorAll(".calc-key"),
 
         examForm: document.getElementById("exam-form"),
         examTrack: document.getElementById("exam-track"),
@@ -223,6 +232,20 @@ export function initApp() {
         oralPronunciationText: document.getElementById("oral-pronunciation-text"),
         oralPronunciationCheck: document.getElementById("oral-pronunciation-check"),
         oralPronunciationFeedback: document.getElementById("oral-pronunciation-feedback"),
+        langMode: document.getElementById("lang-mode"),
+        langLevel: document.getElementById("lang-level"),
+        langNext: document.getElementById("lang-next"),
+        langQuestion: document.getElementById("lang-question"),
+        langAnswer: document.getElementById("lang-answer"),
+        langCheck: document.getElementById("lang-check"),
+        langTip: document.getElementById("lang-tip"),
+        langFeedback: document.getElementById("lang-feedback"),
+        langStats: document.getElementById("lang-stats"),
+        langRecordStart: document.getElementById("lang-record-start"),
+        langRecordStop: document.getElementById("lang-record-stop"),
+        langTranscript: document.getElementById("lang-transcript"),
+        langPronCheck: document.getElementById("lang-pron-check"),
+        langPronFeedback: document.getElementById("lang-pron-feedback"),
 
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
@@ -236,6 +259,7 @@ export function initApp() {
     let focusTimer = null;
     let oralSlideTimer = null;
     let oralRecognition = null;
+    let languageRecognition = null;
     let focusLockActive = false;
 
     applyThemeSettings();
@@ -249,6 +273,7 @@ export function initApp() {
     hydrateDrafts();
     updateSelectedDayUI();
     hydrateExamPrepUI();
+    hydrateLanguageUI();
     bindEvents();
     showPage(state.settings.defaultPage || "list");
     renderAll();
@@ -460,11 +485,28 @@ export function initApp() {
                 evaluateCalculator();
             }
         });
+        els.examCalcEval.addEventListener("click", () => evaluateCalculatorFor(els.examCalcInput, els.examCalcResult));
+        els.examCalcInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
+            }
+        });
+        els.calcKeys.forEach((button) => {
+            button.addEventListener("click", () => onCalcKeyPress(button));
+        });
         els.dudenLookup.addEventListener("click", lookupDudenWord);
         els.dudenInput.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 event.preventDefault();
                 lookupDudenWord();
+            }
+        });
+        els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink));
+        els.examDudenInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink);
             }
         });
         els.studyList.addEventListener("click", (event) => {
@@ -537,6 +579,16 @@ export function initApp() {
         els.oralPronunciationStop.addEventListener("click", stopPronunciationCapture);
         els.oralPronunciationCheck.addEventListener("click", analyzePronunciationText);
         els.oralPronunciationText.addEventListener("input", saveDraftsThrottled);
+        els.langMode.addEventListener("change", () => generateLanguageTask(true));
+        els.langLevel.addEventListener("change", () => generateLanguageTask(true));
+        els.langNext.addEventListener("click", () => generateLanguageTask(true));
+        els.langCheck.addEventListener("click", checkLanguageTask);
+        els.langTip.addEventListener("click", showLanguageTip);
+        els.langAnswer.addEventListener("input", saveDraftsThrottled);
+        els.langRecordStart.addEventListener("click", startLanguageRecording);
+        els.langRecordStop.addEventListener("click", stopLanguageRecording);
+        els.langPronCheck.addEventListener("click", analyzeLanguagePronunciation);
+        els.langTranscript.addEventListener("input", saveDraftsThrottled);
 
         els.confirmOk.addEventListener("click", () => {
             const action = confirmAction;
@@ -575,6 +627,7 @@ export function initApp() {
         renderExamPrep();
         renderExamTutor();
         renderOralCoach();
+        renderLanguagePage();
         renderQuizCard();
     }
 
@@ -1333,33 +1386,41 @@ export function initApp() {
     }
 
     function evaluateCalculator() {
-        const raw = normalizeText(els.calcInput.value);
+        evaluateCalculatorFor(els.calcInput, els.calcResult);
+    }
+
+    function evaluateCalculatorFor(inputEl, resultEl) {
+        const raw = normalizeText(inputEl.value);
         if (!raw) {
-            els.calcResult.textContent = "Bitte einen Ausdruck eingeben.";
+            resultEl.textContent = "Bitte einen Ausdruck eingeben.";
             return;
         }
         const expr = raw.replace(/,/g, ".").replace(/\s+/g, "");
         if (!/^[0-9+\-*/().%]+$/.test(expr)) {
-            els.calcResult.textContent = "Nur Zahlen und + - * / ( ) % erlaubt.";
+            resultEl.textContent = "Nur Zahlen und + - * / ( ) % erlaubt.";
             return;
         }
         try {
             const safeExpr = expr.replace(/%/g, "/100");
             const value = Function(`"use strict"; return (${safeExpr});`)();
             if (!Number.isFinite(value)) {
-                els.calcResult.textContent = "Ungültige Berechnung.";
+                resultEl.textContent = "Ungültige Berechnung.";
                 return;
             }
-            els.calcResult.textContent = `Ergebnis: ${value}`;
+            resultEl.textContent = `Ergebnis: ${value}`;
         } catch (_) {
-            els.calcResult.textContent = "Ausdruck konnte nicht berechnet werden.";
+            resultEl.textContent = "Ausdruck konnte nicht berechnet werden.";
         }
     }
 
     function lookupDudenWord() {
-        const input = normalizeText(els.dudenInput.value);
+        lookupDudenWordFor(els.dudenInput, els.dudenResult, els.dudenLink);
+    }
+
+    function lookupDudenWordFor(inputEl, resultEl, linkEl) {
+        const input = normalizeText(inputEl.value);
         if (!input) {
-            els.dudenResult.textContent = "Bitte ein Wort eingeben.";
+            resultEl.textContent = "Bitte ein Wort eingeben.";
             return;
         }
         const word = input.toLowerCase();
@@ -1375,12 +1436,33 @@ export function initApp() {
             metaphor: "Sprachliches Bild mit übertragener Bedeutung.",
             kohärenz: "Inhaltlicher Zusammenhang zwischen Aussagen."
         };
-        els.dudenLink.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
+        linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
         if (definitions[word]) {
-            els.dudenResult.textContent = `${input}: ${definitions[word]}`;
+            resultEl.textContent = `${input}: ${definitions[word]}`;
         } else {
-            els.dudenResult.textContent = `Kein lokaler Eintrag für "${input}". Öffne den Duden-Link für Details.`;
+            resultEl.textContent = `Kein lokaler Eintrag für "${input}". Öffne den Duden-Link für Details.`;
         }
+    }
+
+    function onCalcKeyPress(button) {
+        const key = button.dataset.key;
+        const targetId = button.closest(".calc-pad")?.dataset.target;
+        if (!key || !targetId) return;
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        if (key === "clear") {
+            target.value = "";
+            if (targetId === "calc-input") els.calcResult.textContent = "";
+            if (targetId === "exam-calc-input") els.examCalcResult.textContent = "";
+            return;
+        }
+        if (key === "eval") {
+            if (targetId === "calc-input") evaluateCalculatorFor(els.calcInput, els.calcResult);
+            if (targetId === "exam-calc-input") evaluateCalculatorFor(els.examCalcInput, els.examCalcResult);
+            return;
+        }
+        target.value += key;
+        target.focus();
     }
 
     function renderExamTutor() {
@@ -1838,6 +1920,159 @@ export function initApp() {
         state.examPrep = persistExamPrep(state.examPrep);
     }
 
+    function renderLanguagePage() {
+        if (!state.languageHelper.currentTask) {
+            generateLanguageTask(false);
+        }
+        const task = state.languageHelper.currentTask;
+        if (!task) return;
+        els.langQuestion.innerHTML = `<p><strong>${escapeHtml(task.title)}</strong></p><p>${escapeHtml(task.question)}</p>`;
+        const stats = state.languageHelper.stats || { correct: 0, wrong: 0 };
+        const total = stats.correct + stats.wrong;
+        const quote = total ? Math.round((stats.correct / total) * 100) : 0;
+        els.langStats.textContent = `Richtig: ${stats.correct} · Falsch: ${stats.wrong} · Quote: ${quote}%`;
+        if (!els.langFeedback.textContent.trim()) {
+            els.langFeedback.innerHTML = "<p>Antworte auf die Sprachaufgabe und prüfe direkt.</p>";
+        }
+        if (!els.langPronFeedback.textContent.trim()) {
+            els.langPronFeedback.innerHTML = "<p>Starte Sprechen oder gib Text ein für Aussprache-/Sprachstil-Tipps.</p>";
+        }
+    }
+
+    function generateLanguageTask(clearFeedback = true) {
+        const mode = els.langMode.value || "en_speaking";
+        const level = Number.parseInt(els.langLevel.value, 10) || 3;
+        state.languageHelper.mode = mode;
+        state.languageHelper.level = level;
+        const task = createLanguageTask(mode, level);
+        state.languageHelper.currentTask = task;
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        els.langAnswer.value = "";
+        if (clearFeedback) {
+            els.langFeedback.innerHTML = "<p>Neue Sprachaufgabe erzeugt.</p>";
+        }
+        renderLanguagePage();
+    }
+
+    function createLanguageTask(mode, level) {
+        if (mode === "en_speaking") {
+            return {
+                type: "keyword-text",
+                title: `Englisch Sprechen · Level ${level}`,
+                question: "Speak about your school goals for 60-90 seconds.",
+                solution: ["goal", "because", "future", "improve"],
+                hint: "Nutze klaren Aufbau: statement -> reason -> example -> conclusion.",
+                successTip: "Starke Struktur. Sprich deutlich und mit Pausen."
+            };
+        }
+        if (mode === "en_writing") {
+            return {
+                type: "keyword-text",
+                title: `Englisch Schreiben · Level ${level}`,
+                question: "Write a short argument: Should homework be reduced?",
+                solution: ["because", "example", "however", "conclusion"],
+                hint: "Baue ein Gegenargument ein und schließe mit eigener Position.",
+                successTip: "Gute Argumentation. Achte auf klare Verknüpfungen."
+            };
+        }
+        return {
+            type: "keyword-text",
+            title: `Deutsch Schreiben · Level ${level}`,
+            question: "Schreibe eine kurze Stellungnahme: Soll Schule später beginnen?",
+            solution: ["argument", "beispiel", "fazit", "weil"],
+            hint: "Einleitung, ein starkes Argument mit Beispiel, dann Fazit.",
+            successTip: "Starke Struktur. Achte auf präzise Formulierungen."
+        };
+    }
+
+    function checkLanguageTask() {
+        const input = normalizeText(els.langAnswer.value);
+        if (!input) {
+            els.langFeedback.innerHTML = "<p>Bitte eine Antwort eingeben.</p>";
+            return;
+        }
+        const task = state.languageHelper.currentTask;
+        if (!task) {
+            generateLanguageTask();
+            return;
+        }
+        const isCorrect = validateQuizAnswer(task, input);
+        if (isCorrect) {
+            state.languageHelper.stats.correct += 1;
+            els.langFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip)}</p>`;
+        } else {
+            state.languageHelper.stats.wrong += 1;
+            els.langFeedback.innerHTML = `<p><strong>Noch nicht stark genug.</strong> ${escapeHtml(task.hint)}</p>`;
+        }
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePage();
+    }
+
+    function showLanguageTip() {
+        const task = state.languageHelper.currentTask;
+        if (!task) return;
+        els.langFeedback.innerHTML = `<p><strong>Sprachtipp:</strong> ${escapeHtml(task.hint)}</p>`;
+    }
+
+    function startLanguageRecording() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            els.langPronFeedback.innerHTML = "<p>Spracherkennung nicht verfügbar. Nutze Texteingabe.</p>";
+            return;
+        }
+        if (languageRecognition) {
+            try { languageRecognition.stop(); } catch (_) { }
+        }
+        languageRecognition = new SpeechRecognition();
+        languageRecognition.lang = (els.langMode.value || "").startsWith("en") ? "en-US" : "de-DE";
+        languageRecognition.interimResults = true;
+        languageRecognition.continuous = true;
+        languageRecognition.onresult = (event) => {
+            let transcript = "";
+            for (let i = event.resultIndex; i < event.results.length; i += 1) {
+                transcript += `${event.results[i][0].transcript} `;
+            }
+            els.langTranscript.value = normalizeText(`${els.langTranscript.value} ${transcript}`);
+        };
+        languageRecognition.start();
+        els.langPronFeedback.innerHTML = "<p>Aufnahme läuft...</p>";
+    }
+
+    function stopLanguageRecording() {
+        if (languageRecognition) {
+            try { languageRecognition.stop(); } catch (_) { }
+        }
+        els.langPronFeedback.innerHTML = "<p>Aufnahme gestoppt. Starte jetzt den Check.</p>";
+    }
+
+    function analyzeLanguagePronunciation() {
+        const text = normalizeText(els.langTranscript.value);
+        if (!text) {
+            els.langPronFeedback.innerHTML = "<p>Bitte Text einfügen oder sprechen.</p>";
+            return;
+        }
+        const lower = text.toLowerCase();
+        const words = lower.split(/\s+/).filter(Boolean);
+        const sentenceCount = Math.max(1, text.split(/[.!?]+/).filter((part) => normalizeText(part)).length);
+        const avgWords = Math.round(words.length / sentenceCount);
+        const fillers = (lower.match(/\b(äh|ähm|um|uh|like)\b/g) || []).length;
+        const tips = [];
+        if (avgWords < 7) tips.push("Nutze längere Sätze mit Begründung.");
+        if (fillers > 2) tips.push("Reduziere Füllwörter, mach kurze Pausen.");
+        if ((els.langMode.value || "").startsWith("en")) {
+            if (!lower.includes("because")) tips.push("Verwende häufiger 'because' für Gründe.");
+            tips.push("Achte auf 'th' in think/this und klare Wortbetonung.");
+        } else {
+            if (!lower.includes("weil")) tips.push("Baue 'weil'-Sätze für stärkere Begründung ein.");
+            tips.push("Achte auf klare Satzenden und deutliches Sprechen.");
+        }
+        const score = Math.max(35, Math.min(98, 85 - fillers * 4 + (avgWords >= 8 ? 6 : 0)));
+        els.langPronFeedback.innerHTML = `<p><strong>Sprach-Check:</strong> ca. ${score}%</p><ul>${tips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join("")}</ul>`;
+        state.languageHelper.lastTranscript = text;
+        state.languageHelper.lastScore = score;
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+    }
+
     function onStudySubmit(event) {
         event.preventDefault();
         clearFeedback(els.studyFeedback);
@@ -1969,7 +2204,7 @@ export function initApp() {
             "oral-presentation-file", "oral-slide-count", "oral-slide-seconds",
             "oral-slide-start", "oral-slide-stop", "oral-slide-next",
             "oral-pronunciation-record", "oral-pronunciation-stop", "oral-pronunciation-text", "oral-pronunciation-check",
-            "btn-helper", "btn-exams"
+            "btn-helper", "btn-language", "btn-exams"
         ]);
         const controls = document.querySelectorAll("button, input, select, textarea");
         controls.forEach((el) => {
@@ -2095,6 +2330,18 @@ export function initApp() {
             els.oralSlideSeconds.value = String(state.examPrep.oral?.slides?.secondsPerSlide || 45);
         }
         setExamTab(state.examPrep.oral?.activeTab || "written");
+    }
+
+    function hydrateLanguageUI() {
+        if (els.langMode) {
+            els.langMode.value = state.languageHelper.mode || "en_speaking";
+        }
+        if (els.langLevel) {
+            els.langLevel.value = String(state.languageHelper.level || 3);
+        }
+        if (els.langTranscript && typeof state.languageHelper.lastTranscript === "string") {
+            els.langTranscript.value = state.languageHelper.lastTranscript;
+        }
     }
 
     function formatDuration(totalSeconds) {
@@ -2630,7 +2877,9 @@ export function initApp() {
             examTutorAnswer: els.examTutorAnswer.value,
             examTutorAskInput: els.examTutorAskInput.value,
             oralTopic: els.oralTopic.value,
-            oralPronunciationText: els.oralPronunciationText.value
+            oralPronunciationText: els.oralPronunciationText.value,
+            langAnswer: els.langAnswer.value,
+            langTranscript: els.langTranscript.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
     }
@@ -2659,6 +2908,8 @@ export function initApp() {
             if (typeof drafts.examTutorAskInput === "string") els.examTutorAskInput.value = drafts.examTutorAskInput;
             if (typeof drafts.oralTopic === "string") els.oralTopic.value = drafts.oralTopic;
             if (typeof drafts.oralPronunciationText === "string") els.oralPronunciationText.value = drafts.oralPronunciationText;
+            if (typeof drafts.langAnswer === "string") els.langAnswer.value = drafts.langAnswer;
+            if (typeof drafts.langTranscript === "string") els.langTranscript.value = drafts.langTranscript;
         } catch (_) {
             // ignore invalid draft storage
         }
@@ -2781,6 +3032,52 @@ export function initApp() {
             }
         };
         localStorage.setItem("gf_study_helper", JSON.stringify(clean));
+        return clean;
+    }
+
+    function loadLanguageHelper() {
+        const fallback = {
+            mode: "en_speaking",
+            level: 3,
+            currentTask: null,
+            stats: { correct: 0, wrong: 0 },
+            lastTranscript: "",
+            lastScore: 0
+        };
+        try {
+            const raw = localStorage.getItem("gf_language_helper");
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") return fallback;
+            return {
+                mode: ["en_speaking", "en_writing", "de_writing"].includes(parsed.mode) ? parsed.mode : fallback.mode,
+                level: [1, 2, 3, 4, 5].includes(Number.parseInt(parsed.level, 10)) ? Number.parseInt(parsed.level, 10) : fallback.level,
+                currentTask: parsed.currentTask && typeof parsed.currentTask === "object" ? parsed.currentTask : null,
+                stats: {
+                    correct: Math.max(0, Number.parseInt(parsed.stats?.correct, 10) || 0),
+                    wrong: Math.max(0, Number.parseInt(parsed.stats?.wrong, 10) || 0)
+                },
+                lastTranscript: typeof parsed.lastTranscript === "string" ? parsed.lastTranscript : "",
+                lastScore: Math.max(0, Math.min(100, Number.parseInt(parsed.lastScore, 10) || 0))
+            };
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    function persistLanguageHelper(data) {
+        const clean = {
+            mode: ["en_speaking", "en_writing", "de_writing"].includes(data.mode) ? data.mode : "en_speaking",
+            level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.level, 10)) ? Number.parseInt(data.level, 10) : 3,
+            currentTask: data.currentTask && typeof data.currentTask === "object" ? data.currentTask : null,
+            stats: {
+                correct: Math.max(0, Number.parseInt(data.stats?.correct, 10) || 0),
+                wrong: Math.max(0, Number.parseInt(data.stats?.wrong, 10) || 0)
+            },
+            lastTranscript: typeof data.lastTranscript === "string" ? data.lastTranscript : "",
+            lastScore: Math.max(0, Math.min(100, Number.parseInt(data.lastScore, 10) || 0))
+        };
+        localStorage.setItem("gf_language_helper", JSON.stringify(clean));
         return clean;
     }
 
@@ -2940,7 +3237,8 @@ export function initApp() {
             settings: state.settings,
             goals: state.goals,
             studyHelper: state.studyHelper,
-            examPrep: state.examPrep
+            examPrep: state.examPrep,
+            languageHelper: state.languageHelper
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -2982,6 +3280,10 @@ export function initApp() {
                 if (parsed.examPrep && typeof parsed.examPrep === "object") {
                     state.examPrep = persistExamPrep(parsed.examPrep);
                     hydrateExamPrepUI();
+                }
+                if (parsed.languageHelper && typeof parsed.languageHelper === "object") {
+                    state.languageHelper = persistLanguageHelper(parsed.languageHelper);
+                    hydrateLanguageUI();
                 }
 
                 applyThemeSettings();
