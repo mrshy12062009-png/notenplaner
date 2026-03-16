@@ -1029,6 +1029,93 @@ button:focus-visible {
     background: #0b1625;
 }
 
+.duden-result {
+    display: grid;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+}
+
+.duden-entry {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.7rem;
+    background: var(--bg-panel);
+}
+
+.duden-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    align-items: baseline;
+    color: var(--text);
+}
+
+.duden-title strong {
+    font-size: 1.05rem;
+}
+
+.duden-meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.duden-meanings {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.duden-meanings details {
+    border: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: var(--radius-md);
+    padding: 0.45rem 0.6rem;
+    background: color-mix(in srgb, var(--bg-panel) 85%, transparent);
+}
+
+.duden-meanings summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text);
+    list-style: none;
+}
+
+.duden-meanings summary::-webkit-details-marker {
+    display: none;
+}
+
+.duden-meanings summary::before {
+    content: "▸";
+    margin-right: 0.4rem;
+    color: var(--primary);
+}
+
+.duden-meanings details[open] summary::before {
+    content: "▾";
+}
+
+.duden-examples {
+    margin-top: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.duden-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.duden-suggest-btn {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    background: color-mix(in srgb, var(--bg-panel) 80%, transparent);
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
 #lang-transcript {
     resize: vertical;
 }

@@ -528,6 +528,14 @@ export function initApp() {
                     lookupDudenWord();
                 }
             });
+            els.dudenResult.addEventListener("click", (event) => {
+                const btn = event.target.closest("[data-action='duden-suggest']");
+                if (!btn) return;
+                const word = btn.dataset.word;
+                if (!word) return;
+                els.dudenInput.value = word;
+                lookupDudenWord();
+            });
         }
         if (els.examDudenLookup && els.examDudenInput && els.examDudenResult) {
             els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null));
@@ -536,6 +544,14 @@ export function initApp() {
                     event.preventDefault();
                     lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null);
                 }
+            });
+            els.examDudenResult.addEventListener("click", (event) => {
+                const btn = event.target.closest("[data-action='duden-suggest']");
+                if (!btn) return;
+                const word = btn.dataset.word;
+                if (!word) return;
+                els.examDudenInput.value = word;
+                lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null);
             });
         }
         els.studyList.addEventListener("click", (event) => {
@@ -1508,88 +1524,329 @@ export function initApp() {
     function lookupDudenWordFor(inputEl, resultEl, linkEl) {
         const input = normalizeText(inputEl.value);
         if (!input) {
-            resultEl.textContent = "Bitte ein Wort eingeben.";
+            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Hinweis</strong></div><div class=\"duden-meta\">Bitte ein Wort eingeben.</div></div>";
             return;
         }
-        const word = input.toLowerCase();
-
-        const quick = {
-            analyse: "Untersuchung eines Sachverhalts nach einzelnen Merkmalen.",
-            argument: "Begründung, mit der eine Aussage gestützt wird.",
-            erörterung: "Schriftliche Auseinandersetzung mit Pro- und Contra-Argumenten.",
-            interpretation: "Sinngebende Deutung eines Textes oder Ergebnisses.",
-            präsentation: "Strukturierte Vorstellung eines Themas vor Publikum.",
-            grammatik: "Regelsystem einer Sprache.",
-            rechtschreibung: "Regeln zur korrekten Schreibung von Wörtern.",
-            synonyme: "Wörter mit gleicher oder ähnlicher Bedeutung.",
-            metaphor: "Sprachliches Bild mit übertragener Bedeutung.",
-            kohärenz: "Inhaltlicher Zusammenhang zwischen Aussagen.",
-            fazit: "Zusammenfassung / Schlussfolgerung am Ende."
-        };
-
-        const confusions = {
-            das: "Artikel/Pronomen: Das Haus, ich sehe das.",
-            dass: "Konjunktion: Ich denke, dass es stimmt.",
-            seit: "Zeit: seit gestern, seit 2 Wochen.",
-            seid: "Verb: ihr seid heute pünktlich.",
-            wider: "gegen: wider besseres Wissen.",
-            wieder: "noch einmal: ich mache es wieder.",
-            wen: "Akkusativ: Wen meinst du?",
-            wenn: "Bedingung: Wenn es regnet, bleibe ich drin."
-        };
-
-        function guessSyllables(text) {
-            const t = normalizeText(text).toLowerCase().replace(/[^a-zäöüß]/g, "");
-            if (!t) return "";
-            const vowels = "aeiouyäöü";
-            const parts = [];
-            let buf = "";
-            for (let i = 0; i < t.length; i += 1) {
-                const ch = t[i];
-                buf += ch;
-                const next = t[i + 1] || "";
-                const next2 = t[i + 2] || "";
-                const isV = vowels.includes(ch);
-                const nextIsV = vowels.includes(next);
-                const next2IsV = vowels.includes(next2);
-                if (isV && next && !nextIsV && next2 && next2IsV) {
-                    parts.push(buf);
-                    buf = "";
-                }
-            }
-            if (buf) parts.push(buf);
-            return parts.length > 1 ? parts.join("·") : "";
-        }
-
-        const lines = [];
-        if (quick[word]) {
-            lines.push(`<strong>${escapeHtml(input)}</strong>: ${escapeHtml(quick[word])}`);
-        } else {
-            lines.push(`<strong>${escapeHtml(input)}</strong>: Offline-Check`);
-        }
-
-        if (confusions[word]) {
-            lines.push(`<span class="list-meta">Merke:</span> ${escapeHtml(confusions[word])}`);
-        }
-
-        if (word.includes("ss") || word.includes("ß")) {
-            lines.push(`<span class="list-meta">Tipp ß/ss:</span> nach langem Vokal/Diphthong oft ß (groß, heißen), nach kurzem Vokal oft ss (müssen, Kasse).`);
-        }
-
-        if (/^[a-zäöüß]/.test(input)) {
-            lines.push(`<span class="list-meta">Tipp Großschreibung:</span> Wenn es ein Nomen ist, wird es groß geschrieben.`);
-        }
-
-        const syll = guessSyllables(input);
-        if (syll) {
-            lines.push(`<span class="list-meta">Silben (grobe Hilfe):</span> ${escapeHtml(syll)}`);
-        }
+        const rawWord = input.trim();
+        const key = normalizeDudenKey(rawWord);
+        const entry = DUDEN_DB[key] || null;
+        const suggestions = entry ? [] : getDudenSuggestions(key, 3);
 
         if (linkEl) {
-            linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
+            linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(rawWord)}`;
         }
 
-        resultEl.innerHTML = lines.join("<br>");
+        if (!entry) {
+            const suggestionHtml = suggestions.length
+                ? `<div class="duden-suggestions">${suggestions
+                    .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
+                    .join("")}</div>`
+                : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
+            resultEl.innerHTML = `
+                <div class="duden-entry">
+                    <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
+                    <div class="duden-meta">Meintest du:</div>
+                    ${suggestionHtml}
+                </div>
+            `;
+            return;
+        }
+
+        resultEl.innerHTML = renderDudenEntry(entry);
+    }
+
+    const DUDEN_DB = {
+        handy: {
+            lemma: "Handy",
+            syllables: "Han·dy",
+            wordClass: "Substantiv, Neutrum",
+            meanings: [
+                {
+                    title: "Mobiltelefon",
+                    description: "tragbares Telefon für das Mobilfunknetz",
+                    examples: ["Mein Handy ist leer.", "Sie hat ihr Handy im Bus verloren."]
+                }
+            ],
+            synonyms: ["Mobiltelefon", "Smartphone"]
+        },
+        analyse: {
+            lemma: "Analyse",
+            syllables: "Ana·ly·se",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Untersuchung",
+                    description: "Untersuchung eines Sachverhalts nach Merkmalen",
+                    examples: ["Die Analyse der Zahlen zeigt einen Trend."]
+                },
+                {
+                    title: "Textanalyse",
+                    description: "systematische Betrachtung eines Textes",
+                    examples: ["Wir schreiben eine Analyse des Gedichts."]
+                }
+            ],
+            synonyms: ["Untersuchung", "Auswertung"]
+        },
+        argument: {
+            lemma: "Argument",
+            syllables: "Ar·gu·ment",
+            wordClass: "Substantiv, Neutrum",
+            meanings: [
+                {
+                    title: "Begründung",
+                    description: "Begründung zur Stützung einer Aussage",
+                    examples: ["Das ist ein starkes Argument."]
+                }
+            ],
+            synonyms: ["Begründung", "Grund"]
+        },
+        erörterung: {
+            lemma: "Erörterung",
+            syllables: "Er·ör·te·rung",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "schriftliche Auseinandersetzung",
+                    description: "systematische Gegenüberstellung von Pro und Contra",
+                    examples: ["Wir schreiben eine Erörterung zum Thema."]
+                }
+            ],
+            synonyms: ["Abwägung", "Diskussion"]
+        },
+        interpretation: {
+            lemma: "Interpretation",
+            syllables: "In·ter·pre·ta·ti·on",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Deutung",
+                    description: "Sinngebende Deutung eines Textes oder Ergebnisses",
+                    examples: ["Die Interpretation des Gedichts ist überzeugend."]
+                }
+            ],
+            synonyms: ["Deutung", "Auslegung"]
+        },
+        präsentation: {
+            lemma: "Präsentation",
+            syllables: "Prä·sen·ta·ti·on",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Vortrag",
+                    description: "strukturierte Vorstellung eines Themas",
+                    examples: ["Die Präsentation war klar aufgebaut."]
+                }
+            ],
+            synonyms: ["Vortrag", "Darstellung"]
+        },
+        grammatik: {
+            lemma: "Grammatik",
+            syllables: "Gram·ma·tik",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Regelsystem",
+                    description: "Regeln zur Bildung von Wörtern und Sätzen",
+                    examples: ["Die Grammatikregeln sind wichtig."]
+                }
+            ],
+            synonyms: ["Sprachlehre"]
+        },
+        rechtschreibung: {
+            lemma: "Rechtschreibung",
+            syllables: "Recht·schrei·bung",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Schreibung",
+                    description: "Regeln zur korrekten Schreibung von Wörtern",
+                    examples: ["Achte auf die Rechtschreibung."]
+                }
+            ],
+            synonyms: ["Orthografie", "Orthographie"]
+        },
+        synonym: {
+            lemma: "Synonym",
+            syllables: "Sy·no·nym",
+            wordClass: "Substantiv, Neutrum",
+            meanings: [
+                {
+                    title: "bedeutungsgleiches Wort",
+                    description: "Wort mit gleicher oder ähnlicher Bedeutung",
+                    examples: ["\"schnell\" ist ein Synonym für \"rasch\"."]
+                }
+            ],
+            synonyms: ["Gleichbedeutung"]
+        },
+        metapher: {
+            lemma: "Metapher",
+            syllables: "Me·ta·pher",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Sprachbild",
+                    description: "bildlicher Ausdruck mit übertragener Bedeutung",
+                    examples: ["\"Flut der Gefühle\" ist eine Metapher."]
+                }
+            ],
+            synonyms: ["Sprachbild"]
+        },
+        kohärenz: {
+            lemma: "Kohärenz",
+            syllables: "Ko·hä·renz",
+            wordClass: "Substantiv, feminin",
+            meanings: [
+                {
+                    title: "Zusammenhang",
+                    description: "inhaltlicher Zusammenhang zwischen Aussagen",
+                    examples: ["Die Kohärenz des Textes ist gut."]
+                }
+            ],
+            synonyms: ["Zusammenhang"]
+        },
+        fazit: {
+            lemma: "Fazit",
+            syllables: "Fa·zit",
+            wordClass: "Substantiv, Neutrum",
+            meanings: [
+                {
+                    title: "Schlussfolgerung",
+                    description: "abschließende Zusammenfassung oder Bewertung",
+                    examples: ["Mein Fazit ist eindeutig."]
+                }
+            ],
+            synonyms: ["Schluss", "Ergebnis"]
+        },
+        dass: {
+            lemma: "dass",
+            syllables: "dass",
+            wordClass: "Konjunktion",
+            meanings: [
+                {
+                    title: "Bindewort",
+                    description: "leitet einen Nebensatz ein",
+                    examples: ["Ich denke, dass es stimmt."]
+                }
+            ],
+            synonyms: []
+        },
+        das: {
+            lemma: "das",
+            syllables: "das",
+            wordClass: "Artikel/Pronomen",
+            meanings: [
+                {
+                    title: "Artikel",
+                    description: "bestimmter Artikel für Neutrum",
+                    examples: ["Das Haus ist groß."]
+                },
+                {
+                    title: "Pronomen",
+                    description: "stellt auf etwas Vorheriges",
+                    examples: ["Ich sehe das."]
+                }
+            ],
+            synonyms: []
+        },
+        seit: {
+            lemma: "seit",
+            syllables: "seit",
+            wordClass: "Präposition",
+            meanings: [
+                {
+                    title: "Zeitangabe",
+                    description: "seit einem Zeitpunkt",
+                    examples: ["Seit gestern regnet es."]
+                }
+            ],
+            synonyms: []
+        },
+        seid: {
+            lemma: "seid",
+            syllables: "seid",
+            wordClass: "Verb",
+            meanings: [
+                {
+                    title: "Form von sein",
+                    description: "2. Person Plural Präsens",
+                    examples: ["Ihr seid pünktlich."]
+                }
+            ],
+            synonyms: []
+        }
+    };
+
+    function normalizeDudenKey(text) {
+        return normalizeText(text)
+            .toLowerCase()
+            .replace(/ß/g, "ss")
+            .replace(/ä/g, "ae")
+            .replace(/ö/g, "oe")
+            .replace(/ü/g, "ue")
+            .replace(/[^a-z]/g, "");
+    }
+
+    function getDudenSuggestions(key, limit = 3) {
+        const keys = Object.keys(DUDEN_DB);
+        if (!key) return [];
+        const scored = keys.map((k) => ({
+            word: DUDEN_DB[k].lemma,
+            score: dudenDistance(key, k)
+        }));
+        scored.sort((a, b) => a.score - b.score);
+        return scored.filter((item) => item.score <= 3).slice(0, limit).map((item) => item.word);
+    }
+
+    function dudenDistance(a, b) {
+        const m = a.length;
+        const n = b.length;
+        if (!m) return n;
+        if (!n) return m;
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i += 1) dp[i][0] = i;
+        for (let j = 0; j <= n; j += 1) dp[0][j] = j;
+        for (let i = 1; i <= m; i += 1) {
+            for (let j = 1; j <= n; j += 1) {
+                const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                dp[i][j] = Math.min(
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1,
+                    dp[i - 1][j - 1] + cost
+                );
+            }
+        }
+        return dp[m][n];
+    }
+
+    function renderDudenEntry(entry) {
+        const meaningHtml = entry.meanings
+            .map((meaning, index) => {
+                const examples = Array.isArray(meaning.examples) && meaning.examples.length
+                    ? `<div class="duden-examples">${meaning.examples.map((ex) => `„${escapeHtml(ex)}“`).join(" · ")}</div>`
+                    : "";
+                return `
+                    <details ${index === 0 ? "open" : ""}>
+                        <summary>${escapeHtml(meaning.title)}</summary>
+                        <div class="duden-meta">${escapeHtml(meaning.description)}</div>
+                        ${examples}
+                    </details>
+                `;
+            })
+            .join("");
+        const synonyms = Array.isArray(entry.synonyms) && entry.synonyms.length
+            ? `<div class="duden-meta">Synonyme: ${entry.synonyms.map((s) => escapeHtml(s)).join(", ")}</div>`
+            : "";
+        return `
+            <div class="duden-entry">
+                <div class="duden-title">
+                    <strong>${escapeHtml(entry.lemma)}</strong>
+                    <span class="duden-meta">${escapeHtml(entry.wordClass)}</span>
+                    <span class="duden-meta">${escapeHtml(entry.syllables)}</span>
+                </div>
+                <div class="duden-meanings">${meaningHtml}</div>
+                ${synonyms}
+            </div>
+        `;
     }
 
     function onCalcKeyPress(button) {
