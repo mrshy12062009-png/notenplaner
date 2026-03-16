@@ -2150,26 +2150,12 @@ export function initApp() {
                 </div>
             `;
         } catch (err) {
-            const key = normalizeDudenKey(rawWord);
-            const entry = DUDEN_DB[key] || DUDEN_DB[rawWord.toLowerCase()] || null;
-            const suggestions = entry ? [] : getDudenSuggestions(key, 3);
-            const suggestionHtml = suggestions.length
-                ? `<div class="duden-suggestions">${suggestions
-                    .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
-                    .join("")}</div>`
-                : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
-            if (!entry) {
-                resultEl.innerHTML = `
-                    <div class="duden-entry">
-                        <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
-                        <div class="duden-meta">Meintest du:</div>
-                        ${suggestionHtml}
-                        <div class="duden-meta">Hinweis: Online-Suche fehlgeschlagen (CORS/Offline).</div>
-                    </div>
-                `;
-                return;
-            }
-            resultEl.innerHTML = renderDudenEntry(entry);
+            resultEl.innerHTML = `
+                <div class="duden-entry">
+                    <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
+                    <div class="duden-meta">Hinweis: Online-Suche fehlgeschlagen (CORS/Offline).</div>
+                </div>
+            `;
         }
     }
 
@@ -2423,12 +2409,13 @@ export function initApp() {
     function getDudenSuggestions(key, limit = 3) {
         const keys = Object.keys(DUDEN_DB);
         if (!key) return [];
+        const maxDistance = key.length <= 4 ? 1 : key.length <= 6 ? 2 : 3;
         const scored = keys.map((k) => ({
             word: DUDEN_DB[k].lemma,
             score: dudenDistance(key, k)
         }));
         scored.sort((a, b) => a.score - b.score);
-        return scored.filter((item) => item.score <= 3).slice(0, limit).map((item) => item.word);
+        return scored.filter((item) => item.score <= maxDistance).slice(0, limit).map((item) => item.word);
     }
 
     function dudenDistance(a, b) {
