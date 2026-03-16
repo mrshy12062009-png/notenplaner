@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notenplaner</title>
-    <link rel="stylesheet" href="style.css?v=20260316a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260316d">
 </head>
 <body>
     <div class="app-shell">
@@ -12,7 +15,7 @@
             <div class="brand">
                 <p class="brand-kicker">Schule</p>
                 <h1>Notenplaner</h1>
-                <p class="brand-kicker">Build 20260308q</p>
+                <p class="brand-kicker">Build 20260316d</p>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle btn btn-ghost" type="button" aria-expanded="false">Menü</button>
             <nav class="nav">
@@ -359,6 +362,16 @@
                     <h3>Hilfen (in der App)</h3>
                     <div class="tool-grid">
                         <article class="tool-card">
+                            <h4>Mathe: Formelsammlung</h4>
+                            <ul class="formula-list">
+                                <li>Prozent: `Teil = Grundwert * p / 100`</li>
+                                <li>Dreisatz: `x = (b * c) / a`</li>
+                                <li>Lineare Form: `ax + b = c -> x = (c - b) / a`</li>
+                                <li>Pythagoras: `a^2 + b^2 = c^2`</li>
+                                <li>Flaeche Rechteck: `A = a * b`</li>
+                                <li>Flaeche Dreieck: `A = (g * h) / 2`</li>
+                            </ul>
+                            <div class="divider-line"></div>
                             <h4>Mathe: Taschenrechner</h4>
                             <div class="inline-form">
                                 <input id="exam-calc-input" type="text" placeholder="z. B. (18-3)*2">
@@ -696,6 +709,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260316a"></script>
+    <script type="module" src="script.js?v=20260316d"></script>
 </body>
 </html>

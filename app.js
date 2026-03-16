@@ -1522,37 +1522,42 @@ export function initApp() {
     }
 
     function lookupDudenWordFor(inputEl, resultEl, linkEl) {
-        const input = normalizeText(inputEl.value);
-        if (!input) {
-            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Hinweis</strong></div><div class=\"duden-meta\">Bitte ein Wort eingeben.</div></div>";
-            return;
-        }
-        const rawWord = input.trim();
-        const key = normalizeDudenKey(rawWord);
-        const entry = DUDEN_DB[key] || null;
-        const suggestions = entry ? [] : getDudenSuggestions(key, 3);
+        try {
+            const input = normalizeText(inputEl.value);
+            if (!input) {
+                resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Hinweis</strong></div><div class=\"duden-meta\">Bitte ein Wort eingeben.</div></div>";
+                return;
+            }
+            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Suche laeuft...</strong></div></div>";
+            const rawWord = input.trim();
+            const key = normalizeDudenKey(rawWord);
+            const entry = DUDEN_DB[key] || null;
+            const suggestions = entry ? [] : getDudenSuggestions(key, 3);
 
-        if (linkEl) {
-            linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(rawWord)}`;
-        }
+            if (linkEl) {
+                linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(rawWord)}`;
+            }
 
-        if (!entry) {
-            const suggestionHtml = suggestions.length
-                ? `<div class="duden-suggestions">${suggestions
-                    .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
-                    .join("")}</div>`
-                : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
-            resultEl.innerHTML = `
-                <div class="duden-entry">
-                    <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
-                    <div class="duden-meta">Meintest du:</div>
-                    ${suggestionHtml}
-                </div>
-            `;
-            return;
-        }
+            if (!entry) {
+                const suggestionHtml = suggestions.length
+                    ? `<div class="duden-suggestions">${suggestions
+                        .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
+                        .join("")}</div>`
+                    : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
+                resultEl.innerHTML = `
+                    <div class="duden-entry">
+                        <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
+                        <div class="duden-meta">Meintest du:</div>
+                        ${suggestionHtml}
+                    </div>
+                `;
+                return;
+            }
 
-        resultEl.innerHTML = renderDudenEntry(entry);
+            resultEl.innerHTML = renderDudenEntry(entry);
+        } catch (err) {
+            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Fehler</strong></div><div class=\"duden-meta\">Suche konnte nicht ausgefuehrt werden.</div></div>";
+        }
     }
 
     const DUDEN_DB = {
@@ -1818,7 +1823,16 @@ export function initApp() {
         return dp[m][n];
     }
 
+    function getDudenHyphenation(entry) {
+        if (entry.hyphenation) return entry.hyphenation;
+        if (entry.syllables && entry.syllables.includes("·")) {
+            return entry.syllables.replace(/·/g, "|");
+        }
+        return "";
+    }
+
     function renderDudenEntry(entry) {
+        const hyphenation = getDudenHyphenation(entry);
         const meaningHtml = entry.meanings
             .map((meaning, index) => {
                 const examples = Array.isArray(meaning.examples) && meaning.examples.length
@@ -1843,7 +1857,14 @@ export function initApp() {
                     <span class="duden-meta">${escapeHtml(entry.wordClass)}</span>
                     <span class="duden-meta">${escapeHtml(entry.syllables)}</span>
                 </div>
-                <div class="duden-meanings">${meaningHtml}</div>
+                <div class="duden-section">
+                    <div class="duden-section-title">Rechtschreibung</div>
+                    ${hyphenation ? `<div class="duden-kv"><span>Worttrennung</span><strong>${escapeHtml(hyphenation)}</strong></div>` : "<div class=\"duden-meta\">Keine Trennung hinterlegt.</div>"}
+                </div>
+                <div class="duden-section">
+                    <div class="duden-section-title">Bedeutung</div>
+                    <div class="duden-meanings">${meaningHtml}</div>
+                </div>
                 ${synonyms}
             </div>
         `;
