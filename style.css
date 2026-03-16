@@ -1114,21 +1114,38 @@ button:focus-visible {
 
 .calc-pad {
     display: grid;
-    grid-template-columns: repeat(4, minmax(44px, 1fr));
-    gap: 0.45rem;
+    grid-template-columns: repeat(4, minmax(54px, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.4rem;
 }
 
 .calc-pad .btn {
-    min-height: 40px;
-    padding: 0.4rem 0.35rem;
+    min-height: 54px;
+    padding: 0.45rem;
+    border-radius: 18px;
+    font-size: 1.05rem;
+    background: color-mix(in srgb, var(--bg-soft) 80%, transparent);
+    border-color: color-mix(in srgb, var(--border) 85%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.calc-pad .btn:hover {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--bg-soft) 68%, transparent);
+}
+
+.calc-pad .btn:active {
+    transform: translateY(1px);
 }
 
 .calc-pad .calc-eq {
-    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .calc-pad .calc-clear {
-    border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+    background: color-mix(in srgb, var(--danger) 12%, var(--bg-soft));
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
 }
 
 .formula-list {
@@ -1138,20 +1155,46 @@ button:focus-visible {
     gap: 0.25rem;
 }
 
-.calc-inline {
+.calc-panel {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
     align-items: center;
-    flex-wrap: nowrap;
+}
+
+.calc-display {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg-soft) 75%, transparent);
+    border: 1px solid var(--border);
+}
+
+.calc-screen {
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-align: right;
+    padding: 0;
+    box-shadow: none;
+}
+
+.calc-screen:focus-visible {
+    outline: none;
 }
 
 .calc-result {
-    margin-left: auto;
-    padding: 0.45rem 0.85rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--bg-soft) 75%, transparent);
-    border: 1px solid var(--border);
+    font-size: 0.95rem;
     font-weight: 700;
+    color: var(--text-muted);
+    text-align: right;
+    min-height: 1.1em;
+}
+
+.calc-action {
     min-width: 120px;
-    text-align: center;
 }
 
 .focus-display {
@@ -1834,13 +1877,16 @@ body.mode-dark .app-toast.info {
         font-size: 0.95rem;
     }
 
-    .calc-inline {
-        flex-wrap: wrap;
+    .calc-panel {
+        grid-template-columns: 1fr;
     }
 
-    .calc-result {
+    .calc-action {
         width: 100%;
-        margin-left: 0;
+    }
+
+    .calc-screen,
+    .calc-result {
         text-align: left;
     }
 }

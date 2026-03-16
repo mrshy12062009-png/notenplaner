@@ -1927,7 +1927,7 @@ export function initApp() {
                 resultEl.textContent = "Ungültige Berechnung.";
                 return;
             }
-            resultEl.textContent = `Ergebnis: ${value}`;
+            resultEl.textContent = `${value}`;
         } catch (_) {
             resultEl.textContent = "Ausdruck konnte nicht berechnet werden.";
         }
@@ -2021,12 +2021,13 @@ export function initApp() {
         return [];
     }
 
-    function renderWiktapiEntry(word, payload) {
+    function renderWiktapiEntry(word, payload, hintText = "") {
         const entries = Array.isArray(payload?.entries) ? payload.entries : [];
         const germanEntries = entries.filter((entry) => entry.lang_code === "de" || entry.lang === "German");
         const activeEntries = germanEntries.length ? germanEntries : entries;
         if (!activeEntries.length) return "";
         const wordLabel = payload?.word || word;
+        const hintHtml = hintText ? `<div class="duden-meta">${escapeHtml(hintText)}</div>` : "";
         const sections = activeEntries.map((entry) => {
             const pos = entry.pos ? escapeHtml(entry.pos) : "Wortart";
             const ipas = Array.isArray(entry.sounds)
@@ -2079,6 +2080,7 @@ export function initApp() {
                     <strong>${escapeHtml(wordLabel)}</strong>
                     <span class="duden-meta">Wiktionary-Daten (online)</span>
                 </div>
+                ${hintHtml}
                 ${sections}
             </div>
         `;
@@ -2097,24 +2099,46 @@ export function initApp() {
         const rawWord = input.trim();
         resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Suche läuft...</strong></div><div class=\"duden-meta\">Online-Wörterbuch wird geladen.</div></div>";
         try {
-            const cached = getCachedDuden(rawWord.toLowerCase());
-            if (cached) {
-                resultEl.innerHTML = renderWiktapiEntry(rawWord, cached);
-                return;
+            const variants = Array.from(new Set([
+                rawWord,
+                rawWord.replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü")
+            ])).filter(Boolean);
+
+            for (const candidate of variants) {
+                const cached = getCachedDuden(candidate.toLowerCase());
+                if (cached) {
+                    resultEl.innerHTML = renderWiktapiEntry(candidate, cached, candidate !== rawWord ? `Meintest du „${candidate}“?` : "");
+                    return;
+                }
+                const payload = await fetchWiktapiWord(candidate);
+                if (payload && Array.isArray(payload.entries) && payload.entries.length) {
+                    setCachedDuden(candidate.toLowerCase(), payload);
+                    resultEl.innerHTML = renderWiktapiEntry(candidate, payload, candidate !== rawWord ? `Meintest du „${candidate}“?` : "");
+                    return;
+                }
             }
-            const payload = await fetchWiktapiWord(rawWord);
-            if (payload && Array.isArray(payload.entries) && payload.entries.length) {
-                setCachedDuden(rawWord.toLowerCase(), payload);
-                resultEl.innerHTML = renderWiktapiEntry(rawWord, payload);
-                return;
-            }
+
             const suggestions = await fetchWiktapiSearch(rawWord);
             const fallbackSuggestions = suggestions
                 .map((entry) => entry.word || entry.title || entry)
-                .filter(Boolean)
-                .slice(0, 5);
+                .filter(Boolean);
+            const bestSuggestion = fallbackSuggestions[0];
+            if (bestSuggestion && normalizeText(bestSuggestion).toLowerCase() !== rawWord.toLowerCase()) {
+                try {
+                    const suggestedPayload = await fetchWiktapiWord(bestSuggestion);
+                    if (suggestedPayload && Array.isArray(suggestedPayload.entries) && suggestedPayload.entries.length) {
+                        setCachedDuden(bestSuggestion.toLowerCase(), suggestedPayload);
+                        resultEl.innerHTML = renderWiktapiEntry(bestSuggestion, suggestedPayload, `Meintest du „${bestSuggestion}“?`);
+                        return;
+                    }
+                } catch (_) {
+                    // ignore and continue to suggestion list
+                }
+            }
+
             const fallbackHtml = fallbackSuggestions.length
                 ? `<div class="duden-suggestions">${fallbackSuggestions
+                    .slice(0, 6)
                     .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
                     .join("")}</div>`
                 : "<div class=\"duden-meta\">Keine Online-Treffer gefunden.</div>";

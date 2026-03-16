@@ -1,5 +1,5 @@
-﻿import http from "http";
-import { URL } from "url";
+﻿import express from "express";
+import cors from "cors";
 
 const PORT = Number.parseInt(process.env.PORT || "4177", 10);
 const WIKTAPI_BASE = "https://api.wiktapi.dev/v1/de";
@@ -33,16 +33,8 @@ const OFFICIAL_EXAM_SOURCES = {
   TH: { label: "Thüringen", url: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", pdf: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", parser: "none" }
 };
 
-function json(res, status, payload) {
-  const body = JSON.stringify(payload);
-  res.writeHead(status, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  });
-  res.end(body);
-}
+const app = express();
+app.use(cors());
 
 function parseBerlinHtml(html) {
   const rows = html.split("</tr>");
@@ -67,80 +59,58 @@ function parseBerlinHtml(html) {
   return items;
 }
 
-const server = http.createServer(async (req, res) => {
-  if (!req.url) {
-    json(res, 400, { ok: false, error: "Missing URL" });
-    return;
-  }
-  if (req.method === "OPTIONS") {
-    res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    });
-    res.end();
-    return;
-  }
-
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname === "/api/ping") {
-    json(res, 200, { ok: true });
-    return;
-  }
-
-  if (url.pathname === "/api/duden") {
-    const word = (url.searchParams.get("word") || "").trim();
-    if (!word) {
-      json(res, 400, { ok: false, error: "Missing word" });
-      return;
-    }
-    try {
-      const apiUrl = `${WIKTAPI_BASE}/word/${encodeURIComponent(word)}?lang=de`;
-      const apiRes = await fetch(apiUrl, { cache: "no-store" });
-      if (!apiRes.ok) {
-        json(res, 502, { ok: false, error: "Lookup failed" });
-        return;
-      }
-      const data = await apiRes.json();
-      json(res, 200, data);
-    } catch (error) {
-      json(res, 500, { ok: false, error: "Server error" });
-    }
-    return;
-  }
-
-  if (url.pathname === "/api/official-exams") {
-    const state = (url.searchParams.get("state") || "").toUpperCase();
-    const source = OFFICIAL_EXAM_SOURCES[state];
-    if (!source) {
-      json(res, 404, { ok: false, error: "Unknown state" });
-      return;
-    }
-    try {
-      const apiRes = await fetch(source.url, { cache: "no-store" });
-      if (!apiRes.ok) {
-        json(res, 502, { ok: false, error: "Fetch failed" });
-        return;
-      }
-      const html = await apiRes.text();
-      const items = source.parser === "berlin" ? parseBerlinHtml(html) : [];
-      json(res, 200, {
-        ok: true,
-        source: source.url,
-        officialPdf: source.pdf || "",
-        updatedAt: Date.now(),
-        status: items.length ? "" : "Keine Termine erkannt. Parser erweitern.",
-        items
-      });
-    } catch (error) {
-      json(res, 500, { ok: false, error: "Server error" });
-    }
-    return;
-  }
-
-  json(res, 404, { ok: false, error: "Not found" });
+app.get("/api/ping", (_req, res) => {
+  res.json({ ok: true });
 });
 
-server.listen(PORT, () => {
-  console.log(`Mini-Backend läuft auf http://localhost:${PORT}`);
+app.get("/api/duden", async (req, res) => {
+  const word = String(req.query.word || "").trim();
+  if (!word) {
+    res.status(400).json({ ok: false, error: "Missing word" });
+    return;
+  }
+  try {
+    const apiUrl = `${WIKTAPI_BASE}/word/${encodeURIComponent(word)}?lang=de`;
+    const apiRes = await fetch(apiUrl, { cache: "no-store" });
+    if (!apiRes.ok) {
+      res.status(502).json({ ok: false, error: "Lookup failed" });
+      return;
+    }
+    const data = await apiRes.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.get("/api/official-exams", async (req, res) => {
+  const state = String(req.query.state || "").toUpperCase();
+  const source = OFFICIAL_EXAM_SOURCES[state];
+  if (!source) {
+    res.status(404).json({ ok: false, error: "Unknown state" });
+    return;
+  }
+  try {
+    const apiRes = await fetch(source.url, { cache: "no-store" });
+    if (!apiRes.ok) {
+      res.status(502).json({ ok: false, error: "Fetch failed" });
+      return;
+    }
+    const html = await apiRes.text();
+    const items = source.parser === "berlin" ? parseBerlinHtml(html) : [];
+    res.json({
+      ok: true,
+      source: source.url,
+      officialPdf: source.pdf || "",
+      updatedAt: Date.now(),
+      status: items.length ? "" : "Keine Termine erkannt. Parser erweitern.",
+      items
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Backend läuft auf http://localhost:${PORT}`);
 });
