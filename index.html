@@ -15,7 +15,7 @@
             <div class="brand">
                 <p class="brand-kicker">Schule</p>
                 <h1>Notenplaner</h1>
-                <p class="brand-kicker">Build 20260316j</p>
+                <p class="brand-kicker">Build 20260316q</p>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle btn btn-ghost" type="button" aria-expanded="false">Menü</button>
             <nav class="nav">
@@ -38,7 +38,7 @@
                 </div>
                 <div class="dashboard-grid" aria-live="polite">
                     <article class="card dash-card">
-                        <p class="list-meta">Faecher</p>
+                        <p class="list-meta">Fächer</p>
                         <div id="dash-subjects" class="dash-value">0</div>
                         <p class="dash-sub">gesamt</p>
                     </article>
@@ -53,7 +53,7 @@
                         <p class="dash-sub">eingetragen</p>
                     </article>
                     <article class="card dash-card">
-                        <p class="list-meta">Naechster Termin</p>
+                        <p class="list-meta">Nächster Termin</p>
                         <div id="dash-next-event" class="dash-value-sm">-</div>
                         <p class="dash-sub" id="dash-next-event-meta">Keine Termine</p>
                     </article>
@@ -63,12 +63,12 @@
                         <p class="dash-sub">aktiv</p>
                     </article>
                     <article class="card dash-card">
-                        <p class="list-meta">Lernbloecke</p>
+                        <p class="list-meta">Lernblöcke</p>
                         <div id="dash-study-open" class="dash-value">0</div>
                         <p class="dash-sub">offen</p>
                     </article>
                     <article class="card dash-card">
-                        <p class="list-meta">Pruefungen</p>
+                        <p class="list-meta">Prüfungen</p>
                         <div id="dash-exams" class="dash-value">0</div>
                         <p class="dash-sub">geplant</p>
                     </article>
@@ -279,13 +279,13 @@
                             <p id="calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
-                            <h4>Deutsch: Rechtschreib-Check (offline)</h4>
+                            <h4>Deutsch: Wörterbuch (online)</h4>
                             <div class="inline-form">
-                                <input id="duden-input" type="text" placeholder="Wort eingeben">
+                                <input id="duden-input" type="text" placeholder="Wort oder kurze Phrase">
                                 <button id="duden-lookup" class="btn btn-primary" type="button">Suchen</button>
                             </div>
                             <div id="duden-result" class="duden-result"></div>
-                            <p class="list-meta">Ergebnis kommt direkt hier in der App.</p>
+                            <p class="list-meta">Ergebnis erscheint direkt hier in der App (Quelle: Wiktionary).</p>
                         </article>
                     </div>
                 </div>
@@ -346,6 +346,7 @@
                             <option value="3" selected>Stark</option>
                             <option value="4">Schwer</option>
                             <option value="5">Sehr schwer</option>
+                            <option value="6">MSA Original</option>
                         </select>
                     </div>
                     <div id="exam-tutor-question" class="coach-answer"></div>
@@ -373,6 +374,33 @@
                         <button id="exam-focus-reset" class="btn btn-ghost" type="button">Reset</button>
                     </div>
                     <p id="exam-focus-display" class="focus-display">25:00</p>
+                </div>
+                <div class="stack exams-extra">
+                    <h3>Offizielle Termine (online)</h3>
+                    <div class="inline-form responsive-3">
+                        <select id="official-exams-region">
+                            <option value="BE">Berlin</option>
+                            <option value="BB">Brandenburg</option>
+                            <option value="BW">Baden-Württemberg</option>
+                            <option value="BY">Bayern</option>
+                            <option value="HB">Bremen</option>
+                            <option value="HH">Hamburg</option>
+                            <option value="HE">Hessen</option>
+                            <option value="MV">Mecklenburg-Vorpommern</option>
+                            <option value="NI">Niedersachsen</option>
+                            <option value="NW">Nordrhein-Westfalen</option>
+                            <option value="RP">Rheinland-Pfalz</option>
+                            <option value="SH">Schleswig-Holstein</option>
+                            <option value="SL">Saarland</option>
+                            <option value="SN">Sachsen</option>
+                            <option value="ST">Sachsen-Anhalt</option>
+                            <option value="TH">Thüringen</option>
+                        </select>
+                        <button id="official-exams-refresh" class="btn btn-primary" type="button">Online aktualisieren</button>
+                        <button id="official-exams-import" class="btn btn-ghost" type="button">In Kalender übernehmen</button>
+                    </div>
+                    <p id="official-exams-status" class="list-meta"></p>
+                    <div id="official-exams-list" class="list"></div>
                 </div>
                 <form id="exam-form" class="stack exams-extra" novalidate>
                     <div class="inline-form responsive-3">
@@ -405,8 +433,8 @@
                                 <li>Dreisatz: `x = (b * c) / a`</li>
                                 <li>Lineare Form: `ax + b = c -> x = (c - b) / a`</li>
                                 <li>Pythagoras: `a^2 + b^2 = c^2`</li>
-                                <li>Flaeche Rechteck: `A = a * b`</li>
-                                <li>Flaeche Dreieck: `A = (g * h) / 2`</li>
+                                <li>Fläche Rechteck: `A = a * b`</li>
+                                <li>Fläche Dreieck: `A = (g * h) / 2`</li>
                             </ul>
                             <div class="divider-line"></div>
                             <h4>Mathe: Taschenrechner</h4>
@@ -424,13 +452,13 @@
                             <p id="exam-calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
-                            <h4>Deutsch: Rechtschreib-Check (offline)</h4>
+                            <h4>Deutsch: Wörterbuch (online)</h4>
                             <div class="inline-form">
                                 <input id="exam-duden-input" type="text" placeholder="Wort oder kurze Phrase">
-                                <button id="exam-duden-lookup" class="btn btn-primary" type="button">Prüfen</button>
+                                <button id="exam-duden-lookup" class="btn btn-primary" type="button">Suchen</button>
                             </div>
                             <div id="exam-duden-result" class="duden-result"></div>
-                            <p class="list-meta">Keine externen Links. Tipps erscheinen direkt hier.</p>
+                            <p class="list-meta">Ergebnis erscheint direkt hier in der App (Quelle: Wiktionary).</p>
                         </article>
                     </div>
                 </div>
@@ -746,6 +774,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260316j"></script>
+    <script type="module" src="script.js?v=20260316q"></script>
 </body>
 </html>

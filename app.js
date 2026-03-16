@@ -39,6 +39,29 @@ export function initApp() {
     };
 
     const initialSettings = loadSettings();
+    const OFFICIAL_EXAMS_STORAGE_KEY = "gf_official_exams";
+    const OFFICIAL_EXAMS_REFRESH_MS = 1000 * 60 * 60 * 24 * 7;
+    const BERLIN_MSA_URL = "https://www.berlin-msa.de/termine";
+    const BERLIN_MSA_OFFICIAL_PDF = "https://www.berlin.de/sen/bildung/schule/pruefungen-und-abschluesse/pruefungsplan-2026.pdf";
+    const BB_MSA_URL = "https://bildungsserver.berlin-brandenburg.de/unterricht/pruefungen/pruefungen-10/pruefungstermine";
+    const OFFICIAL_EXAM_SOURCES = {
+        BE: { label: "Berlin", url: BERLIN_MSA_URL, pdf: BERLIN_MSA_OFFICIAL_PDF, parser: "berlin" },
+        BB: { label: "Brandenburg", url: BB_MSA_URL, pdf: "", parser: "berlin" },
+        BW: { label: "Baden-Württemberg", url: "", pdf: "", parser: "none" },
+        BY: { label: "Bayern", url: "", pdf: "", parser: "none" },
+        HB: { label: "Bremen", url: "", pdf: "", parser: "none" },
+        HH: { label: "Hamburg", url: "", pdf: "", parser: "none" },
+        HE: { label: "Hessen", url: "", pdf: "", parser: "none" },
+        MV: { label: "Mecklenburg-Vorpommern", url: "", pdf: "", parser: "none" },
+        NI: { label: "Niedersachsen", url: "", pdf: "", parser: "none" },
+        NW: { label: "Nordrhein-Westfalen", url: "", pdf: "", parser: "none" },
+        RP: { label: "Rheinland-Pfalz", url: "", pdf: "", parser: "none" },
+        SH: { label: "Schleswig-Holstein", url: "", pdf: "", parser: "none" },
+        SL: { label: "Saarland", url: "", pdf: "", parser: "none" },
+        SN: { label: "Sachsen", url: "", pdf: "", parser: "none" },
+        ST: { label: "Sachsen-Anhalt", url: "", pdf: "", parser: "none" },
+        TH: { label: "Thüringen", url: "", pdf: "", parser: "none" }
+    };
 
     const state = {
         viewPage: initialSettings.defaultPage || "list",
@@ -56,7 +79,8 @@ export function initApp() {
         goals: loadGoals(),
         studyHelper: loadStudyHelper(),
         examPrep: loadExamPrep(),
-        languageHelper: loadLanguageHelper()
+        languageHelper: loadLanguageHelper(),
+        officialExams: loadOfficialExams()
     };
 
     const els = {
@@ -176,14 +200,12 @@ export function initApp() {
         dudenInput: document.getElementById("duden-input"),
         dudenLookup: document.getElementById("duden-lookup"),
         dudenResult: document.getElementById("duden-result"),
-        dudenLink: document.getElementById("duden-link"),
         examCalcInput: document.getElementById("exam-calc-input"),
         examCalcEval: document.getElementById("exam-calc-eval"),
         examCalcResult: document.getElementById("exam-calc-result"),
         examDudenInput: document.getElementById("exam-duden-input"),
         examDudenLookup: document.getElementById("exam-duden-lookup"),
         examDudenResult: document.getElementById("exam-duden-result"),
-        examDudenLink: document.getElementById("exam-duden-link"),
         calcKeys: document.querySelectorAll(".calc-key"),
 
         examForm: document.getElementById("exam-form"),
@@ -213,6 +235,11 @@ export function initApp() {
         examFocusStop: document.getElementById("exam-focus-stop"),
         examFocusReset: document.getElementById("exam-focus-reset"),
         examFocusDisplay: document.getElementById("exam-focus-display"),
+        officialExamsRefresh: document.getElementById("official-exams-refresh"),
+        officialExamsImport: document.getElementById("official-exams-import"),
+        officialExamsRegion: document.getElementById("official-exams-region"),
+        officialExamsStatus: document.getElementById("official-exams-status"),
+        officialExamsList: document.getElementById("official-exams-list"),
         examOralFocusMinutesInput: document.getElementById("exam-oral-focus-minutes"),
         examOralFocusStart: document.getElementById("exam-oral-focus-start"),
         examOralFocusPause: document.getElementById("exam-oral-focus-pause"),
@@ -247,11 +274,7 @@ export function initApp() {
         langLevel: document.getElementById("lang-level"),
         langNext: document.getElementById("lang-next"),
         langQuestion: document.getElementById("lang-question"),
-        langAnswer: document.getElementById("lang-answer"),
-        langCheck: document.getElementById("lang-check"),
-        langTip: document.getElementById("lang-tip"),
         langFeedback: document.getElementById("lang-feedback"),
-        langStats: document.getElementById("lang-stats"),
         langRecordStart: document.getElementById("lang-record-start"),
         langRecordStop: document.getElementById("lang-record-stop"),
         langTranscript: document.getElementById("lang-transcript"),
@@ -304,6 +327,7 @@ export function initApp() {
     updateSelectedDayUI();
     hydrateExamPrepUI();
     hydrateLanguageUI();
+    maybeRefreshOfficialExams();
     bindEvents();
     showPage(state.settings.defaultPage || "list");
     renderAll();
@@ -477,6 +501,18 @@ export function initApp() {
         els.examFocusStop.addEventListener("click", stopFocusTimer);
         els.examFocusReset.addEventListener("click", () => resetFocusTimer("exam"));
         els.examFocusMinutesInput.addEventListener("change", () => resetFocusTimer("exam"));
+        if (els.officialExamsRegion) {
+            els.officialExamsRegion.addEventListener("change", () => {
+                renderOfficialExamDates();
+                fetchOfficialExamDates(getOfficialExamRegion(), false);
+            });
+        }
+        if (els.officialExamsRefresh) {
+            els.officialExamsRefresh.addEventListener("click", () => fetchOfficialExamDates(getOfficialExamRegion(), true));
+        }
+        if (els.officialExamsImport) {
+            els.officialExamsImport.addEventListener("click", importOfficialExamDates);
+        }
         els.examOralFocusStart.addEventListener("click", () => startFocusTimer("exam_oral"));
         els.examOralFocusPause.addEventListener("click", pauseFocusTimer);
         els.examOralFocusStop.addEventListener("click", stopFocusTimer);
@@ -546,11 +582,11 @@ export function initApp() {
             });
         }
         if (els.examDudenLookup && els.examDudenInput && els.examDudenResult) {
-            els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null));
+            els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult));
             els.examDudenInput.addEventListener("keydown", (event) => {
                 if (event.key === "Enter") {
                     event.preventDefault();
-                    lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null);
+                    lookupDudenWordFor(els.examDudenInput, els.examDudenResult);
                 }
             });
             els.examDudenResult.addEventListener("click", (event) => {
@@ -559,7 +595,7 @@ export function initApp() {
                 const word = btn.dataset.word;
                 if (!word) return;
                 els.examDudenInput.value = word;
-                lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null);
+                lookupDudenWordFor(els.examDudenInput, els.examDudenResult);
             });
         }
         els.studyList.addEventListener("click", (event) => {
@@ -635,9 +671,6 @@ export function initApp() {
         els.langMode.addEventListener("change", () => generateLanguageTask(true));
         els.langLevel.addEventListener("change", () => generateLanguageTask(true));
         els.langNext.addEventListener("click", () => generateLanguageTask(true));
-        if (els.langCheck) els.langCheck.addEventListener("click", checkLanguageTask);
-        if (els.langTip) els.langTip.addEventListener("click", showLanguageTip);
-        if (els.langAnswer) els.langAnswer.addEventListener("input", saveDraftsThrottled);
         els.langRecordStart.addEventListener("click", startLanguageRecording);
         els.langRecordStop.addEventListener("click", stopLanguageRecording);
         els.langPronCheck.addEventListener("click", analyzeLanguagePronunciation);
@@ -1259,6 +1292,256 @@ export function initApp() {
         }
     }
 
+    function getOfficialExamRegion() {
+        const uiValue = els.officialExamsRegion?.value;
+        if (uiValue && OFFICIAL_EXAM_SOURCES[uiValue]) return uiValue;
+        const settingValue = state.settings.region;
+        if (settingValue && OFFICIAL_EXAM_SOURCES[settingValue]) return settingValue;
+        return "BE";
+    }
+
+    function getOfficialExamStateData(code) {
+        const byState = state.officialExams.byState || {};
+        if (!byState[code]) {
+            byState[code] = {
+                source: "",
+                officialPdf: "",
+                updatedAt: 0,
+                status: "",
+                items: []
+            };
+        }
+        return byState[code];
+    }
+
+    function maybeRefreshOfficialExams() {
+        const region = getOfficialExamRegion();
+        const stateData = getOfficialExamStateData(region);
+        const lastUpdate = Number.isFinite(stateData.updatedAt) ? stateData.updatedAt : 0;
+        if (!lastUpdate || Date.now() - lastUpdate > OFFICIAL_EXAMS_REFRESH_MS) {
+            fetchOfficialExamDates(region, false);
+        } else {
+            renderOfficialExamDates();
+        }
+    }
+
+    function parseGermanDateNumber(value) {
+        const match = value.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+        if (!match) return "";
+        const day = Number.parseInt(match[1], 10);
+        const month = Number.parseInt(match[2], 10);
+        const year = Number.parseInt(match[3], 10);
+        return toIsoDate(year, month, day);
+    }
+
+    function parseGermanDateLong(value) {
+        const monthMap = {
+            januar: 1,
+            februar: 2,
+            maerz: 3,
+            märz: 3,
+            april: 4,
+            mai: 5,
+            juni: 6,
+            juli: 7,
+            august: 8,
+            september: 9,
+            oktober: 10,
+            november: 11,
+            dezember: 12
+        };
+        const match = value.toLowerCase().match(/(\d{1,2})\.\s*([a-zäöüß]+)\s*(\d{4})/i);
+        if (!match) return "";
+        const day = Number.parseInt(match[1], 10);
+        const month = monthMap[match[2]];
+        const year = Number.parseInt(match[3], 10);
+        if (!month) return "";
+        return toIsoDate(year, month, day);
+    }
+
+    function stripHtmlToText(html) {
+        return html
+            .replace(/<script[\s\S]*?<\/script>/gi, " ")
+            .replace(/<style[\s\S]*?<\/style>/gi, " ")
+            .replace(/<br\s*\/?>/gi, " ")
+            .replace(/<\/p>/gi, " ")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function extractBetween(text, startToken, endToken) {
+        const startIndex = text.indexOf(startToken);
+        if (startIndex === -1) return "";
+        const endIndex = endToken ? text.indexOf(endToken, startIndex + startToken.length) : -1;
+        if (endIndex === -1) return text.slice(startIndex);
+        return text.slice(startIndex, endIndex);
+    }
+
+    function parseExamBlock(text, track) {
+        const items = [];
+        const subjects = [
+            { key: "Deutsch", label: "Deutsch" },
+            { key: "Mathematik", label: "Mathe" },
+            { key: "1. Fremdsprache", label: "Englisch" }
+        ];
+        subjects.forEach((subject) => {
+            const mainMatch = text.match(new RegExp(`${subject.key}\\s+[A-Za-zäöüÄÖÜß]+,?\\s*(\\d{2}\\.\\d{2}\\.\\d{4})`));
+            if (mainMatch) {
+                items.push({
+                    track,
+                    subject: subject.label,
+                    date: parseGermanDateNumber(mainMatch[1]),
+                    kind: "exam",
+                    note: ""
+                });
+            }
+            const makeUpMatch = text.match(new RegExp(`Nachtermin\\s*:\\s*${subject.key}\\s+[A-Za-zäöüÄÖÜß]+,?\\s*(\\d{2}\\.\\d{2}\\.\\d{4})`));
+            if (makeUpMatch) {
+                items.push({
+                    track,
+                    subject: `${subject.label} (Nachtermin)`,
+                    date: parseGermanDateNumber(makeUpMatch[1]),
+                    kind: "makeup",
+                    note: ""
+                });
+            }
+        });
+        if (!items.length) {
+            const fallbackMatch = text.match(/(\d{2}\.\d{2}\.\d{4})/g) || [];
+            fallbackMatch.slice(0, 3).forEach((value, index) => {
+                items.push({
+                    track,
+                    subject: ["Deutsch", "Mathe", "Englisch"][index] || "Prüfung",
+                    date: parseGermanDateNumber(value),
+                    kind: "exam",
+                    note: ""
+                });
+            });
+        }
+        return items.filter((entry) => entry.date);
+    }
+
+    async function fetchOfficialExamDates(region, force = true) {
+        const code = OFFICIAL_EXAM_SOURCES[region] ? region : "BE";
+        const source = OFFICIAL_EXAM_SOURCES[code];
+        const stateData = getOfficialExamStateData(code);
+        if (!force && stateData.status === "loading") return;
+        if (!source.url) {
+            stateData.status = "Quelle für dieses Bundesland ist noch nicht hinterlegt.";
+            stateData.updatedAt = Date.now();
+            state.officialExams = persistOfficialExams(state.officialExams);
+            renderOfficialExamDates();
+            return;
+        }
+        stateData.status = "loading";
+        state.officialExams = persistOfficialExams(state.officialExams);
+        renderOfficialExamDates();
+        try {
+            const response = await fetch(source.url, { cache: "no-store" });
+            if (!response.ok) throw new Error("Laden fehlgeschlagen.");
+            const html = await response.text();
+            const text = stripHtmlToText(html);
+            const msaBlock = extractBetween(text, "MSA Abschlussprüfung", "eBBR Abschlussprüfung") || text;
+            const ebbrBlock = extractBetween(text, "eBBR Abschlussprüfung", "BBR Abschlussprüfung") || "";
+            const items = source.parser === "berlin"
+                ? [
+                    ...parseExamBlock(msaBlock, "MSA"),
+                    ...parseExamBlock(ebbrBlock, "eBBR")
+                ]
+                : [];
+            const updatedMatch = text.match(/Zuletzt aktualisiert:\\s*([^·]+?\\d{4})/i);
+            const updatedAt = updatedMatch ? parseGermanDateLong(updatedMatch[1]) : "";
+            stateData.source = source.url;
+            stateData.officialPdf = source.pdf || "";
+            stateData.updatedAt = updatedAt ? new Date(updatedAt).getTime() : Date.now();
+            stateData.status = items.length ? "" : "Keine Termine erkannt. Quelle prüfen.";
+            stateData.items = items;
+            state.officialExams = persistOfficialExams(state.officialExams);
+            renderOfficialExamDates();
+            showToast("Offizielle Termine aktualisiert.", "info");
+        } catch (error) {
+            stateData.status = "Fehler beim Laden. Prüfe Internetverbindung oder CORS.";
+            stateData.updatedAt = Date.now();
+            state.officialExams = persistOfficialExams(state.officialExams);
+            renderOfficialExamDates();
+        }
+    }
+
+    function renderOfficialExamDates() {
+        if (!els.officialExamsList || !els.officialExamsStatus) return;
+        const region = getOfficialExamRegion();
+        if (els.officialExamsRegion && els.officialExamsRegion.value !== region) {
+            els.officialExamsRegion.value = region;
+        }
+        const sourceMeta = OFFICIAL_EXAM_SOURCES[region] || {};
+        const stateData = getOfficialExamStateData(region);
+        const { items, updatedAt, source, status, officialPdf } = stateData;
+        const statusParts = [];
+        statusParts.push(`Bundesland: ${sourceMeta.label || region}`);
+        if (updatedAt) {
+            statusParts.push(`Stand: ${formatDate(new Date(updatedAt).toISOString().slice(0, 10))}`);
+        }
+        if (source) {
+            statusParts.push(`Quelle: ${source}`);
+        }
+        if (officialPdf) {
+            statusParts.push("Offizieller Prüfungsplan: PDF hinterlegt");
+        }
+        if (status) {
+            statusParts.push(status);
+        }
+        els.officialExamsStatus.textContent = statusParts.join(" · ") || "Noch keine Online-Termine geladen.";
+        if (!items || !items.length) {
+            els.officialExamsList.innerHTML = createEmptyState("Keine offiziellen Termine geladen.");
+            return;
+        }
+        const sorted = [...items].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+        els.officialExamsList.innerHTML = sorted.map((item) => {
+            const dateText = item.date ? formatDate(item.date) : "Schulintern";
+            return `
+                <article class="list-item">
+                    <strong>${escapeHtml(item.track)} · ${escapeHtml(item.subject)}</strong>
+                    <p class="list-meta">${dateText}${item.kind === "makeup" ? " · Nachtermin" : ""}</p>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function importOfficialExamDates() {
+        const region = getOfficialExamRegion();
+        const stateData = getOfficialExamStateData(region);
+        const items = Array.isArray(stateData.items) ? stateData.items : [];
+        if (!items.length) {
+            showToast("Keine offiziellen Termine vorhanden.", "info");
+            return;
+        }
+        let added = 0;
+        items.forEach((item) => {
+            if (!item.date) return;
+            const text = `${item.track} ${item.subject}`;
+            const exists = state.eventsStore.events.some((event) => event.date === item.date && normalizeText(event.text) === normalizeText(text));
+            if (exists) return;
+            state.eventsStore.events.push({
+                id: createId("event"),
+                date: item.date,
+                text,
+                type: "exam",
+                priority: "high"
+            });
+            added += 1;
+        });
+        if (added) {
+            state.eventsStore = persistEvents(state.eventsStore);
+            renderCalendar();
+            renderEventList();
+            renderDashboardSummary();
+            showToast(`Offizielle Termine übernommen (${added}).`, "info");
+        } else {
+            showToast("Termine waren bereits im Kalender.", "info");
+        }
+    }
+
     function generateNewQuizTask(clearFeedback = true) {
         const subjectKey = els.quizSubject.value || "mix";
         const topicFocus = normalizeText(els.quizTopicFocus.value);
@@ -1581,46 +1864,190 @@ export function initApp() {
         }
     }
 
-    function lookupDudenWord() {
-        lookupDudenWordFor(els.dudenInput, els.dudenResult, null);
+    const WIKTAPI_BASE = "https://api.wiktapi.dev/v1/de";
+    const WIKTAPI_LANG = "de";
+    const DUDEN_CACHE_KEY = "gf_duden_cache";
+    const DUDEN_CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
+
+    function loadDudenCache() {
+        try {
+            const raw = localStorage.getItem(DUDEN_CACHE_KEY);
+            if (!raw) return {};
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === "object" ? parsed : {};
+        } catch (_) {
+            return {};
+        }
     }
 
-    function lookupDudenWordFor(inputEl, resultEl, linkEl) {
+    function persistDudenCache(cache) {
+        localStorage.setItem(DUDEN_CACHE_KEY, JSON.stringify(cache));
+    }
+
+    function getCachedDuden(wordKey) {
+        const cache = loadDudenCache();
+        const entry = cache[wordKey];
+        if (!entry) return null;
+        if (Date.now() - entry.updatedAt > DUDEN_CACHE_TTL) return null;
+        return entry.data || null;
+    }
+
+    function setCachedDuden(wordKey, data) {
+        const cache = loadDudenCache();
+        cache[wordKey] = { updatedAt: Date.now(), data };
+        const keys = Object.keys(cache);
+        if (keys.length > 60) {
+            keys
+                .sort((a, b) => (cache[a].updatedAt || 0) - (cache[b].updatedAt || 0))
+                .slice(0, keys.length - 60)
+                .forEach((oldKey) => delete cache[oldKey]);
+        }
+        persistDudenCache(cache);
+    }
+
+    async function fetchWiktapiWord(word) {
+        const url = `${WIKTAPI_BASE}/word/${encodeURIComponent(word)}?lang=${WIKTAPI_LANG}`;
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Lookup failed");
+        return res.json();
+    }
+
+    async function fetchWiktapiSearch(query) {
+        const url = `${WIKTAPI_BASE}/search?q=${encodeURIComponent(query)}&lang=${WIKTAPI_LANG}`;
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data?.items)) return data.items;
+        if (Array.isArray(data?.results)) return data.results;
+        return [];
+    }
+
+    function renderWiktapiEntry(word, payload) {
+        const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+        const germanEntries = entries.filter((entry) => entry.lang_code === "de" || entry.lang === "German");
+        const activeEntries = germanEntries.length ? germanEntries : entries;
+        if (!activeEntries.length) return "";
+        const wordLabel = payload?.word || word;
+        const sections = activeEntries.map((entry) => {
+            const pos = entry.pos ? escapeHtml(entry.pos) : "Wortart";
+            const ipas = Array.isArray(entry.sounds)
+                ? Array.from(new Set(entry.sounds.map((sound) => sound.ipa).filter(Boolean)))
+                : [];
+            const ipaHtml = ipas.length ? `<div class="duden-meta">IPA: ${ipas.map((ipa) => escapeHtml(ipa)).join(" · ")}</div>` : "";
+            const forms = Array.isArray(entry.forms)
+                ? entry.forms
+                    .filter((form) => form.form && form.tags)
+                    .slice(0, 6)
+                    .map((form) => `${escapeHtml(form.form)} (${escapeHtml(form.tags.join(", "))})`)
+                : [];
+            const formsHtml = forms.length
+                ? `<div class="duden-meta">Formen: ${forms.join(" · ")}</div>`
+                : "";
+            const senses = Array.isArray(entry.senses) ? entry.senses : [];
+            const meaningHtml = senses.map((sense, index) => {
+                const gloss = Array.isArray(sense.glosses) ? sense.glosses.join(" · ") : "";
+                const tags = Array.isArray(sense.tags) && sense.tags.length
+                    ? `<div class="duden-meta">Tags: ${sense.tags.map((tag) => escapeHtml(tag)).join(", ")}</div>`
+                    : "";
+                const examples = Array.isArray(sense.examples) && sense.examples.length
+                    ? `<div class="duden-examples">${sense.examples.map((ex) => `„${escapeHtml(ex.text || ex)}“`).join(" · ")}</div>`
+                    : "";
+                const synonyms = Array.isArray(sense.synonyms) && sense.synonyms.length
+                    ? `<div class="duden-meta">Synonyme: ${sense.synonyms.map((syn) => escapeHtml(syn.word || syn)).join(", ")}</div>`
+                    : "";
+                if (!gloss) return "";
+                return `
+                    <details ${index === 0 ? "open" : ""}>
+                        <summary>${escapeHtml(gloss)}</summary>
+                        ${tags}
+                        ${examples}
+                        ${synonyms}
+                    </details>
+                `;
+            }).join("");
+            return `
+                <div class="duden-section">
+                    <div class="duden-section-title">${pos}</div>
+                    ${ipaHtml}
+                    ${formsHtml}
+                    <div class="duden-meanings">${meaningHtml || "<div class=\"duden-meta\">Keine Bedeutungen gefunden.</div>"}</div>
+                </div>
+            `;
+        }).join("");
+        return `
+            <div class="duden-entry">
+                <div class="duden-title">
+                    <strong>${escapeHtml(wordLabel)}</strong>
+                    <span class="duden-meta">Wiktionary-Daten (online)</span>
+                </div>
+                ${sections}
+            </div>
+        `;
+    }
+
+    function lookupDudenWord() {
+        lookupDudenWordFor(els.dudenInput, els.dudenResult);
+    }
+
+    async function lookupDudenWordFor(inputEl, resultEl) {
+        const input = normalizeText(inputEl.value);
+        if (!input) {
+            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Hinweis</strong></div><div class=\"duden-meta\">Bitte ein Wort eingeben.</div></div>";
+            return;
+        }
+        const rawWord = input.trim();
+        resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Suche läuft...</strong></div><div class=\"duden-meta\">Online-Wörterbuch wird geladen.</div></div>";
         try {
-            const input = normalizeText(inputEl.value);
-            if (!input) {
-                resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Hinweis</strong></div><div class=\"duden-meta\">Bitte ein Wort eingeben.</div></div>";
+            const cached = getCachedDuden(rawWord.toLowerCase());
+            if (cached) {
+                resultEl.innerHTML = renderWiktapiEntry(rawWord, cached);
                 return;
             }
-            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Suche laeuft...</strong></div></div>";
-            const rawWord = input.trim();
+            const payload = await fetchWiktapiWord(rawWord);
+            if (payload && Array.isArray(payload.entries) && payload.entries.length) {
+                setCachedDuden(rawWord.toLowerCase(), payload);
+                resultEl.innerHTML = renderWiktapiEntry(rawWord, payload);
+                return;
+            }
+            const suggestions = await fetchWiktapiSearch(rawWord);
+            const fallbackSuggestions = suggestions
+                .map((entry) => entry.word || entry.title || entry)
+                .filter(Boolean)
+                .slice(0, 5);
+            const fallbackHtml = fallbackSuggestions.length
+                ? `<div class="duden-suggestions">${fallbackSuggestions
+                    .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
+                    .join("")}</div>`
+                : "<div class=\"duden-meta\">Keine Online-Treffer gefunden.</div>";
+            resultEl.innerHTML = `
+                <div class="duden-entry">
+                    <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
+                    <div class="duden-meta">Meintest du:</div>
+                    ${fallbackHtml}
+                </div>
+            `;
+        } catch (err) {
             const key = normalizeDudenKey(rawWord);
             const entry = DUDEN_DB[key] || DUDEN_DB[rawWord.toLowerCase()] || null;
             const suggestions = entry ? [] : getDudenSuggestions(key, 3);
-
-            if (linkEl) {
-                linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(rawWord)}`;
-            }
-
+            const suggestionHtml = suggestions.length
+                ? `<div class="duden-suggestions">${suggestions
+                    .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
+                    .join("")}</div>`
+                : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
             if (!entry) {
-                const suggestionHtml = suggestions.length
-                    ? `<div class="duden-suggestions">${suggestions
-                        .map((suggest) => `<button class="duden-suggest-btn" data-action="duden-suggest" data-word="${escapeHtml(suggest)}" type="button">${escapeHtml(suggest)}</button>`)
-                        .join("")}</div>`
-                    : "<div class=\"duden-meta\">Keine Treffer im Offline-Wortschatz.</div>";
                 resultEl.innerHTML = `
                     <div class="duden-entry">
                         <div class="duden-title"><strong>${escapeHtml(rawWord)}</strong><span class="duden-meta">kein Eintrag gefunden</span></div>
                         <div class="duden-meta">Meintest du:</div>
                         ${suggestionHtml}
+                        <div class="duden-meta">Hinweis: Online-Suche fehlgeschlagen (CORS/Offline).</div>
                     </div>
                 `;
                 return;
             }
-
             resultEl.innerHTML = renderDudenEntry(entry);
-        } catch (err) {
-            resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Fehler</strong></div><div class=\"duden-meta\">Suche konnte nicht ausgefuehrt werden.</div></div>";
         }
     }
 
@@ -1977,8 +2404,9 @@ export function initApp() {
             generateExamTutorTask(false);
         }
         const task = state.examPrep.tutor.currentTask;
+        const levelLabel = state.examPrep.tutor.level === 6 ? "MSA Original" : `Level ${state.examPrep.tutor.level}`;
         els.examTutorQuestion.innerHTML = `
-            <p><strong>${escapeHtml(state.examPrep.tutor.track)} · ${escapeHtml(subjectLabel(state.examPrep.tutor.subject))} · Level ${state.examPrep.tutor.level}</strong></p>
+            <p><strong>${escapeHtml(state.examPrep.tutor.track)} · ${escapeHtml(subjectLabel(state.examPrep.tutor.subject))} · ${escapeHtml(levelLabel)}</strong></p>
             <p>${escapeHtml(task.question)}</p>
         `;
         const stats = state.examPrep.tutor.stats;
@@ -1995,7 +2423,8 @@ export function initApp() {
     function generateExamTutorTask(clearFeedback = true) {
         const track = els.examTutorTrack.value || "MSA";
         const subject = els.examTutorSubject.value || "math";
-        const level = Number.parseInt(els.examTutorLevel.value, 10) || 3;
+        const rawLevel = Number.parseInt(els.examTutorLevel.value, 10);
+        const level = [1, 2, 3, 4, 5, 6].includes(rawLevel) ? rawLevel : 3;
         state.examPrep.tutor = state.examPrep.tutor || { track, subject, level, currentTask: null, stats: { correct: 0, wrong: 0, readiness: 0 } };
         state.examPrep.tutor.track = track;
         state.examPrep.tutor.subject = subject;
@@ -2010,14 +2439,102 @@ export function initApp() {
     }
 
     function createExamTutorTask(track, subject, level) {
+        if (level === 6) {
+            return createExamOriginalTask(track, subject);
+        }
         if (subject === "math") {
             const baseTask = createAlgebraQuizTask(level + (track === "MSA" ? 1 : 0), "exam");
             return { ...baseTask, question: `[${track}] ${baseTask.question}` };
         }
         if (subject === "de") {
             const task = createGermanQuizTask(level + 1);
-            return { ...task, question: `[${track}] ${task.question}` };
+        return { ...task, question: `[${track}] ${task.question}` };
+    }
+
+    function createExamOriginalTask(track, subject) {
+        const bank = EXAM_ORIGINAL_TASKS[track]?.[subject] || EXAM_ORIGINAL_TASKS.MSA[subject] || [];
+        if (!bank.length) {
+            return { question: `[${track}] Keine Originalaufgaben hinterlegt.`, solution: "" };
         }
+        const task = bank[rand(0, bank.length - 1)];
+        return {
+            question: `[${track}] ${task.question}`,
+            solution: task.solution,
+            hint: task.hint,
+            explain: task.explain
+        };
+    }
+
+    const EXAM_ORIGINAL_TASKS = {
+        MSA: {
+            math: [
+                {
+                    question: "Berechne: 3x + 12 = 48. Löse nach x.",
+                    solution: 12,
+                    hint: "Erst 12 abziehen, dann durch 3 teilen.",
+                    explain: "3x = 36 -> x = 12"
+                },
+                {
+                    question: "Ein Dreieck hat Grundseite 8 cm und Höhe 5 cm. Berechne die Fläche.",
+                    solution: 20,
+                    hint: "Fläche = (g * h) / 2.",
+                    explain: "A = (8 * 5) / 2 = 20"
+                },
+                {
+                    question: "Ein Text kostet 7,50 €. 15 % Rabatt. Wie viel zahlst du?",
+                    solution: 6.375,
+                    hint: "15 % von 7,50 sind 1,125. Dann abziehen.",
+                    explain: "7,50 - 1,125 = 6,375"
+                }
+            ],
+            de: [
+                {
+                    question: "Setze die Satzzeichen richtig: Wann kommst du fragte er",
+                    solution: "Wann kommst du?, fragte er.",
+                    hint: "Fragezeichen + Komma vor Begleitsatz.",
+                    explain: "Direkte Rede endet mit ? und Komma vor dem Begleitsatz."
+                },
+                {
+                    question: "Nenne die Wortart von \"schnell\" in: Er läuft schnell.",
+                    solution: "Adverb",
+                    hint: "Beschreibt das Verb 'läuft'.",
+                    explain: "Adverb bestimmt die Art und Weise."
+                }
+            ],
+            en: [
+                {
+                    question: "Fill in: She ___ to school every day. (go/goes)",
+                    solution: "goes",
+                    hint: "3. Person Singular braucht -s.",
+                    explain: "She goes."
+                },
+                {
+                    question: "Translate to English: \"Ich habe gestern Fußball gespielt.\"",
+                    solution: "I played football yesterday.",
+                    hint: "Simple Past.",
+                    explain: "I played football yesterday."
+                }
+            ],
+            en_oral: [
+                {
+                    question: "Speak about your last weekend for 60 seconds. Mention 3 activities.",
+                    solution: "",
+                    hint: "Use past tense verbs.",
+                    explain: ""
+                }
+            ],
+            presentation: [
+                {
+                    question: "Präsentiere dein Thema 2–3 Minuten: Einstieg, 2 Kernpunkte, Beispiel, Schluss.",
+                    solution: "",
+                    hint: "Nutze klare Übergänge.",
+                    explain: ""
+                }
+            ]
+        },
+        BBR: {},
+        eBBR: {}
+    };
         if (subject === "en_oral") {
             return createEnglishOralTutorTask(track, level);
         }
@@ -2139,6 +2656,10 @@ export function initApp() {
             els.examTutorAskAnswer.innerHTML = "<p>Bitte zuerst eine Prüfungsaufgabe erzeugen.</p>";
             return;
         }
+        if (state.examPrep.tutor?.level === 6) {
+            els.examTutorAskAnswer.innerHTML = "<p>Originalaufgaben: Lies die Aufgabenstellung genau, markiere Schlüsselwörter und rechne Schritt für Schritt.</p>";
+            return;
+        }
         if (question.includes("struktur") || question.includes("aufbau")) {
             els.examTutorAskAnswer.innerHTML = "<p><strong>Prüfungsstruktur:</strong> Einleitung -> Kernargument/Beispiel -> Schluss. Kurz, klar, begründet.</p>";
             return;
@@ -2205,6 +2726,7 @@ export function initApp() {
                 `;
             })
             .join("");
+        renderOfficialExamDates();
     }
 
     function setExamTab(tab) {
@@ -2284,7 +2806,9 @@ export function initApp() {
         const track = ["MSA", "BBR", "eBBR"].includes(els.oralTrack.value) ? els.oralTrack.value : "MSA";
         const language = els.oralLanguage.value === "presentation" ? "presentation" : "en";
         const topic = normalizeText(els.oralTopic.value) || (language === "presentation" ? "Meine Präsentation" : "My school project");
-        const level = [1, 2, 3, 4, 5].includes(Number.parseInt(els.examTutorLevel?.value, 10)) ? Number.parseInt(els.examTutorLevel.value, 10) : 3;
+        const level = [1, 2, 3, 4, 5, 6].includes(Number.parseInt(els.examTutorLevel?.value, 10))
+            ? Number.parseInt(els.examTutorLevel.value, 10)
+            : 3;
         const scenario = buildOralScenario({ track, language, topic, level });
         state.examPrep.oral.track = track;
         state.examPrep.oral.language = language;
@@ -2537,7 +3061,6 @@ export function initApp() {
         const task = createLanguageTask(mode, level);
         state.languageHelper.currentTask = task;
         state.languageHelper = persistLanguageHelper(state.languageHelper);
-        if (els.langAnswer) els.langAnswer.value = "";
         if (clearFeedback) {
             els.langFeedback.innerHTML = "<p>Neue Sprachaufgabe erzeugt.</p>";
         }
@@ -2563,35 +3086,6 @@ export function initApp() {
             hint: "Klarer Aufbau und ruhiges Sprechen mit Pausen.",
             successTip: "Gute Präsentationsstruktur und klare Aussagen."
         };
-    }
-
-    function checkLanguageTask() {
-        const input = normalizeText(els.langAnswer.value);
-        if (!input) {
-            els.langFeedback.innerHTML = "<p>Bitte eine Antwort eingeben.</p>";
-            return;
-        }
-        const task = state.languageHelper.currentTask;
-        if (!task) {
-            generateLanguageTask();
-            return;
-        }
-        const isCorrect = validateQuizAnswer(task, input);
-        if (isCorrect) {
-            state.languageHelper.stats.correct += 1;
-            els.langFeedback.innerHTML = `<p><strong>Richtig.</strong> ${escapeHtml(task.successTip)}</p>`;
-        } else {
-            state.languageHelper.stats.wrong += 1;
-            els.langFeedback.innerHTML = `<p><strong>Noch nicht stark genug.</strong> ${escapeHtml(task.hint)}</p>`;
-        }
-        state.languageHelper = persistLanguageHelper(state.languageHelper);
-        renderLanguagePage();
-    }
-
-    function showLanguageTip() {
-        const task = state.languageHelper.currentTask;
-        if (!task) return;
-        els.langFeedback.innerHTML = `<p><strong>Sprachtipp:</strong> ${escapeHtml(task.hint)}</p>`;
     }
 
     function startLanguageRecording() {
@@ -3101,7 +3595,13 @@ export function initApp() {
             els.examTutorSubject.value = state.examPrep.tutor?.subject || "math";
         }
         if (els.examTutorLevel) {
-            els.examTutorLevel.value = String(state.examPrep.tutor?.level || 3);
+            const stored = Number.parseInt(state.examPrep.tutor?.level, 10);
+            const safeLevel = [1, 2, 3, 4, 5, 6].includes(stored) ? stored : 3;
+            els.examTutorLevel.value = String(safeLevel);
+        }
+        if (els.officialExamsRegion) {
+            const region = OFFICIAL_EXAM_SOURCES[state.settings.region] ? state.settings.region : "BE";
+            els.officialExamsRegion.value = region;
         }
         if (els.oralTrack) {
             els.oralTrack.value = state.examPrep.oral?.track || "MSA";
@@ -3676,7 +4176,6 @@ export function initApp() {
             examTutorAskInput: els.examTutorAskInput.value,
             oralTopic: els.oralTopic.value,
             oralPronunciationText: els.oralPronunciationText.value,
-            langAnswer: els.langAnswer ? els.langAnswer.value : "",
             langTranscript: els.langTranscript.value
         };
         localStorage.setItem("gf_drafts", JSON.stringify(drafts));
@@ -3708,7 +4207,6 @@ export function initApp() {
             if (typeof drafts.examTutorAskInput === "string") els.examTutorAskInput.value = drafts.examTutorAskInput;
             if (typeof drafts.oralTopic === "string") els.oralTopic.value = drafts.oralTopic;
             if (typeof drafts.oralPronunciationText === "string") els.oralPronunciationText.value = drafts.oralPronunciationText;
-            if (els.langAnswer && typeof drafts.langAnswer === "string") els.langAnswer.value = drafts.langAnswer;
             if (typeof drafts.langTranscript === "string") els.langTranscript.value = drafts.langTranscript;
         } catch (_) {
             // ignore invalid draft storage
@@ -3956,6 +4454,73 @@ export function initApp() {
         return clean;
     }
 
+    function loadOfficialExams() {
+        const fallback = {
+            byState: {}
+        };
+        try {
+            const raw = localStorage.getItem(OFFICIAL_EXAMS_STORAGE_KEY);
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") return fallback;
+            const byState = parsed.byState && typeof parsed.byState === "object" ? parsed.byState : {};
+            const cleanByState = {};
+            Object.keys(OFFICIAL_EXAM_SOURCES).forEach((code) => {
+                const stateData = byState[code] && typeof byState[code] === "object" ? byState[code] : {};
+                const items = Array.isArray(stateData.items)
+                    ? stateData.items
+                        .filter((entry) => entry && typeof entry === "object")
+                        .map((entry) => ({
+                            track: ["MSA", "BBR", "eBBR"].includes(entry.track) ? entry.track : "MSA",
+                            subject: typeof entry.subject === "string" ? entry.subject : "",
+                            date: isIsoDate(entry.date) ? entry.date : "",
+                            kind: entry.kind === "makeup" ? "makeup" : "exam",
+                            note: typeof entry.note === "string" ? entry.note : ""
+                        }))
+                        .filter((entry) => entry.subject || entry.note)
+                    : [];
+                cleanByState[code] = {
+                    source: typeof stateData.source === "string" ? stateData.source : "",
+                    officialPdf: typeof stateData.officialPdf === "string" ? stateData.officialPdf : "",
+                    updatedAt: Number.isFinite(stateData.updatedAt) ? stateData.updatedAt : 0,
+                    status: typeof stateData.status === "string" ? stateData.status : "",
+                    items
+                };
+            });
+            return {
+                byState: cleanByState
+            };
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    function persistOfficialExams(data) {
+        const inputByState = data.byState && typeof data.byState === "object" ? data.byState : {};
+        const cleanByState = {};
+        Object.keys(OFFICIAL_EXAM_SOURCES).forEach((code) => {
+            const stateData = inputByState[code] && typeof inputByState[code] === "object" ? inputByState[code] : {};
+            cleanByState[code] = {
+                source: typeof stateData.source === "string" ? stateData.source : "",
+                officialPdf: typeof stateData.officialPdf === "string" ? stateData.officialPdf : "",
+                updatedAt: Number.isFinite(stateData.updatedAt) ? stateData.updatedAt : 0,
+                status: typeof stateData.status === "string" ? stateData.status : "",
+                items: Array.isArray(stateData.items)
+                    ? stateData.items.map((entry) => ({
+                        track: ["MSA", "BBR", "eBBR"].includes(entry.track) ? entry.track : "MSA",
+                        subject: typeof entry.subject === "string" ? entry.subject : "",
+                        date: isIsoDate(entry.date) ? entry.date : "",
+                        kind: entry.kind === "makeup" ? "makeup" : "exam",
+                        note: typeof entry.note === "string" ? entry.note : ""
+                    }))
+                    : []
+            };
+        });
+        const clean = { byState: cleanByState };
+        localStorage.setItem(OFFICIAL_EXAMS_STORAGE_KEY, JSON.stringify(clean));
+        return clean;
+    }
+
     function loadExamPrep() {
         const fallback = {
             activeTrack: "MSA",
@@ -4019,7 +4584,7 @@ export function initApp() {
             const tutor = {
                 track: ["MSA", "BBR", "eBBR"].includes(tutorRaw.track) ? tutorRaw.track : "MSA",
                 subject: ["math", "de", "en", "en_oral", "presentation"].includes(tutorRaw.subject) ? tutorRaw.subject : "math",
-                level: [1, 2, 3, 4, 5].includes(Number.parseInt(tutorRaw.level, 10)) ? Number.parseInt(tutorRaw.level, 10) : 3,
+                level: [1, 2, 3, 4, 5, 6].includes(Number.parseInt(tutorRaw.level, 10)) ? Number.parseInt(tutorRaw.level, 10) : 3,
                 currentTask: tutorRaw.currentTask && typeof tutorRaw.currentTask === "object" ? tutorRaw.currentTask : null,
                 stats: {
                     correct: Math.max(0, Number.parseInt(tutorRaw.stats?.correct, 10) || 0),
@@ -4068,7 +4633,7 @@ export function initApp() {
             tutor: {
                 track: ["MSA", "BBR", "eBBR"].includes(data.tutor?.track) ? data.tutor.track : "MSA",
                 subject: ["math", "de", "en", "en_oral", "presentation"].includes(data.tutor?.subject) ? data.tutor.subject : "math",
-                level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.tutor?.level, 10)) ? Number.parseInt(data.tutor.level, 10) : 3,
+            level: [1, 2, 3, 4, 5, 6].includes(Number.parseInt(data.tutor?.level, 10)) ? Number.parseInt(data.tutor.level, 10) : 3,
                 currentTask: data.tutor?.currentTask && typeof data.tutor.currentTask === "object" ? data.tutor.currentTask : null,
                 stats: {
                     correct: Math.max(0, Number.parseInt(data.tutor?.stats?.correct, 10) || 0),
@@ -4113,7 +4678,8 @@ export function initApp() {
             goals: state.goals,
             studyHelper: state.studyHelper,
             examPrep: state.examPrep,
-            languageHelper: state.languageHelper
+            languageHelper: state.languageHelper,
+            officialExams: state.officialExams
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -4159,6 +4725,10 @@ export function initApp() {
                 if (parsed.languageHelper && typeof parsed.languageHelper === "object") {
                     state.languageHelper = persistLanguageHelper(parsed.languageHelper);
                     hydrateLanguageUI();
+                }
+                if (parsed.officialExams && typeof parsed.officialExams === "object") {
+                    state.officialExams = persistOfficialExams(parsed.officialExams);
+                    renderOfficialExamDates();
                 }
 
                 applyThemeSettings();
