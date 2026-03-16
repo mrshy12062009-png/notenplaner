@@ -239,13 +239,13 @@
                             <p id="calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
-                            <h4>Deutsch: Duden-Helfer</h4>
+                            <h4>Deutsch: Rechtschreib-Check (offline)</h4>
                             <div class="inline-form">
                                 <input id="duden-input" type="text" placeholder="Wort eingeben">
                                 <button id="duden-lookup" class="btn btn-primary" type="button">Suchen</button>
                             </div>
                             <p id="duden-result" class="list-meta"></p>
-                            <a id="duden-link" class="btn btn-ghost" target="_blank" rel="noopener noreferrer" href="https://www.duden.de/suchen/dudenonline">Im Duden öffnen</a>
+                            <p class="list-meta">Ergebnis kommt direkt hier in der App.</p>
                         </article>
                     </div>
                 </div>
@@ -355,6 +355,35 @@
                     <p id="exam-theme-progress" class="list-meta"></p>
                     <div id="exam-list" class="list"></div>
                 </div>
+                <div class="stack exams-extra focus-keep">
+                    <h3>Hilfen (in der App)</h3>
+                    <div class="tool-grid">
+                        <article class="tool-card">
+                            <h4>Mathe: Taschenrechner</h4>
+                            <div class="inline-form">
+                                <input id="exam-calc-input" type="text" placeholder="z. B. (18-3)*2">
+                                <button id="exam-calc-eval" class="btn btn-primary" type="button">Rechnen</button>
+                            </div>
+                            <div class="calc-pad" data-target="exam-calc-input">
+                                <button class="btn btn-ghost calc-key" data-key="7" type="button">7</button><button class="btn btn-ghost calc-key" data-key="8" type="button">8</button><button class="btn btn-ghost calc-key" data-key="9" type="button">9</button><button class="btn btn-ghost calc-key" data-key="/" type="button">/</button>
+                                <button class="btn btn-ghost calc-key" data-key="4" type="button">4</button><button class="btn btn-ghost calc-key" data-key="5" type="button">5</button><button class="btn btn-ghost calc-key" data-key="6" type="button">6</button><button class="btn btn-ghost calc-key" data-key="*" type="button">*</button>
+                                <button class="btn btn-ghost calc-key" data-key="1" type="button">1</button><button class="btn btn-ghost calc-key" data-key="2" type="button">2</button><button class="btn btn-ghost calc-key" data-key="3" type="button">3</button><button class="btn btn-ghost calc-key" data-key="-" type="button">-</button>
+                                <button class="btn btn-ghost calc-key" data-key="0" type="button">0</button><button class="btn btn-ghost calc-key" data-key="." type="button">.</button><button class="btn btn-ghost calc-key" data-key="(" type="button">(</button><button class="btn btn-ghost calc-key" data-key=")" type="button">)</button>
+                                <button class="btn btn-ghost calc-key" data-key="%" type="button">%</button><button class="btn btn-ghost calc-key" data-key="+" type="button">+</button><button class="btn btn-ghost calc-key calc-clear" data-key="clear" type="button">C</button><button class="btn btn-primary calc-key calc-eq" data-key="eval" type="button">=</button>
+                            </div>
+                            <p id="exam-calc-result" class="list-meta"></p>
+                        </article>
+                        <article class="tool-card">
+                            <h4>Deutsch: Rechtschreib-Check (offline)</h4>
+                            <div class="inline-form">
+                                <input id="exam-duden-input" type="text" placeholder="Wort oder kurze Phrase">
+                                <button id="exam-duden-lookup" class="btn btn-primary" type="button">Prüfen</button>
+                            </div>
+                            <p id="exam-duden-result" class="list-meta"></p>
+                            <p class="list-meta">Keine externen Links. Tipps erscheinen direkt hier.</p>
+                        </article>
+                    </div>
+                </div>
                 </section>
                 <section id="exam-panel-oral" class="exam-panel" role="tabpanel" aria-labelledby="exam-tab-oral" aria-hidden="true">
                     <div class="stack exams-learning-core coach-card">
@@ -463,6 +492,31 @@
                         <button id="lang-pron-check" class="btn btn-primary" type="button">Aussprache-Check</button>
                     </div>
                     <div id="lang-pron-feedback" class="coach-answer"></div>
+                </div>
+                <div id="lang-presentation-tools" class="stack">
+                    <h3>Präsentation: Datei + Feedback</h3>
+                    <div class="inline-form responsive-3">
+                        <input id="lang-presentation-file" type="file" accept=".pdf,.ppt,.pptx">
+                        <input id="lang-slide-count" type="number" min="1" max="200" value="8" placeholder="Folienanzahl">
+                        <input id="lang-slide-seconds" type="number" min="10" max="300" value="45" placeholder="Sekunden je Folie">
+                    </div>
+                    <div class="inline-form">
+                        <button id="lang-presentation-start" class="btn btn-primary" type="button">Präsentation starten</button>
+                        <button id="lang-presentation-stop" class="btn btn-ghost" type="button">Stop</button>
+                        <button id="lang-presentation-next" class="btn btn-ghost" type="button">Nächste Folie</button>
+                    </div>
+                    <div id="lang-presentation-status" class="coach-answer"></div>
+                    <p id="lang-presentation-preview-hint" class="list-meta">PDF wird direkt angezeigt. PPT/PPTX bitte für Vorschau als PDF exportieren.</p>
+                    <iframe id="lang-presentation-preview" class="slide-preview hidden" title="Präsentationsvorschau"></iframe>
+                    <h4>Feedback + Lehrerfragen</h4>
+                    <div id="lang-presentation-feedback" class="coach-answer"></div>
+                    <div id="lang-teacher-question" class="coach-answer"></div>
+                    <div class="inline-form">
+                        <input id="lang-teacher-answer" type="text" maxlength="220" placeholder="Optional: deine Antwort zur Lehrerfrage">
+                        <button id="lang-teacher-submit" class="btn btn-ghost" type="button">Antwort speichern</button>
+                        <button id="lang-teacher-next" class="btn btn-ghost" type="button">Nächste Lehrerfrage</button>
+                    </div>
+                    <p id="lang-teacher-log" class="list-meta"></p>
                 </div>
             </section>
 

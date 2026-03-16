@@ -249,6 +249,22 @@ export function initApp() {
         langTranscript: document.getElementById("lang-transcript"),
         langPronCheck: document.getElementById("lang-pron-check"),
         langPronFeedback: document.getElementById("lang-pron-feedback"),
+        langPresentationTools: document.getElementById("lang-presentation-tools"),
+        langPresentationFile: document.getElementById("lang-presentation-file"),
+        langSlideCount: document.getElementById("lang-slide-count"),
+        langSlideSeconds: document.getElementById("lang-slide-seconds"),
+        langPresentationStart: document.getElementById("lang-presentation-start"),
+        langPresentationStop: document.getElementById("lang-presentation-stop"),
+        langPresentationNext: document.getElementById("lang-presentation-next"),
+        langPresentationStatus: document.getElementById("lang-presentation-status"),
+        langPresentationPreviewHint: document.getElementById("lang-presentation-preview-hint"),
+        langPresentationPreview: document.getElementById("lang-presentation-preview"),
+        langPresentationFeedback: document.getElementById("lang-presentation-feedback"),
+        langTeacherQuestion: document.getElementById("lang-teacher-question"),
+        langTeacherAnswer: document.getElementById("lang-teacher-answer"),
+        langTeacherSubmit: document.getElementById("lang-teacher-submit"),
+        langTeacherNext: document.getElementById("lang-teacher-next"),
+        langTeacherLog: document.getElementById("lang-teacher-log"),
 
         confirmModal: document.getElementById("confirm-modal"),
         confirmMessage: document.getElementById("confirm-message"),
@@ -262,6 +278,8 @@ export function initApp() {
     let focusTimer = null;
     let oralSlideTimer = null;
     let oralPreviewUrl = "";
+    let langPresentationTimer = null;
+    let langPresentationPreviewUrl = "";
     let oralRecognition = null;
     let languageRecognition = null;
     let focusLockActive = false;
@@ -502,19 +520,21 @@ export function initApp() {
         els.calcKeys.forEach((button) => {
             button.addEventListener("click", () => onCalcKeyPress(button));
         });
-        els.dudenLookup.addEventListener("click", lookupDudenWord);
-        els.dudenInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                lookupDudenWord();
-            }
-        });
-        if (els.examDudenLookup && els.examDudenInput && els.examDudenResult && els.examDudenLink) {
-            els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink));
+        if (els.dudenLookup && els.dudenInput && els.dudenResult) {
+            els.dudenLookup.addEventListener("click", lookupDudenWord);
+            els.dudenInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    lookupDudenWord();
+                }
+            });
+        }
+        if (els.examDudenLookup && els.examDudenInput && els.examDudenResult) {
+            els.examDudenLookup.addEventListener("click", () => lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null));
             els.examDudenInput.addEventListener("keydown", (event) => {
                 if (event.key === "Enter") {
                     event.preventDefault();
-                    lookupDudenWordFor(els.examDudenInput, els.examDudenResult, els.examDudenLink);
+                    lookupDudenWordFor(els.examDudenInput, els.examDudenResult, null);
                 }
             });
         }
@@ -598,6 +618,14 @@ export function initApp() {
         els.langRecordStop.addEventListener("click", stopLanguageRecording);
         els.langPronCheck.addEventListener("click", analyzeLanguagePronunciation);
         els.langTranscript.addEventListener("input", saveDraftsThrottled);
+        els.langPresentationFile.addEventListener("change", onLanguagePresentationFileChange);
+        els.langSlideCount.addEventListener("change", renderLanguagePage);
+        els.langSlideSeconds.addEventListener("change", renderLanguagePage);
+        els.langPresentationStart.addEventListener("click", startLanguagePresentationRun);
+        els.langPresentationStop.addEventListener("click", stopLanguagePresentationRun);
+        els.langPresentationNext.addEventListener("click", nextLanguagePresentationSlide);
+        els.langTeacherSubmit.addEventListener("click", submitLanguageTeacherAnswer);
+        els.langTeacherNext.addEventListener("click", nextLanguageTeacherQuestion);
 
         els.confirmOk.addEventListener("click", () => {
             const action = confirmAction;
@@ -1474,7 +1502,7 @@ export function initApp() {
     }
 
     function lookupDudenWord() {
-        lookupDudenWordFor(els.dudenInput, els.dudenResult, els.dudenLink);
+        lookupDudenWordFor(els.dudenInput, els.dudenResult, null);
     }
 
     function lookupDudenWordFor(inputEl, resultEl, linkEl) {
@@ -1484,7 +1512,8 @@ export function initApp() {
             return;
         }
         const word = input.toLowerCase();
-        const definitions = {
+
+        const quick = {
             analyse: "Untersuchung eines Sachverhalts nach einzelnen Merkmalen.",
             argument: "Begründung, mit der eine Aussage gestützt wird.",
             erörterung: "Schriftliche Auseinandersetzung mit Pro- und Contra-Argumenten.",
@@ -1494,14 +1523,73 @@ export function initApp() {
             rechtschreibung: "Regeln zur korrekten Schreibung von Wörtern.",
             synonyme: "Wörter mit gleicher oder ähnlicher Bedeutung.",
             metaphor: "Sprachliches Bild mit übertragener Bedeutung.",
-            kohärenz: "Inhaltlicher Zusammenhang zwischen Aussagen."
+            kohärenz: "Inhaltlicher Zusammenhang zwischen Aussagen.",
+            fazit: "Zusammenfassung / Schlussfolgerung am Ende."
         };
-        linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
-        if (definitions[word]) {
-            resultEl.textContent = `${input}: ${definitions[word]}`;
-        } else {
-            resultEl.textContent = `Kein lokaler Eintrag für "${input}". Öffne den Duden-Link für Details.`;
+
+        const confusions = {
+            das: "Artikel/Pronomen: Das Haus, ich sehe das.",
+            dass: "Konjunktion: Ich denke, dass es stimmt.",
+            seit: "Zeit: seit gestern, seit 2 Wochen.",
+            seid: "Verb: ihr seid heute pünktlich.",
+            wider: "gegen: wider besseres Wissen.",
+            wieder: "noch einmal: ich mache es wieder.",
+            wen: "Akkusativ: Wen meinst du?",
+            wenn: "Bedingung: Wenn es regnet, bleibe ich drin."
+        };
+
+        function guessSyllables(text) {
+            const t = normalizeText(text).toLowerCase().replace(/[^a-zäöüß]/g, "");
+            if (!t) return "";
+            const vowels = "aeiouyäöü";
+            const parts = [];
+            let buf = "";
+            for (let i = 0; i < t.length; i += 1) {
+                const ch = t[i];
+                buf += ch;
+                const next = t[i + 1] || "";
+                const next2 = t[i + 2] || "";
+                const isV = vowels.includes(ch);
+                const nextIsV = vowels.includes(next);
+                const next2IsV = vowels.includes(next2);
+                if (isV && next && !nextIsV && next2 && next2IsV) {
+                    parts.push(buf);
+                    buf = "";
+                }
+            }
+            if (buf) parts.push(buf);
+            return parts.length > 1 ? parts.join("·") : "";
         }
+
+        const lines = [];
+        if (quick[word]) {
+            lines.push(`<strong>${escapeHtml(input)}</strong>: ${escapeHtml(quick[word])}`);
+        } else {
+            lines.push(`<strong>${escapeHtml(input)}</strong>: Offline-Check`);
+        }
+
+        if (confusions[word]) {
+            lines.push(`<span class="list-meta">Merke:</span> ${escapeHtml(confusions[word])}`);
+        }
+
+        if (word.includes("ss") || word.includes("ß")) {
+            lines.push(`<span class="list-meta">Tipp ß/ss:</span> nach langem Vokal/Diphthong oft ß (groß, heißen), nach kurzem Vokal oft ss (müssen, Kasse).`);
+        }
+
+        if (/^[a-zäöüß]/.test(input)) {
+            lines.push(`<span class="list-meta">Tipp Großschreibung:</span> Wenn es ein Nomen ist, wird es groß geschrieben.`);
+        }
+
+        const syll = guessSyllables(input);
+        if (syll) {
+            lines.push(`<span class="list-meta">Silben (grobe Hilfe):</span> ${escapeHtml(syll)}`);
+        }
+
+        if (linkEl) {
+            linkEl.href = `https://www.duden.de/suchen/dudenonline/${encodeURIComponent(word)}`;
+        }
+
+        resultEl.innerHTML = lines.join("<br>");
     }
 
     function onCalcKeyPress(button) {
@@ -2069,12 +2157,17 @@ export function initApp() {
         const task = state.languageHelper.currentTask;
         if (!task) return;
         els.langQuestion.innerHTML = `<p><strong>${escapeHtml(task.title)}</strong></p><p>${escapeHtml(task.question)}</p>`;
+        const isPresentation = state.languageHelper.mode === "presentation_speaking";
+        if (els.langPresentationTools) {
+            els.langPresentationTools.classList.toggle("hidden", !isPresentation);
+        }
         if (!els.langFeedback.textContent.trim()) {
             els.langFeedback.innerHTML = "<p>Starte Aufnahme und antworte mündlich. Danach Aussprache-Check ausführen.</p>";
         }
         if (!els.langPronFeedback.textContent.trim()) {
             els.langPronFeedback.innerHTML = "<p>Starte Sprechen für Aussprache-/Sprachstil-Tipps.</p>";
         }
+        renderLanguagePresentationState();
     }
 
     function generateLanguageTask(clearFeedback = true) {
@@ -2106,7 +2199,7 @@ export function initApp() {
         return {
             type: "keyword-text",
             title: `Präsentation · Level ${level}`,
-            question: "Präsentiere dein Thema 2-3 Minuten: Einstieg, 2 Kernpunkte, Beispiel, Schluss.",
+            question: "Sprich frei 2-3 Minuten: Einstieg, 2 Kernpunkte, Beispiel, Schluss. Keine schriftliche Antwort nötig.",
             solution: ["einstieg", "kernpunkt", "beispiel", "schluss"],
             hint: "Klarer Aufbau und ruhiges Sprechen mit Pausen.",
             successTip: "Gute Präsentationsstruktur und klare Aussagen."
