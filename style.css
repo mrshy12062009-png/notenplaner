@@ -2120,6 +2120,36 @@ body.mode-dark .btn-ghost {
     background: #2c2c2e;
 }
 
+body.mode-dark .stack,
+body.mode-dark .card,
+body.mode-dark .calendar-card,
+body.mode-dark .calendar-nav,
+body.mode-dark .list-item,
+body.mode-dark .stat-card,
+body.mode-dark .tool-card,
+body.mode-dark .detail-banner {
+    background-image: linear-gradient(180deg, #1c1c1e, #151516);
+    border-color: #2c2c2e;
+}
+
+body.mode-dark .calc-display {
+    background: #1f1f22;
+    border-color: #2c2c2e;
+}
+
+body.mode-dark .calc-pad .btn {
+    background: #2a2a2e;
+    border-color: #2c2c2e;
+    color: #f5f5f7;
+}
+
+body.mode-dark .duden-entry,
+body.mode-dark .duden-result,
+body.mode-dark .duden-section {
+    background: #1c1c1e;
+    color: #f5f5f7;
+}
+
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
