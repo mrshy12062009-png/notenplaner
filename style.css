@@ -1021,6 +1021,25 @@ button:focus-visible {
     gap: 0.35rem;
 }
 
+.detail-banner.detail-good {
+    border-color: #8bcfa3;
+    background: linear-gradient(140deg, rgba(143, 215, 168, 0.24), rgba(255, 255, 255, 0.8));
+}
+
+.detail-banner.detail-mid {
+    border-color: #e2c27a;
+    background: linear-gradient(140deg, rgba(240, 195, 92, 0.22), rgba(255, 255, 255, 0.82));
+}
+
+.detail-banner.detail-bad {
+    border-color: #e1a19a;
+    background: linear-gradient(140deg, rgba(235, 123, 110, 0.2), rgba(255, 255, 255, 0.84));
+}
+
+.detail-banner.detail-none {
+    border-color: var(--border);
+}
+
 .feedback {
     min-height: 1.1em;
     font-size: 0.9rem;
@@ -1117,6 +1136,22 @@ button:focus-visible {
     padding-left: 1rem;
     display: grid;
     gap: 0.25rem;
+}
+
+.calc-inline {
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.calc-result {
+    margin-left: auto;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-soft) 75%, transparent);
+    border: 1px solid var(--border);
+    font-weight: 700;
+    min-width: 120px;
+    text-align: center;
 }
 
 .focus-display {
@@ -1497,6 +1532,21 @@ body.mode-dark .detail-banner {
     background-image: linear-gradient(165deg, color-mix(in srgb, var(--bg-panel) 92%, #1f8a4c 8%), color-mix(in srgb, var(--bg-panel) 92%, #1f63dc 8%));
 }
 
+body.mode-dark .detail-banner.detail-good {
+    border-color: #2f7f4f;
+    background: linear-gradient(150deg, rgba(28, 96, 58, 0.45), rgba(21, 41, 56, 0.75));
+}
+
+body.mode-dark .detail-banner.detail-mid {
+    border-color: #89652a;
+    background: linear-gradient(150deg, rgba(110, 82, 32, 0.48), rgba(21, 41, 56, 0.75));
+}
+
+body.mode-dark .detail-banner.detail-bad {
+    border-color: #904141;
+    background: linear-gradient(150deg, rgba(126, 53, 53, 0.45), rgba(21, 41, 56, 0.75));
+}
+
 body.mode-dark .section-head h2 {
     color: #d9f4ff;
     text-shadow: 0 0 16px rgba(51, 170, 255, 0.16);
@@ -1782,6 +1832,16 @@ body.mode-dark .app-toast.info {
 
     .calendar-nav h3 {
         font-size: 0.95rem;
+    }
+
+    .calc-inline {
+        flex-wrap: wrap;
+    }
+
+    .calc-result {
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
     }
 }
 

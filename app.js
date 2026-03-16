@@ -46,21 +46,21 @@ export function initApp() {
     const BB_MSA_URL = "https://bildungsserver.berlin-brandenburg.de/unterricht/pruefungen/pruefungen-10/pruefungstermine";
     const OFFICIAL_EXAM_SOURCES = {
         BE: { label: "Berlin", url: BERLIN_MSA_URL, pdf: BERLIN_MSA_OFFICIAL_PDF, parser: "berlin" },
-        BB: { label: "Brandenburg", url: BB_MSA_URL, pdf: "", parser: "berlin" },
-        BW: { label: "Baden-Württemberg", url: "", pdf: "", parser: "none" },
-        BY: { label: "Bayern", url: "", pdf: "", parser: "none" },
-        HB: { label: "Bremen", url: "", pdf: "", parser: "none" },
-        HH: { label: "Hamburg", url: "", pdf: "", parser: "none" },
-        HE: { label: "Hessen", url: "", pdf: "", parser: "none" },
-        MV: { label: "Mecklenburg-Vorpommern", url: "", pdf: "", parser: "none" },
-        NI: { label: "Niedersachsen", url: "", pdf: "", parser: "none" },
-        NW: { label: "Nordrhein-Westfalen", url: "", pdf: "", parser: "none" },
-        RP: { label: "Rheinland-Pfalz", url: "", pdf: "", parser: "none" },
-        SH: { label: "Schleswig-Holstein", url: "", pdf: "", parser: "none" },
-        SL: { label: "Saarland", url: "", pdf: "", parser: "none" },
-        SN: { label: "Sachsen", url: "", pdf: "", parser: "none" },
-        ST: { label: "Sachsen-Anhalt", url: "", pdf: "", parser: "none" },
-        TH: { label: "Thüringen", url: "", pdf: "", parser: "none" }
+        BB: { label: "Brandenburg", url: BB_MSA_URL, pdf: "https://bildungsserver.berlin-brandenburg.de/fileadmin/bbb/unterricht/Pruefungen/Pruefungen_10/Pruefungstermine_MSA_BBR_eBBR_2026.pdf", parser: "berlin" },
+        BW: { label: "Baden-Württemberg", url: "https://km.baden-wuerttemberg.de/de/schule/realschule/pruefungstermine-", pdf: "", parser: "none" },
+        BY: { label: "Bayern", url: "https://www.isb.bayern.de/schularten/realschule/termine/", pdf: "", parser: "none" },
+        HB: { label: "Bremen", url: "https://www.bildung.bremen.de/sixcms/media.php/13/11008-Anlage%2090-2025.pdf", pdf: "https://www.bildung.bremen.de/sixcms/media.php/13/11008-Anlage%2090-2025.pdf", parser: "none" },
+        HH: { label: "Hamburg", url: "https://www.hamburg.de/politik-und-verwaltung/behoerden/bsfb/themen/zentrale-pruefungen/msa-2026-935302", pdf: "", parser: "none" },
+        HE: { label: "Hessen", url: "https://kultus.hessen.de/schulsystem/schulformen-und-bildungsgaenge/hauptschule/hauptschulabschluss/termine-pruefungsabfolge-zaa", pdf: "", parser: "none" },
+        MV: { label: "Mecklenburg-Vorpommern", url: "https://www.bildung-mv.de/schule/abschlusspruefungen/index.html", pdf: "", parser: "none" },
+        NI: { label: "Niedersachsen", url: "https://www.mk.niedersachsen.de/download/89182/Abschlusspruefungen_2016.pdf", pdf: "https://www.mk.niedersachsen.de/download/89182/Abschlusspruefungen_2016.pdf", parser: "none" },
+        NW: { label: "Nordrhein-Westfalen", url: "https://www.standardsicherung.schulministerium.nrw.de/zentrale-pruefungen-am-ende-der-klasse-10-zp10/termine", pdf: "", parser: "none" },
+        RP: { label: "Rheinland-Pfalz", url: "https://bildung.rlp.de/", pdf: "", parser: "none" },
+        SH: { label: "Schleswig-Holstein", url: "https://www.schleswig-holstein.de/DE/fachinhalte/Z/zentrale_abschluesse/Durchfuehrungsbestimmungen_ESA_MSA", pdf: "", parser: "none" },
+        SL: { label: "Saarland", url: "https://www.saarland.de/mbk/DE/portal/schule/", pdf: "", parser: "none" },
+        SN: { label: "Sachsen", url: "https://www.schule.sachsen.de/schuljahrestermine-4793.html", pdf: "https://www.revosax.sachsen.de/vorschrift_gesamt/21219/48854.pdf", parser: "none" },
+        ST: { label: "Sachsen-Anhalt", url: "https://mb.sachsen-anhalt.de/themen/schule", pdf: "", parser: "none" },
+        TH: { label: "Thüringen", url: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", pdf: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", parser: "none" }
     };
 
     const state = {
@@ -101,6 +101,7 @@ export function initApp() {
         dashStudyOpen: document.getElementById("dash-study-open"),
         dashExams: document.getElementById("dash-exams"),
 
+        detailBanner: document.getElementById("detail-banner"),
         detailHeading: document.getElementById("detail-heading"),
         detailAverage: document.getElementById("detail-average"),
         backDashboard: document.getElementById("back-dashboard"),
@@ -377,7 +378,7 @@ export function initApp() {
             }
         });
 
-        els.backDashboard.addEventListener("click", () => showPage("list"));
+        els.backDashboard.addEventListener("click", () => showPage("subjects"));
         els.noteForm.addEventListener("submit", onNoteSubmit);
         els.noteCancel.addEventListener("click", resetNoteForm);
         els.noteValueInput.addEventListener("input", saveDraftsThrottled);
@@ -855,10 +856,17 @@ export function initApp() {
 
     function renderSubjectDetail() {
         const subject = getCurrentSubject();
+        const bannerClasses = ["detail-good", "detail-mid", "detail-bad", "detail-none"];
+        if (els.detailBanner) {
+            els.detailBanner.classList.remove(...bannerClasses);
+        }
         if (!subject) {
             els.detailHeading.textContent = "Fachdetails";
             els.detailAverage.textContent = "Schnitt: -";
-            els.noteList.innerHTML = createEmptyState("Wähle zuerst ein Fach im Dashboard.");
+            if (els.detailBanner) {
+                els.detailBanner.classList.add("detail-none");
+            }
+            els.noteList.innerHTML = createEmptyState("Wähle zuerst ein Fach in Noten.");
             return;
         }
 
@@ -866,6 +874,9 @@ export function initApp() {
         const avg = calculateAverage(subject.notes);
         const avgClass = classifyScore(avg);
         els.detailAverage.innerHTML = `Schnitt: <span class="${avgClass ? `score-${avgClass}` : ""}">${avg ?? "--"}</span>`;
+        if (els.detailBanner) {
+            els.detailBanner.classList.add(avgClass ? `detail-${avgClass}` : "detail-none");
+        }
 
         if (!subject.notes.length) {
             els.noteList.innerHTML = createEmptyState("Noch keine Noten gespeichert.");
@@ -1294,8 +1305,10 @@ export function initApp() {
 
     function getOfficialExamRegion() {
         const uiValue = els.officialExamsRegion?.value;
+        if (uiValue === "ALL") return "ALL";
         if (uiValue && OFFICIAL_EXAM_SOURCES[uiValue]) return uiValue;
         const settingValue = state.settings.region;
+        if (settingValue === "ALL") return "ALL";
         if (settingValue && OFFICIAL_EXAM_SOURCES[settingValue]) return settingValue;
         return "BE";
     }
@@ -1315,13 +1328,30 @@ export function initApp() {
     }
 
     function maybeRefreshOfficialExams() {
+        refreshOfficialExamsForAll();
         const region = getOfficialExamRegion();
+        if (region === "ALL") {
+            renderOfficialExamDates();
+            return;
+        }
         const stateData = getOfficialExamStateData(region);
         const lastUpdate = Number.isFinite(stateData.updatedAt) ? stateData.updatedAt : 0;
         if (!lastUpdate || Date.now() - lastUpdate > OFFICIAL_EXAMS_REFRESH_MS) {
             fetchOfficialExamDates(region, false);
         } else {
             renderOfficialExamDates();
+        }
+    }
+
+    async function refreshOfficialExamsForAll() {
+        const codes = Object.keys(OFFICIAL_EXAM_SOURCES);
+        for (const code of codes) {
+            const stateData = getOfficialExamStateData(code);
+            const lastUpdate = Number.isFinite(stateData.updatedAt) ? stateData.updatedAt : 0;
+            if (!lastUpdate || Date.now() - lastUpdate > OFFICIAL_EXAMS_REFRESH_MS) {
+                await fetchOfficialExamDates(code, false);
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            }
         }
     }
 
@@ -1438,6 +1468,18 @@ export function initApp() {
         state.officialExams = persistOfficialExams(state.officialExams);
         renderOfficialExamDates();
         try {
+            const backendPayload = await fetchBackendJson(`/api/official-exams?state=${encodeURIComponent(code)}`);
+            if (backendPayload && Array.isArray(backendPayload.items)) {
+                stateData.source = backendPayload.source || source.url;
+                stateData.officialPdf = backendPayload.officialPdf || source.pdf || "";
+                stateData.updatedAt = Number.isFinite(backendPayload.updatedAt) ? backendPayload.updatedAt : Date.now();
+                stateData.status = backendPayload.status || "";
+                stateData.items = backendPayload.items;
+                state.officialExams = persistOfficialExams(state.officialExams);
+                renderOfficialExamDates();
+                showToast("Offizielle Termine aktualisiert.", "info");
+                return;
+            }
             const response = await fetch(source.url, { cache: "no-store" });
             if (!response.ok) throw new Error("Laden fehlgeschlagen.");
             const html = await response.text();
@@ -1473,6 +1515,33 @@ export function initApp() {
         const region = getOfficialExamRegion();
         if (els.officialExamsRegion && els.officialExamsRegion.value !== region) {
             els.officialExamsRegion.value = region;
+        }
+        if (region === "ALL") {
+            const cards = Object.entries(OFFICIAL_EXAM_SOURCES).map(([code, meta]) => {
+                const stateData = getOfficialExamStateData(code);
+                const items = Array.isArray(stateData.items) ? stateData.items : [];
+                const stand = stateData.updatedAt ? formatDate(new Date(stateData.updatedAt).toISOString().slice(0, 10)) : "—";
+                const source = stateData.source || meta.url || "Quelle fehlt";
+                const listHtml = items.length
+                    ? items
+                        .slice(0, 6)
+                        .map((item) => {
+                            const dateText = item.date ? formatDate(item.date) : "Schulintern";
+                            return `<div class="list-meta">${escapeHtml(item.track)} · ${escapeHtml(item.subject)} · ${dateText}</div>`;
+                        })
+                        .join("")
+                    : "<div class=\"list-meta\">Keine Termine geladen.</div>";
+                return `
+                    <article class="list-item">
+                        <strong>${escapeHtml(meta.label || code)}</strong>
+                        <p class="list-meta">Stand: ${stand} · Quelle: ${escapeHtml(source)}</p>
+                        ${listHtml}
+                    </article>
+                `;
+            }).join("");
+            els.officialExamsStatus.textContent = "Alle 16 Bundesländer · Stand/Quelle pro Bundesland.";
+            els.officialExamsList.innerHTML = cards || createEmptyState("Noch keine offiziellen Termine geladen.");
+            return;
         }
         const sourceMeta = OFFICIAL_EXAM_SOURCES[region] || {};
         const stateData = getOfficialExamStateData(region);
@@ -1865,6 +1934,8 @@ export function initApp() {
     }
 
     const WIKTAPI_BASE = "https://api.wiktapi.dev/v1/de";
+    const BACKEND_BASES = ["", "http://localhost:4177"];
+    const BACKEND_TIMEOUT_MS = 2500;
     const WIKTAPI_LANG = "de";
     const DUDEN_CACHE_KEY = "gf_duden_cache";
     const DUDEN_CACHE_TTL = 1000 * 60 * 60 * 24 * 30;
@@ -1905,7 +1976,34 @@ export function initApp() {
         persistDudenCache(cache);
     }
 
+    async function fetchWithTimeout(url) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+        try {
+            const res = await fetch(url, { cache: "no-store", signal: controller.signal });
+            return res;
+        } finally {
+            clearTimeout(timeout);
+        }
+    }
+
+    async function fetchBackendJson(path) {
+        for (const base of BACKEND_BASES) {
+            const url = `${base}${path}`;
+            try {
+                const res = await fetchWithTimeout(url);
+                if (!res || !res.ok) continue;
+                return res.json();
+            } catch (_) {
+                continue;
+            }
+        }
+        return null;
+    }
+
     async function fetchWiktapiWord(word) {
+        const backend = await fetchBackendJson(`/api/duden?word=${encodeURIComponent(word)}`);
+        if (backend && backend.entries) return backend;
         const url = `${WIKTAPI_BASE}/word/${encodeURIComponent(word)}?lang=${WIKTAPI_LANG}`;
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error("Lookup failed");

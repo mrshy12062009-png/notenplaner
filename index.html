@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260316i">
+    <link rel="stylesheet" href="style.css?v=20260316r">
 </head>
 <body>
     <div class="app-shell">
@@ -15,11 +15,12 @@
             <div class="brand">
                 <p class="brand-kicker">Schule</p>
                 <h1>Notenplaner</h1>
-                <p class="brand-kicker">Build 20260316q</p>
+                <p class="brand-kicker">Build 20260316r</p>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle btn btn-ghost" type="button" aria-expanded="false">Menü</button>
             <nav class="nav">
                 <button id="btn-list" class="nav-btn is-active" data-page="list" data-title="Dashboard" type="button"><span class="nav-icon">▦</span><span class="nav-label">Dashboard</span></button>
+                <button id="btn-subjects" class="nav-btn" data-page="subjects" data-title="Noten" type="button"><span class="nav-icon">▣</span><span class="nav-label">Noten</span></button>
                 <button id="btn-calendar" class="nav-btn" data-page="calendar" data-title="Kalender" type="button"><span class="nav-icon">◷</span><span class="nav-label">Kalender</span></button>
                 <button id="btn-stats" class="nav-btn" data-page="stats" data-title="Stats" type="button"><span class="nav-icon">▤</span><span class="nav-label">Stats</span></button>
                 <button id="btn-goals" class="nav-btn" data-page="goals" data-title="Ziele" type="button"><span class="nav-icon">◎</span><span class="nav-label">Ziele</span></button>
@@ -33,8 +34,8 @@
         <main class="content">
             <section id="page-list" class="page is-active" aria-labelledby="list-heading">
                 <div class="section-head">
-                    <h2 id="list-heading">Meine Fächer</h2>
-                    <p>Verwalte Fächer und behalte deinen aktuellen Schnitt im Blick.</p>
+                    <h2 id="list-heading">Dashboard</h2>
+                    <p>Alles Wichtige auf einen Blick: Schnitt, Termine und Lernfortschritt.</p>
                 </div>
                 <div class="dashboard-grid" aria-live="polite">
                     <article class="card dash-card">
@@ -72,6 +73,13 @@
                         <div id="dash-exams" class="dash-value">0</div>
                         <p class="dash-sub">geplant</p>
                     </article>
+                </div>
+            </section>
+
+            <section id="page-subjects" class="page" aria-labelledby="subjects-heading">
+                <div class="section-head">
+                    <h2 id="subjects-heading">Noten & Fächer</h2>
+                    <p>Lege Fächer an und verwalte Noten übersichtlich an einem Ort.</p>
                 </div>
                 <form id="subject-form" class="stack" novalidate>
                     <label for="subject-name">Neues Fach</label>
@@ -149,8 +157,8 @@
             </section>
 
             <section id="page-detail" class="page" aria-labelledby="detail-heading">
-                <button id="back-dashboard" class="btn btn-ghost back-btn" type="button">← Zurück zum Dashboard</button>
-                <header class="detail-banner">
+                <button id="back-dashboard" class="btn btn-ghost back-btn" type="button">← Zurück zu Noten</button>
+                <header id="detail-banner" class="detail-banner">
                     <h2 id="detail-heading">Fachdetails</h2>
                     <p id="detail-average">Schnitt: -</p>
                 </header>
@@ -264,11 +272,12 @@
                                 <li>Fläche Rechteck: `A = a * b`</li>
                                 <li>Fläche Dreieck: `A = (g * h) / 2`</li>
                             </ul>
-                            <h4>Taschenrechner</h4>
-                            <div class="inline-form">
-                                <input id="calc-input" type="text" placeholder="z. B. (12+3)*4/5">
-                                <button id="calc-eval" class="btn btn-primary" type="button">Rechnen</button>
-                            </div>
+                    <h4>Taschenrechner</h4>
+                    <div class="inline-form calc-inline">
+                        <input id="calc-input" type="text" placeholder="z. B. (12+3)*4/5">
+                        <button id="calc-eval" class="btn btn-primary" type="button">Rechnen</button>
+                        <span id="calc-result" class="calc-result" aria-live="polite"></span>
+                    </div>
                             <div class="calc-pad" data-target="calc-input">
                                 <button class="btn btn-ghost calc-key" data-key="7" type="button">7</button><button class="btn btn-ghost calc-key" data-key="8" type="button">8</button><button class="btn btn-ghost calc-key" data-key="9" type="button">9</button><button class="btn btn-ghost calc-key" data-key="/" type="button">/</button>
                                 <button class="btn btn-ghost calc-key" data-key="4" type="button">4</button><button class="btn btn-ghost calc-key" data-key="5" type="button">5</button><button class="btn btn-ghost calc-key" data-key="6" type="button">6</button><button class="btn btn-ghost calc-key" data-key="*" type="button">*</button>
@@ -276,7 +285,6 @@
                                 <button class="btn btn-ghost calc-key" data-key="0" type="button">0</button><button class="btn btn-ghost calc-key" data-key="." type="button">.</button><button class="btn btn-ghost calc-key" data-key="(" type="button">(</button><button class="btn btn-ghost calc-key" data-key=")" type="button">)</button>
                                 <button class="btn btn-ghost calc-key" data-key="%" type="button">%</button><button class="btn btn-ghost calc-key" data-key="+" type="button">+</button><button class="btn btn-ghost calc-key calc-clear" data-key="clear" type="button">C</button><button class="btn btn-primary calc-key calc-eq" data-key="eval" type="button">=</button>
                             </div>
-                            <p id="calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
                             <h4>Deutsch: Wörterbuch (online)</h4>
@@ -379,6 +387,7 @@
                     <h3>Offizielle Termine (online)</h3>
                     <div class="inline-form responsive-3">
                         <select id="official-exams-region">
+                            <option value="ALL">Alle 16</option>
                             <option value="BE">Berlin</option>
                             <option value="BB">Brandenburg</option>
                             <option value="BW">Baden-Württemberg</option>
@@ -438,9 +447,10 @@
                             </ul>
                             <div class="divider-line"></div>
                             <h4>Mathe: Taschenrechner</h4>
-                            <div class="inline-form">
+                            <div class="inline-form calc-inline">
                                 <input id="exam-calc-input" type="text" placeholder="z. B. (18-3)*2">
                                 <button id="exam-calc-eval" class="btn btn-primary" type="button">Rechnen</button>
+                                <span id="exam-calc-result" class="calc-result" aria-live="polite"></span>
                             </div>
                             <div class="calc-pad" data-target="exam-calc-input">
                                 <button class="btn btn-ghost calc-key" data-key="7" type="button">7</button><button class="btn btn-ghost calc-key" data-key="8" type="button">8</button><button class="btn btn-ghost calc-key" data-key="9" type="button">9</button><button class="btn btn-ghost calc-key" data-key="/" type="button">/</button>
@@ -449,7 +459,6 @@
                                 <button class="btn btn-ghost calc-key" data-key="0" type="button">0</button><button class="btn btn-ghost calc-key" data-key="." type="button">.</button><button class="btn btn-ghost calc-key" data-key="(" type="button">(</button><button class="btn btn-ghost calc-key" data-key=")" type="button">)</button>
                                 <button class="btn btn-ghost calc-key" data-key="%" type="button">%</button><button class="btn btn-ghost calc-key" data-key="+" type="button">+</button><button class="btn btn-ghost calc-key calc-clear" data-key="clear" type="button">C</button><button class="btn btn-primary calc-key calc-eq" data-key="eval" type="button">=</button>
                             </div>
-                            <p id="exam-calc-result" class="list-meta"></p>
                         </article>
                         <article class="tool-card">
                             <h4>Deutsch: Wörterbuch (online)</h4>
@@ -665,6 +674,7 @@
                                     <span>Startseite</span>
                                     <select id="setting-default-page" name="setting-default-page">
                                         <option value="list">Dashboard</option>
+                                        <option value="subjects">Noten</option>
                                         <option value="calendar">Kalender</option>
                                         <option value="stats">Stats</option>
                                         <option value="goals">Ziele</option>
@@ -774,6 +784,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260316q"></script>
+    <script type="module" src="script.js?v=20260316r"></script>
 </body>
 </html>
