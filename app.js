@@ -68,6 +68,14 @@ export function initApp() {
         subjectNameInput: document.getElementById("subject-name"),
         subjectSubmit: document.getElementById("subject-submit"),
         subjectFeedback: document.getElementById("subject-feedback"),
+        dashSubjects: document.getElementById("dash-subjects"),
+        dashAverage: document.getElementById("dash-average"),
+        dashNotes: document.getElementById("dash-notes"),
+        dashNextEvent: document.getElementById("dash-next-event"),
+        dashNextEventMeta: document.getElementById("dash-next-event-meta"),
+        dashOpenGoals: document.getElementById("dash-open-goals"),
+        dashStudyOpen: document.getElementById("dash-study-open"),
+        dashExams: document.getElementById("dash-exams"),
 
         detailHeading: document.getElementById("detail-heading"),
         detailAverage: document.getElementById("detail-average"),
@@ -674,6 +682,7 @@ export function initApp() {
         renderSubjectDetail();
         renderCalendar();
         renderEventList();
+        renderDashboardSummary();
         renderStats();
         renderGoalSubjects();
         renderGoals();
@@ -786,6 +795,7 @@ export function initApp() {
 
         if (!subjects.length) {
             els.subjectsGrid.innerHTML = createEmptyState("Noch keine Fächer vorhanden. Lege dein erstes Fach an.");
+            renderDashboardSummary();
             return;
         }
 
@@ -807,6 +817,7 @@ export function initApp() {
             })
             .join("");
         renderQuizSubjectOptions();
+        renderDashboardSummary();
     }
 
     function renderSubjectDetail() {
@@ -932,6 +943,7 @@ export function initApp() {
 
         if (!entries.length) {
             els.eventList.innerHTML = createEmptyState("In diesem Monat sind noch keine Termine eingetragen.");
+            renderDashboardSummary();
             return;
         }
 
@@ -949,6 +961,7 @@ export function initApp() {
                 `;
             })
             .join("");
+        renderDashboardSummary();
     }
 
     function renderStats() {
@@ -998,11 +1011,13 @@ export function initApp() {
         renderSubjectAverageChart(subjects);
         renderEventsByMonthChart();
         renderGoalsProgressChart(goalProgressList);
+        renderDashboardSummary();
     }
 
     function renderGoals() {
         if (!state.goals.length) {
             els.goalList.innerHTML = createEmptyState("Noch keine Ziele gesetzt.");
+            renderDashboardSummary();
             return;
         }
 
@@ -1035,6 +1050,55 @@ export function initApp() {
             `;
             })
             .join("");
+        renderDashboardSummary();
+    }
+
+    function renderDashboardSummary() {
+        if (!els.dashSubjects) return;
+        const subjects = state.subjectsStore.subjects || [];
+        const allNotes = subjects.flatMap((subject) => subject.notes || []);
+        const avg = calculateAverage(allNotes);
+        const avgText = avg ? String(avg) : "-";
+        const goalProgressList = evaluateGoalsProgress();
+        const openGoals = goalProgressList.filter((goal) => goal.status === "open").length;
+        const studyOpen = state.studyHelper.sessions.filter((entry) => !entry.done).length;
+        const nowIso = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+        const upcomingExams = Object.keys(state.eventsStore.events).reduce((count, date) => {
+            if (date < nowIso) return count;
+            const exams = (state.eventsStore.events[date] || []).filter((entry) => (entry.type || "exam") === "exam").length;
+            return count + exams;
+        }, 0);
+
+        els.dashSubjects.textContent = String(subjects.length);
+        els.dashAverage.textContent = avgText;
+        els.dashNotes.textContent = String(allNotes.length);
+        els.dashOpenGoals.textContent = String(openGoals);
+        els.dashStudyOpen.textContent = String(studyOpen);
+        els.dashExams.textContent = String(upcomingExams);
+
+        const next = findNextUpcomingEvent();
+        if (next) {
+            els.dashNextEvent.textContent = next.title;
+            els.dashNextEventMeta.textContent = `${formatDate(next.date)} · ${next.typeLabel}`;
+        } else {
+            els.dashNextEvent.textContent = "-";
+            els.dashNextEventMeta.textContent = "Keine Termine";
+        }
+    }
+
+    function findNextUpcomingEvent() {
+        const today = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+        const dates = Object.keys(state.eventsStore.events).filter((date) => date >= today).sort();
+        if (!dates.length) return null;
+        const firstDate = dates[0];
+        const events = getEventsForDate(firstDate);
+        if (!events.length) return null;
+        const item = events[0];
+        return {
+            date: firstDate,
+            title: item.text || "Termin",
+            typeLabel: eventTypeLabel(item.type || "exam")
+        };
     }
 
     function renderGoalSubjects() {
@@ -1531,7 +1595,7 @@ export function initApp() {
             resultEl.innerHTML = "<div class=\"duden-entry\"><div class=\"duden-title\"><strong>Suche laeuft...</strong></div></div>";
             const rawWord = input.trim();
             const key = normalizeDudenKey(rawWord);
-            const entry = DUDEN_DB[key] || null;
+            const entry = DUDEN_DB[key] || DUDEN_DB[rawWord.toLowerCase()] || null;
             const suggestions = entry ? [] : getDudenSuggestions(key, 3);
 
             if (linkEl) {
@@ -1564,6 +1628,7 @@ export function initApp() {
         handy: {
             lemma: "Handy",
             syllables: "Han·dy",
+            hyphenation: "Han|dy",
             wordClass: "Substantiv, Neutrum",
             meanings: [
                 {
@@ -1577,6 +1642,7 @@ export function initApp() {
         analyse: {
             lemma: "Analyse",
             syllables: "Ana·ly·se",
+            hyphenation: "Ana|ly|se",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1595,6 +1661,7 @@ export function initApp() {
         argument: {
             lemma: "Argument",
             syllables: "Ar·gu·ment",
+            hyphenation: "Ar|gu|ment",
             wordClass: "Substantiv, Neutrum",
             meanings: [
                 {
@@ -1605,9 +1672,10 @@ export function initApp() {
             ],
             synonyms: ["Begründung", "Grund"]
         },
-        erörterung: {
+        eroerterung: {
             lemma: "Erörterung",
             syllables: "Er·ör·te·rung",
+            hyphenation: "Er|oer|te|rung",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1621,6 +1689,7 @@ export function initApp() {
         interpretation: {
             lemma: "Interpretation",
             syllables: "In·ter·pre·ta·ti·on",
+            hyphenation: "In|ter|pre|ta|ti|on",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1631,9 +1700,10 @@ export function initApp() {
             ],
             synonyms: ["Deutung", "Auslegung"]
         },
-        präsentation: {
+        praesentation: {
             lemma: "Präsentation",
             syllables: "Prä·sen·ta·ti·on",
+            hyphenation: "Prae|sen|ta|ti|on",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1647,6 +1717,7 @@ export function initApp() {
         grammatik: {
             lemma: "Grammatik",
             syllables: "Gram·ma·tik",
+            hyphenation: "Gram|ma|tik",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1660,6 +1731,7 @@ export function initApp() {
         rechtschreibung: {
             lemma: "Rechtschreibung",
             syllables: "Recht·schrei·bung",
+            hyphenation: "Recht|schrei|bung",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1673,6 +1745,7 @@ export function initApp() {
         synonym: {
             lemma: "Synonym",
             syllables: "Sy·no·nym",
+            hyphenation: "Sy|no|nym",
             wordClass: "Substantiv, Neutrum",
             meanings: [
                 {
@@ -1686,6 +1759,7 @@ export function initApp() {
         metapher: {
             lemma: "Metapher",
             syllables: "Me·ta·pher",
+            hyphenation: "Me|ta|pher",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1696,9 +1770,10 @@ export function initApp() {
             ],
             synonyms: ["Sprachbild"]
         },
-        kohärenz: {
+        kohaerenz: {
             lemma: "Kohärenz",
             syllables: "Ko·hä·renz",
+            hyphenation: "Ko|hae|renz",
             wordClass: "Substantiv, feminin",
             meanings: [
                 {
@@ -1712,6 +1787,7 @@ export function initApp() {
         fazit: {
             lemma: "Fazit",
             syllables: "Fa·zit",
+            hyphenation: "Fa|zit",
             wordClass: "Substantiv, Neutrum",
             meanings: [
                 {
@@ -1725,6 +1801,7 @@ export function initApp() {
         dass: {
             lemma: "dass",
             syllables: "dass",
+            hyphenation: "dass",
             wordClass: "Konjunktion",
             meanings: [
                 {
@@ -1738,6 +1815,7 @@ export function initApp() {
         das: {
             lemma: "das",
             syllables: "das",
+            hyphenation: "das",
             wordClass: "Artikel/Pronomen",
             meanings: [
                 {
@@ -1756,6 +1834,7 @@ export function initApp() {
         seit: {
             lemma: "seit",
             syllables: "seit",
+            hyphenation: "seit",
             wordClass: "Präposition",
             meanings: [
                 {
@@ -1769,6 +1848,7 @@ export function initApp() {
         seid: {
             lemma: "seid",
             syllables: "seid",
+            hyphenation: "seid",
             wordClass: "Verb",
             meanings: [
                 {
@@ -1833,7 +1913,8 @@ export function initApp() {
 
     function renderDudenEntry(entry) {
         const hyphenation = getDudenHyphenation(entry);
-        const meaningHtml = entry.meanings
+        const meanings = Array.isArray(entry.meanings) ? entry.meanings : [];
+        const meaningHtml = meanings
             .map((meaning, index) => {
                 const examples = Array.isArray(meaning.examples) && meaning.examples.length
                     ? `<div class="duden-examples">${meaning.examples.map((ex) => `„${escapeHtml(ex)}“`).join(" · ")}</div>`
@@ -2572,6 +2653,195 @@ export function initApp() {
         state.languageHelper = persistLanguageHelper(state.languageHelper);
     }
 
+    function ensureLanguagePresentationState() {
+        if (!state.languageHelper.presentation || typeof state.languageHelper.presentation !== "object") {
+            state.languageHelper.presentation = {
+                fileName: "",
+                slideCount: 8,
+                secondsPerSlide: 45,
+                currentSlide: 1,
+                running: false,
+                nextAt: 0,
+                feedback: "",
+                teacherQuestions: [],
+                teacherIndex: 0,
+                currentTeacherQuestion: "",
+                answerLog: []
+            };
+        }
+        return state.languageHelper.presentation;
+    }
+
+    function renderLanguagePresentationState() {
+        const presentation = ensureLanguagePresentationState();
+        const slideCount = Math.max(1, Number.parseInt(els.langSlideCount.value, 10) || presentation.slideCount || 8);
+        const seconds = Math.max(10, Number.parseInt(els.langSlideSeconds.value, 10) || presentation.secondsPerSlide || 45);
+        presentation.slideCount = slideCount;
+        presentation.secondsPerSlide = seconds;
+        if (presentation.currentSlide > slideCount) {
+            presentation.currentSlide = slideCount;
+        }
+        if (els.langSlideCount) {
+            els.langSlideCount.value = String(slideCount);
+        }
+        if (els.langSlideSeconds) {
+            els.langSlideSeconds.value = String(seconds);
+        }
+        if (els.langPresentationStatus) {
+            const runningText = presentation.running ? "läuft" : "gestoppt";
+            const fileName = presentation.fileName || "Keine Datei gewählt";
+            els.langPresentationStatus.innerHTML = `
+                <p><strong>Datei:</strong> ${escapeHtml(fileName)}</p>
+                <p><strong>Folie:</strong> ${presentation.currentSlide}/${slideCount} · ${runningText} · ${seconds}s pro Folie</p>
+            `;
+        }
+        if (els.langPresentationPreview && els.langPresentationPreviewHint) {
+            if (langPresentationPreviewUrl) {
+                els.langPresentationPreview.src = langPresentationPreviewUrl;
+                els.langPresentationPreview.classList.remove("hidden");
+                els.langPresentationPreviewHint.textContent = "Vorschau aktiv. Nutze den Folienmodus parallel.";
+            } else {
+                els.langPresentationPreview.removeAttribute("src");
+                els.langPresentationPreview.classList.add("hidden");
+                els.langPresentationPreviewHint.textContent = "PDF wird direkt angezeigt. PPT/PPTX bitte für Vorschau als PDF exportieren.";
+            }
+        }
+        if (els.langPresentationFeedback) {
+            els.langPresentationFeedback.innerHTML = presentation.feedback
+                ? `<p>${escapeHtml(presentation.feedback)}</p>`
+                : "<p>Starte den Folienmodus, danach bekommst du Feedback und Lehrerfragen.</p>";
+        }
+        if (els.langTeacherQuestion) {
+            const question = presentation.currentTeacherQuestion || "Noch keine Lehrerfrage. Starte zuerst die Präsentation.";
+            els.langTeacherQuestion.innerHTML = `<p><strong>Lehrerfrage:</strong> ${escapeHtml(question)}</p>`;
+        }
+        if (els.langTeacherLog) {
+            const total = presentation.answerLog.length;
+            const last = presentation.answerLog[total - 1];
+            els.langTeacherLog.textContent = total
+                ? `Antworten gespeichert: ${total}${last ? ` · zuletzt: ${last.text.slice(0, 48)}...` : ""}`
+                : "Noch keine Antworten gespeichert.";
+        }
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+    }
+
+    function onLanguagePresentationFileChange() {
+        const presentation = ensureLanguagePresentationState();
+        const file = els.langPresentationFile.files && els.langPresentationFile.files[0];
+        presentation.fileName = file ? file.name : "";
+        if (langPresentationPreviewUrl) {
+            URL.revokeObjectURL(langPresentationPreviewUrl);
+            langPresentationPreviewUrl = "";
+        }
+        if (file && file.type === "application/pdf") {
+            langPresentationPreviewUrl = URL.createObjectURL(file);
+        }
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+    }
+
+    function startLanguagePresentationRun() {
+        stopLanguagePresentationRun(false);
+        const presentation = ensureLanguagePresentationState();
+        const slideCount = Math.max(1, Number.parseInt(els.langSlideCount.value, 10) || presentation.slideCount || 8);
+        const seconds = Math.max(10, Number.parseInt(els.langSlideSeconds.value, 10) || presentation.secondsPerSlide || 45);
+        presentation.slideCount = slideCount;
+        presentation.secondsPerSlide = seconds;
+        presentation.currentSlide = 1;
+        presentation.running = true;
+        presentation.nextAt = Date.now() + (seconds * 1000);
+        presentation.feedback = "Präsentation gestartet. Sprich frei zu jeder Folie und wechsle bei Bedarf manuell.";
+        langPresentationTimer = setInterval(() => {
+            if (!presentation.running) return;
+            const now = Date.now();
+            if (now < presentation.nextAt) return;
+            if (presentation.currentSlide >= presentation.slideCount) {
+                stopLanguagePresentationRun(false);
+                const scenario = buildOralScenario({
+                    track: "MSA",
+                    language: "presentation",
+                    topic: "dein Thema",
+                    level: state.languageHelper.level || 3
+                });
+                const queue = createTeacherQuestions(scenario);
+                presentation.teacherQuestions = queue;
+                presentation.teacherIndex = 0;
+                presentation.currentTeacherQuestion = queue[0] || "Fragerunde gestartet.";
+                presentation.feedback = "Folien fertig. Fragerunde gestartet.";
+                state.languageHelper = persistLanguageHelper(state.languageHelper);
+                renderLanguagePresentationState();
+                showToast("Präsentation fertig. Lehrerfragen gestartet.", "info");
+                return;
+            }
+            presentation.currentSlide += 1;
+            presentation.nextAt = now + (presentation.secondsPerSlide * 1000);
+            state.languageHelper = persistLanguageHelper(state.languageHelper);
+            renderLanguagePresentationState();
+        }, 500);
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+        showToast("Präsentation gestartet.", "info");
+    }
+
+    function stopLanguagePresentationRun(showNotice = true) {
+        if (langPresentationTimer) {
+            clearInterval(langPresentationTimer);
+            langPresentationTimer = null;
+        }
+        const presentation = ensureLanguagePresentationState();
+        presentation.running = false;
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+        if (showNotice) showToast("Präsentation gestoppt.", "info");
+    }
+
+    function nextLanguagePresentationSlide() {
+        const presentation = ensureLanguagePresentationState();
+        const maxSlide = Math.max(1, Number.parseInt(presentation.slideCount, 10) || 8);
+        const current = Math.max(1, Number.parseInt(presentation.currentSlide, 10) || 1);
+        presentation.currentSlide = Math.min(maxSlide, current + 1);
+        presentation.nextAt = Date.now() + (presentation.secondsPerSlide * 1000);
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+    }
+
+    function submitLanguageTeacherAnswer() {
+        const presentation = ensureLanguagePresentationState();
+        const answer = normalizeText(els.langTeacherAnswer.value);
+        if (!answer) {
+            showToast("Bitte eine Antwort eingeben.", "info");
+            return;
+        }
+        const question = presentation.currentTeacherQuestion || "";
+        presentation.answerLog.push({
+            text: answer,
+            question,
+            createdAt: new Date().toISOString()
+        });
+        if (presentation.answerLog.length > 30) {
+            presentation.answerLog = presentation.answerLog.slice(-30);
+        }
+        els.langTeacherAnswer.value = "";
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+    }
+
+    function nextLanguageTeacherQuestion() {
+        const presentation = ensureLanguagePresentationState();
+        const queue = Array.isArray(presentation.teacherQuestions) ? presentation.teacherQuestions : [];
+        if (!queue.length) {
+            presentation.currentTeacherQuestion = "Starte zuerst die Präsentation, um Fragen zu erhalten.";
+            state.languageHelper = persistLanguageHelper(state.languageHelper);
+            renderLanguagePresentationState();
+            return;
+        }
+        const nextIndex = Math.min(queue.length - 1, (Number.parseInt(presentation.teacherIndex, 10) || 0) + 1);
+        presentation.teacherIndex = nextIndex;
+        presentation.currentTeacherQuestion = queue[nextIndex];
+        state.languageHelper = persistLanguageHelper(state.languageHelper);
+        renderLanguagePresentationState();
+    }
+
     function onStudySubmit(event) {
         event.preventDefault();
         clearFeedback(els.studyFeedback);
@@ -2860,6 +3130,14 @@ export function initApp() {
         }
         if (els.langTranscript && typeof state.languageHelper.lastTranscript === "string") {
             els.langTranscript.value = state.languageHelper.lastTranscript;
+        }
+        if (state.languageHelper.presentation) {
+            if (els.langSlideCount) {
+                els.langSlideCount.value = String(state.languageHelper.presentation.slideCount || 8);
+            }
+            if (els.langSlideSeconds) {
+                els.langSlideSeconds.value = String(state.languageHelper.presentation.secondsPerSlide || 45);
+            }
         }
     }
 
@@ -3564,13 +3842,42 @@ export function initApp() {
             currentTask: null,
             stats: { correct: 0, wrong: 0 },
             lastTranscript: "",
-            lastScore: 0
+            lastScore: 0,
+            presentation: {
+                fileName: "",
+                slideCount: 8,
+                secondsPerSlide: 45,
+                currentSlide: 1,
+                running: false,
+                nextAt: 0,
+                feedback: "",
+                teacherQuestions: [],
+                teacherIndex: 0,
+                currentTeacherQuestion: "",
+                answerLog: []
+            }
         };
         try {
             const raw = localStorage.getItem("gf_language_helper");
             if (!raw) return fallback;
             const parsed = JSON.parse(raw);
             if (!parsed || typeof parsed !== "object") return fallback;
+            const presentationRaw = parsed.presentation && typeof parsed.presentation === "object" ? parsed.presentation : {};
+            const slideCount = Math.max(1, Number.parseInt(presentationRaw.slideCount, 10) || fallback.presentation.slideCount);
+            const seconds = Math.max(10, Number.parseInt(presentationRaw.secondsPerSlide, 10) || fallback.presentation.secondsPerSlide);
+            const currentSlide = Math.max(1, Math.min(slideCount, Number.parseInt(presentationRaw.currentSlide, 10) || 1));
+            const teacherQuestions = Array.isArray(presentationRaw.teacherQuestions)
+                ? presentationRaw.teacherQuestions.filter((entry) => typeof entry === "string" && entry.trim())
+                : [];
+            const answerLog = Array.isArray(presentationRaw.answerLog)
+                ? presentationRaw.answerLog
+                    .filter((entry) => entry && typeof entry === "object" && typeof entry.text === "string")
+                    .slice(-30)
+                : [];
+            const teacherIndex = Math.min(
+                Math.max(0, Number.parseInt(presentationRaw.teacherIndex, 10) || 0),
+                Math.max(0, teacherQuestions.length - 1)
+            );
             return {
                 mode: ["en_speaking", "presentation_speaking"].includes(parsed.mode) ? parsed.mode : fallback.mode,
                 level: [1, 2, 3, 4, 5].includes(Number.parseInt(parsed.level, 10)) ? Number.parseInt(parsed.level, 10) : fallback.level,
@@ -3580,7 +3887,22 @@ export function initApp() {
                     wrong: Math.max(0, Number.parseInt(parsed.stats?.wrong, 10) || 0)
                 },
                 lastTranscript: typeof parsed.lastTranscript === "string" ? parsed.lastTranscript : "",
-                lastScore: Math.max(0, Math.min(100, Number.parseInt(parsed.lastScore, 10) || 0))
+                lastScore: Math.max(0, Math.min(100, Number.parseInt(parsed.lastScore, 10) || 0)),
+                presentation: {
+                    fileName: typeof presentationRaw.fileName === "string" ? presentationRaw.fileName : "",
+                    slideCount,
+                    secondsPerSlide: seconds,
+                    currentSlide,
+                    running: false,
+                    nextAt: 0,
+                    feedback: typeof presentationRaw.feedback === "string" ? presentationRaw.feedback : "",
+                    teacherQuestions,
+                    teacherIndex,
+                    currentTeacherQuestion: typeof presentationRaw.currentTeacherQuestion === "string"
+                        ? presentationRaw.currentTeacherQuestion
+                        : "",
+                    answerLog
+                }
             };
         } catch (_) {
             return fallback;
@@ -3588,6 +3910,22 @@ export function initApp() {
     }
 
     function persistLanguageHelper(data) {
+        const presentationRaw = data.presentation && typeof data.presentation === "object" ? data.presentation : {};
+        const slideCount = Math.max(1, Number.parseInt(presentationRaw.slideCount, 10) || 8);
+        const seconds = Math.max(10, Number.parseInt(presentationRaw.secondsPerSlide, 10) || 45);
+        const currentSlide = Math.max(1, Math.min(slideCount, Number.parseInt(presentationRaw.currentSlide, 10) || 1));
+        const teacherQuestions = Array.isArray(presentationRaw.teacherQuestions)
+            ? presentationRaw.teacherQuestions.filter((entry) => typeof entry === "string" && entry.trim())
+            : [];
+        const teacherIndex = Math.min(
+            Math.max(0, Number.parseInt(presentationRaw.teacherIndex, 10) || 0),
+            Math.max(0, teacherQuestions.length - 1)
+        );
+        const answerLog = Array.isArray(presentationRaw.answerLog)
+            ? presentationRaw.answerLog
+                .filter((entry) => entry && typeof entry === "object" && typeof entry.text === "string")
+                .slice(-30)
+            : [];
         const clean = {
             mode: ["en_speaking", "presentation_speaking"].includes(data.mode) ? data.mode : "en_speaking",
             level: [1, 2, 3, 4, 5].includes(Number.parseInt(data.level, 10)) ? Number.parseInt(data.level, 10) : 3,
@@ -3597,7 +3935,22 @@ export function initApp() {
                 wrong: Math.max(0, Number.parseInt(data.stats?.wrong, 10) || 0)
             },
             lastTranscript: typeof data.lastTranscript === "string" ? data.lastTranscript : "",
-            lastScore: Math.max(0, Math.min(100, Number.parseInt(data.lastScore, 10) || 0))
+            lastScore: Math.max(0, Math.min(100, Number.parseInt(data.lastScore, 10) || 0)),
+            presentation: {
+                fileName: typeof presentationRaw.fileName === "string" ? presentationRaw.fileName : "",
+                slideCount,
+                secondsPerSlide: seconds,
+                currentSlide,
+                running: Boolean(presentationRaw.running) && false,
+                nextAt: 0,
+                feedback: typeof presentationRaw.feedback === "string" ? presentationRaw.feedback : "",
+                teacherQuestions,
+                teacherIndex,
+                currentTeacherQuestion: typeof presentationRaw.currentTeacherQuestion === "string"
+                    ? presentationRaw.currentTeacherQuestion
+                    : "",
+                answerLog
+            }
         };
         localStorage.setItem("gf_language_helper", JSON.stringify(clean));
         return clean;

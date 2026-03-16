@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260316g">
+    <link rel="stylesheet" href="style.css?v=20260316i">
 </head>
 <body>
     <div class="app-shell">
@@ -15,7 +15,7 @@
             <div class="brand">
                 <p class="brand-kicker">Schule</p>
                 <h1>Notenplaner</h1>
-                <p class="brand-kicker">Build 20260316g</p>
+                <p class="brand-kicker">Build 20260316j</p>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle btn btn-ghost" type="button" aria-expanded="false">Menü</button>
             <nav class="nav">
@@ -35,6 +35,43 @@
                 <div class="section-head">
                     <h2 id="list-heading">Meine Fächer</h2>
                     <p>Verwalte Fächer und behalte deinen aktuellen Schnitt im Blick.</p>
+                </div>
+                <div class="dashboard-grid" aria-live="polite">
+                    <article class="card dash-card">
+                        <p class="list-meta">Faecher</p>
+                        <div id="dash-subjects" class="dash-value">0</div>
+                        <p class="dash-sub">gesamt</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Schnitt gesamt</p>
+                        <div id="dash-average" class="dash-value">-</div>
+                        <p class="dash-sub">alle Noten</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Noten</p>
+                        <div id="dash-notes" class="dash-value">0</div>
+                        <p class="dash-sub">eingetragen</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Naechster Termin</p>
+                        <div id="dash-next-event" class="dash-value-sm">-</div>
+                        <p class="dash-sub" id="dash-next-event-meta">Keine Termine</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Ziele offen</p>
+                        <div id="dash-open-goals" class="dash-value">0</div>
+                        <p class="dash-sub">aktiv</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Lernbloecke</p>
+                        <div id="dash-study-open" class="dash-value">0</div>
+                        <p class="dash-sub">offen</p>
+                    </article>
+                    <article class="card dash-card">
+                        <p class="list-meta">Pruefungen</p>
+                        <div id="dash-exams" class="dash-value">0</div>
+                        <p class="dash-sub">geplant</p>
+                    </article>
                 </div>
                 <form id="subject-form" class="stack" novalidate>
                     <label for="subject-name">Neues Fach</label>
@@ -709,6 +746,6 @@
         </div>
     </div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
-    <script type="module" src="script.js?v=20260316g"></script>
+    <script type="module" src="script.js?v=20260316j"></script>
 </body>
 </html>
