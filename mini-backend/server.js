@@ -16,21 +16,7 @@ const OFFICIAL_EXAM_SOURCES = {
     url: "https://bildungsserver.berlin-brandenburg.de/unterricht/pruefungen/pruefungen-10/pruefungstermine",
     pdf: "https://bildungsserver.berlin-brandenburg.de/fileadmin/bbb/unterricht/Pruefungen/Pruefungen_10/Pruefungstermine_MSA_BBR_eBBR_2026.pdf",
     parser: "berlin"
-  },
-  BW: { label: "Baden-Württemberg", url: "https://km.baden-wuerttemberg.de/de/schule/realschule/pruefungstermine-", pdf: "", parser: "none" },
-  BY: { label: "Bayern", url: "https://www.isb.bayern.de/schularten/realschule/termine/", pdf: "", parser: "none" },
-  HB: { label: "Bremen", url: "https://www.bildung.bremen.de/sixcms/media.php/13/11008-Anlage%2090-2025.pdf", pdf: "https://www.bildung.bremen.de/sixcms/media.php/13/11008-Anlage%2090-2025.pdf", parser: "none" },
-  HH: { label: "Hamburg", url: "https://www.hamburg.de/politik-und-verwaltung/behoerden/bsfb/themen/zentrale-pruefungen/msa-2026-935302", pdf: "", parser: "none" },
-  HE: { label: "Hessen", url: "https://kultus.hessen.de/schulsystem/schulformen-und-bildungsgaenge/hauptschule/hauptschulabschluss/termine-pruefungsabfolge-zaa", pdf: "", parser: "none" },
-  MV: { label: "Mecklenburg-Vorpommern", url: "https://www.bildung-mv.de/schule/abschlusspruefungen/index.html", pdf: "", parser: "none" },
-  NI: { label: "Niedersachsen", url: "https://www.mk.niedersachsen.de/download/89182/Abschlusspruefungen_2016.pdf", pdf: "https://www.mk.niedersachsen.de/download/89182/Abschlusspruefungen_2016.pdf", parser: "none" },
-  NW: { label: "Nordrhein-Westfalen", url: "https://www.standardsicherung.schulministerium.nrw.de/zentrale-pruefungen-am-ende-der-klasse-10-zp10/termine", pdf: "", parser: "none" },
-  RP: { label: "Rheinland-Pfalz", url: "https://bildung.rlp.de/", pdf: "", parser: "none" },
-  SH: { label: "Schleswig-Holstein", url: "https://www.schleswig-holstein.de/DE/fachinhalte/Z/zentrale_abschluesse/Durchfuehrungsbestimmungen_ESA_MSA", pdf: "", parser: "none" },
-  SL: { label: "Saarland", url: "https://www.saarland.de/mbk/DE/portal/schule/", pdf: "", parser: "none" },
-  SN: { label: "Sachsen", url: "https://www.schule.sachsen.de/schuljahrestermine-4793.html", pdf: "https://www.revosax.sachsen.de/vorschrift_gesamt/21219/48854.pdf", parser: "none" },
-  ST: { label: "Sachsen-Anhalt", url: "https://mb.sachsen-anhalt.de/themen/schule", pdf: "", parser: "none" },
-  TH: { label: "Thüringen", url: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", pdf: "https://www.schulportal-thueringen.de/services/resources/download/public/2280298/VVOrgS2526-Anlage_6-1_ABLAUF.pdf", parser: "none" }
+  }
 };
 
 function json(res, status, payload) {
